@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-araca-azul text-araca-azul font-body;
+}
+
+/* Foco visivel para navegacao por teclado (acessibilidade) */
+:focus-visible {
+  outline: 2px solid #061268;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Correcao necessaria apos o fundo geral virar azul-marinho: sem isso,
+   inputs/selects (que continuam com fundo branco) herdavam o texto branco
+   do body e ficavam ilegiveis (texto branco sobre fundo branco). */
+input,
+select,
+textarea {
+  color: #061268;
+  background-color: #ffffff;
+}
+
+/* Mesma correcao aplicada as celulas de tabela: sem isso, o texto de
+   dados (no <td>) herdava o branco do body e ficava invisivel sobre o
+   fundo branco das tabelas. Os cabecalhos (<th>) nao precisam - a cor
+   deles ja vem de uma classe explicita no <thead>. */
+td {
+  color: #061268;
+}
+
+/* Refinamento global: todo card que usa a classe utilitaria "shadow" do
+   Tailwind ganha uma leve elevacao ao passar o mouse, dando uma sensacao
+   de superficie viva sem precisar alterar cada tela individualmente. */
+.shadow,
+.shadow-md {
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+@media (hover: hover) {
+  .shadow:hover,
+  .shadow-md:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.32), 0 4px 14px -4px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* Bordas ligeiramente mais organicas em todo o sistema */
+.rounded-xl {
+  border-radius: 1rem;
+}
+
+/* Textura de bolinhas (padrao pontilhado extraido da raquete do logo),
+   usada como fundo ambiente em superficies escuras da marca */
+.textura-pontilhada {
+  background-image: radial-gradient(currentColor 1.4px, transparent 1.4px);
+  background-size: 20px 20px;
+}
+
+/* Scrollbar discreta alinhada a paleta da marca */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 18, 104, 0.18);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 18, 104, 0.32);
+}
+
+/* Respeita a preferencia do usuario por menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

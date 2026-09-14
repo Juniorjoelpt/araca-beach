@@ -1,0 +1,27 @@
+# Backend
+backend/target/
+backend/.mvn/
+*.class
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.netbeans/
+nbproject/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Variaveis de ambiente (segredos reais - nunca versionar)
+.env
+.env.local
+backend/.env
+frontend/.env

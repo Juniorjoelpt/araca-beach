@@ -1,0 +1,49 @@
+import apiPortal from './apiPortal.js'
+
+function tokenExpirado(token) {
+  try {
+    const payloadBase64 = token.split('.')[1]
+    const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'))
+    const payload = JSON.parse(payloadJson)
+    if (!payload.exp) return true
+    return payload.exp < Math.floor(Date.now() / 1000)
+  } catch {
+    return true
+  }
+}
+
+function salvarSessao(data) {
+  localStorage.setItem('araca_beach_cliente_token', data.token)
+  localStorage.setItem('araca_beach_cliente_dados', JSON.stringify({ id: data.clienteId, nome: data.nome, email: data.email }))
+}
+
+export const portalAuthService = {
+  registrar: async (nome, email, telefone, senha) => {
+    const { data } = await apiPortal.post('/auth/registro', { nome, email, telefone, senha })
+    salvarSessao(data)
+    return data
+  },
+  login: async (email, senha) => {
+    const { data } = await apiPortal.post('/auth/login', { email, senha })
+    salvarSessao(data)
+    return data
+  },
+  logout: () => {
+    localStorage.removeItem('araca_beach_cliente_token')
+    localStorage.removeItem('araca_beach_cliente_dados')
+  },
+  estaAutenticado: () => {
+    const token = localStorage.getItem('araca_beach_cliente_token')
+    if (!token) return false
+    if (tokenExpirado(token)) {
+      localStorage.removeItem('araca_beach_cliente_token')
+      localStorage.removeItem('araca_beach_cliente_dados')
+      return false
+    }
+    return true
+  },
+  dadosCliente: () => {
+    const raw = localStorage.getItem('araca_beach_cliente_dados')
+    return raw ? JSON.parse(raw) : null
+  },
+}

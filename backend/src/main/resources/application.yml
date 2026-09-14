@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: araca-beach-api
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:aracabeach}?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=America/Fortaleza
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 'update' cria/ajusta as tabelas automaticamente a cada start - ideal em desenvolvimento.
+      # Trocar para 'validate' quando o projeto for para producao.
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  jackson:
+    time-zone: America/Fortaleza
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8080
+
+araca-beach:
+  jwt:
+    secret: ${JWT_SECRET:troque-esta-chave-em-producao-para-uma-bem-mais-longa-e-secreta}
+    expiration-minutes: 480
+  notificacoes:
+    email:
+      remetente: ${MAIL_USERNAME:naoresponda@aracabeach.com.br}
+      # Quantas horas antes do horario o lembrete automatico e enviado
+      horas-antes-lembrete: 2
+      # Para onde vao os alertas internos (estoque baixo, etc) - se vazio, nao envia
+      destinatario-alertas: ${EMAIL_ALERTAS:}
+      # Estoque igual ou abaixo deste valor dispara o alerta
+      limite-estoque-baixo: 5
+  portal:
+    # Janela de horarios que o cliente pode reservar pelo portal/app mobile
+    horario-abertura: 6
+    horario-fechamento: 23
+    duracao-slot-minutos: 60
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
