@@ -5,14 +5,27 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Resolve o host do backend de novo a cada 10s em vez de guardar o IP
+    # para sempre. Sem isso, quando o backend reinicia e ganha um IP interno
+    # novo (acontece tanto no Docker Compose quanto na Railway), o nginx
+    # continua tentando falar com o IP antigo e morto ate o proprio nginx
+    # reiniciar. NGINX_LOCAL_RESOLVERS e preenchido automaticamente pela
+    # imagem oficial (script 15-local-resolvers.envsh) com o resolvedor de
+    # DNS correto do ambiente (Docker Compose ou Railway).
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+
     # Encaminha tudo que comeca com /api para o backend. O host vem da
     # variavel de ambiente BACKEND_HOST (substituida na hora que o
     # container sobe - ver Dockerfile), pra funcionar tanto no Docker
     # Compose local/Hostinger (BACKEND_HOST=backend, resolvido pela rede
     # interna do Compose) quanto na Railway (BACKEND_HOST=<nome do
     # servico backend>.railway.internal) sem precisar mexer no arquivo.
+    # Usar uma variavel no proxy_pass (em vez do host direto) e o que
+    # obriga o nginx a consultar o "resolver" acima a cada requisicao, ao
+    # inves de resolver soh uma vez quando o container sobe.
     location /api/ {
-        proxy_pass http://${BACKEND_HOST}:8080/api/;
+        set $backend_upstream http://${BACKEND_HOST}:8080;
+        proxy_pass $backend_upstream/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
