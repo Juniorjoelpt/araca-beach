@@ -39,8 +39,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/portal/auth/**", "/api/portal/quadras", "/api/portal/disponibilidade").permitAll()
                         .requestMatchers("/api/portal/**").hasRole("CLIENTE")
                         .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers("/api/pagamentos/**").hasRole("ADMIN")
+                        // Pagamentos fica aberto para ADMIN e RECEPCAO (Operador): e a tela
+                        // onde a recepcao confirma o pagamento de uma reserva/cobranca no
+                        // balcao, entao bloquear para RECEPCAO inviabilizaria o uso diario.
+                        .requestMatchers("/api/pagamentos/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/despesas/**", "/api/despesas-recorrentes/**").hasRole("ADMIN")
+                        // Mensalidades e Matriculas (criar/listar/desativar/dar baixa) ficam
+                        // abertas para ADMIN e RECEPCAO, igual Pagamentos: e rotina diaria do
+                        // Operador, nao so confirmar pagamento.
+                        .requestMatchers("/api/mensalidades/**").hasAnyRole("ADMIN", "RECEPCAO")
+                        .requestMatchers("/api/matriculas/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/estoque/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
