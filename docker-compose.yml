@@ -35,15 +35,15 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       EMAIL_ALERTAS: ${EMAIL_ALERTAS:-}
 
-  frontend:
+    frontend:
     build: ./frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       BACKEND_HOST: backend
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
     ports:
       - "80:80"
-
 volumes:
   mysql_data:
