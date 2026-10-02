@@ -39,6 +39,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      BACKEND_HOST: backend
     ports:
       - "80:80"
 
