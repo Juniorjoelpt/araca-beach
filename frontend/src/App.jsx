@@ -15,6 +15,7 @@ import Loja from './pages/Loja.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Usuarios from './pages/Usuarios.jsx'
 import Despesas from './pages/Despesas.jsx'
+import Mensalidades from './pages/Mensalidades.jsx'
 import Relatorios from './pages/Relatorios.jsx'
 import Estoque from './pages/Estoque.jsx'
 import PortalCadastro from './pages/portal/PortalCadastro.jsx'
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/loja" element={<Loja />} />
         <Route path="/estoque" element={<AdminRoute><Estoque /></AdminRoute>} />
         <Route path="/despesas" element={<AdminRoute><Despesas /></AdminRoute>} />
+        <Route path="/mensalidades" element={<AdminRoute><Mensalidades /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
       </Route>

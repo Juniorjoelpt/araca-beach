@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -17,6 +17,7 @@ const menuBase = [
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet, soAdmin: true },
   { to: '/despesas', label: 'Despesas', icon: Receipt, soAdmin: true },
+  { to: '/mensalidades', label: 'Mensalidades', icon: CalendarCheck2, soAdmin: true },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/aulas', label: 'Aulas', icon: GraduationCap },
   { to: '/torneios', label: 'Torneios', icon: Trophy },
