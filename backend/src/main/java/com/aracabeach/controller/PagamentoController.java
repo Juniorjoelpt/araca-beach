@@ -1,6 +1,7 @@
 package com.aracabeach.controller;
 
 import com.aracabeach.domain.financeiro.Pagamento;
+import com.aracabeach.dto.CobrancaPendenteResponse;
 import com.aracabeach.dto.PagamentoRequest;
 import com.aracabeach.dto.ReservaFinanceiroResponse;
 import com.aracabeach.dto.ResumoCaixaResponse;
@@ -42,5 +43,16 @@ public class PagamentoController {
     public ResumoCaixaResponse resumo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
         return pagamentoService.resumoCaixa(data);
+    }
+
+    @GetMapping("/cobrancas-pendentes")
+    public List<CobrancaPendenteResponse> cobrancasPendentes() {
+        return pagamentoService.listarCobrancasPendentes();
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(@PathVariable Long id) {
+        pagamentoService.excluir(id);
     }
 }

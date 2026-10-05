@@ -1,0 +1,84 @@
+package com.aracabeach.service;
+
+import com.aracabeach.domain.cliente.Cliente;
+import com.aracabeach.exception.RecursoNaoEncontradoException;
+import com.aracabeach.repository.ClienteRepository;
+import com.aracabeach.repository.ComandaRepository;
+import com.aracabeach.repository.ReservaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Regras de negocio de Cliente. Extraido do ClienteController (que antes
+ * salvava a entidade direto via repository, sem nenhuma validacao) para
+ * impedir cadastro de e-mail/telefone duplicados e para permitir exclusao
+ * de forma segura (sem violar integridade referencial com Reserva/Comanda).
+ */
+@Service
+@RequiredArgsConstructor
+public class ClienteService {
+
+    private final ClienteRepository clienteRepository;
+    private final ReservaRepository reservaRepository;
+    private final ComandaRepository comandaRepository;
+
+    @Transactional
+    public Cliente criar(Cliente cliente) {
+        cliente.setId(null);
+        validarDuplicidade(cliente.getEmail(), cliente.getTelefone(), null);
+        return clienteRepository.save(cliente);
+    }
+
+    @Transactional
+    public Cliente atualizar(Long id, Cliente cliente) {
+        Cliente existente = buscarPorId(id);
+        validarDuplicidade(cliente.getEmail(), cliente.getTelefone(), id);
+        cliente.setId(existente.getId());
+        return clienteRepository.save(cliente);
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+        buscarPorId(id);
+
+        boolean possuiReservas = !reservaRepository.findByClienteIdOrderByInicioDesc(id).isEmpty();
+        boolean possuiComandas = !comandaRepository.findByClienteIdOrderByCriadoEmDesc(id).isEmpty();
+
+        if (possuiReservas || possuiComandas) {
+            throw new IllegalArgumentException(
+                    "Nao e possivel excluir este cliente: ele possui reservas ou comandas registradas no historico.");
+        }
+
+        clienteRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Cliente> listar() {
+        return clienteRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Cliente buscarPorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado: " + id));
+    }
+
+    private void validarDuplicidade(String email, String telefone, Long idParaIgnorar) {
+        if (email != null && !email.isBlank()) {
+            Optional<Cliente> porEmail = clienteRepository.findByEmail(email);
+            if (porEmail.isPresent() && !porEmail.get().getId().equals(idParaIgnorar)) {
+                throw new IllegalArgumentException("Ja existe um cliente cadastrado com este e-mail.");
+            }
+        }
+        if (telefone != null && !telefone.isBlank()) {
+            Optional<Cliente> porTelefone = clienteRepository.findByTelefone(telefone);
+            if (porTelefone.isPresent() && !porTelefone.get().getId().equals(idParaIgnorar)) {
+                throw new IllegalArgumentException("Ja existe um cliente cadastrado com este telefone.");
+            }
+        }
+    }
+}

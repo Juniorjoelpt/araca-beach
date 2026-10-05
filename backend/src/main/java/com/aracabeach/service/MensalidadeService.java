@@ -80,6 +80,13 @@ public class MensalidadeService {
         futuras.forEach(r -> r.setValorTotal(BigDecimal.ZERO));
         reservaRepository.saveAll(futuras);
 
+        // Gera a cobranca do mes atual na hora, em vez de esperar o scheduler
+        // da 1h15 - sem isso, uma mensalidade criada de tarde so teria
+        // cobranca pendente no dia seguinte, dando a impressao de que a
+        // primeira mensalidade "sumiu" (mesmo ajuste ja feito em
+        // MatriculaClienteService.criar()).
+        gerarCobrancaDoMes(mensalidade, YearMonth.now());
+
         return paraResponse(mensalidade);
     }
 
@@ -141,43 +148,57 @@ public class MensalidadeService {
     @Transactional
     public int gerarCobrancasDoMes() {
         YearMonth mesAtual = YearMonth.now();
-        String mesAtualStr = mesAtual.toString();
         int geradas = 0;
 
         for (Mensalidade mensalidade : mensalidadeRepository.findByAtivaTrue()) {
-            if (mesAtualStr.equals(mensalidade.getUltimoMesGerado())) {
-                continue;
+            if (gerarCobrancaDoMes(mensalidade, mesAtual)) {
+                geradas++;
             }
-
-            Optional<PagamentoMensalidade> existente =
-                    pagamentoMensalidadeRepository.findByMensalidadeIdAndReferenciaMes(mensalidade.getId(), mesAtualStr);
-            if (existente.isPresent()) {
-                mensalidade.setUltimoMesGerado(mesAtualStr);
-                mensalidadeRepository.save(mensalidade);
-                continue;
-            }
-
-            int dia = Math.min(mensalidade.getDiaVencimento(), mesAtual.lengthOfMonth());
-            LocalDate vencimento = mesAtual.atDay(dia);
-
-            PagamentoMensalidade cobranca = PagamentoMensalidade.builder()
-                    .mensalidade(mensalidade)
-                    .referenciaMes(mesAtualStr)
-                    .valor(mensalidade.getValorMensal())
-                    .vencimento(vencimento)
-                    .pago(false)
-                    .build();
-            pagamentoMensalidadeRepository.save(cobranca);
-
-            mensalidade.setUltimoMesGerado(mesAtualStr);
-            mensalidadeRepository.save(mensalidade);
-            geradas++;
         }
 
         if (geradas > 0) {
-            log.info("{} cobrança(s) de mensalidade geradas para o mês {}.", geradas, mesAtualStr);
+            log.info("{} cobrança(s) de mensalidade geradas para o mês {}.", geradas, mesAtual);
         }
         return geradas;
+    }
+
+    /**
+     * Gera (se ainda nao existir) a cobranca de uma mensalidade para o mes
+     * informado. Usado tanto pelo job diario (gerarCobrancasDoMes, para
+     * todas as mensalidades ativas) quanto na criacao da mensalidade (para
+     * nao esperar o proximo ciclo do scheduler so para ter a primeira
+     * cobranca). Retorna true se uma cobranca nova foi criada.
+     */
+    private boolean gerarCobrancaDoMes(Mensalidade mensalidade, YearMonth mes) {
+        String mesStr = mes.toString();
+
+        if (mesStr.equals(mensalidade.getUltimoMesGerado())) {
+            return false;
+        }
+
+        Optional<PagamentoMensalidade> existente =
+                pagamentoMensalidadeRepository.findByMensalidadeIdAndReferenciaMes(mensalidade.getId(), mesStr);
+        if (existente.isPresent()) {
+            mensalidade.setUltimoMesGerado(mesStr);
+            mensalidadeRepository.save(mensalidade);
+            return false;
+        }
+
+        int dia = Math.min(mensalidade.getDiaVencimento(), mes.lengthOfMonth());
+        LocalDate vencimento = mes.atDay(dia);
+
+        PagamentoMensalidade cobranca = PagamentoMensalidade.builder()
+                .mensalidade(mensalidade)
+                .referenciaMes(mesStr)
+                .valor(mensalidade.getValorMensal())
+                .vencimento(vencimento)
+                .pago(false)
+                .build();
+        pagamentoMensalidadeRepository.save(cobranca);
+
+        mensalidade.setUltimoMesGerado(mesStr);
+        mensalidadeRepository.save(mensalidade);
+        return true;
     }
 
     private MensalidadeResponse paraResponse(Mensalidade m) {

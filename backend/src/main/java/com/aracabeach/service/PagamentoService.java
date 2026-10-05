@@ -2,11 +2,18 @@ package com.aracabeach.service;
 
 import com.aracabeach.domain.financeiro.Pagamento;
 import com.aracabeach.domain.financeiro.StatusPagamento;
+import com.aracabeach.domain.mensalidade.PagamentoMensalidade;
+import com.aracabeach.domain.matricula.PagamentoMatricula;
+import com.aracabeach.domain.matriculacliente.PagamentoMatriculaCliente;
 import com.aracabeach.domain.reserva.Reserva;
+import com.aracabeach.dto.CobrancaPendenteResponse;
 import com.aracabeach.dto.PagamentoRequest;
 import com.aracabeach.dto.ReservaFinanceiroResponse;
 import com.aracabeach.dto.ResumoCaixaResponse;
 import com.aracabeach.exception.RecursoNaoEncontradoException;
+import com.aracabeach.repository.PagamentoMatriculaClienteRepository;
+import com.aracabeach.repository.PagamentoMatriculaRepository;
+import com.aracabeach.repository.PagamentoMensalidadeRepository;
 import com.aracabeach.repository.PagamentoRepository;
 import com.aracabeach.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +24,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +36,9 @@ public class PagamentoService {
 
     private final PagamentoRepository pagamentoRepository;
     private final ReservaRepository reservaRepository;
+    private final PagamentoMensalidadeRepository pagamentoMensalidadeRepository;
+    private final PagamentoMatriculaClienteRepository pagamentoMatriculaClienteRepository;
+    private final PagamentoMatriculaRepository pagamentoMatriculaTurmaRepository;
 
     @Transactional
     public Pagamento registrar(PagamentoRequest request) {
@@ -74,7 +86,9 @@ public class PagamentoService {
 
         String statusPagamento;
         if (valorPago.compareTo(BigDecimal.ZERO) <= 0) {
-            statusPagamento = "PENDENTE";
+            // Reserva cancelada sem pagamento nao e uma cobranca pendente de
+            // verdade - evita que ela apareca como "Pendente" no Financeiro.
+            statusPagamento = "CANCELADA".equals(reserva.getStatus().name()) ? "CANCELADA" : "PENDENTE";
         } else if (valorPago.compareTo(valorTotal) >= 0) {
             statusPagamento = "PAGO";
         } else {
@@ -116,5 +130,76 @@ public class PagamentoService {
                 ));
 
         return new ResumoCaixaResponse(data, total, porForma, pagamentos.size());
+    }
+
+    /**
+     * Lista, de forma unificada, todas as cobrancas pendentes (nao pagas) das
+     * tres formas de cobranca recorrente do sistema: Mensalidade (por
+     * ReservaRecorrente), MatriculaCliente (varios horarios combinados) e
+     * Matricula de Turma (aula em grupo). Essas cobrancas nao aparecem na
+     * "visao do dia" por reserva porque nao estao necessariamente ligadas a
+     * uma reserva especifica (ver visaoFinanceiraDoDia).
+     */
+    @Transactional(readOnly = true)
+    public List<CobrancaPendenteResponse> listarCobrancasPendentes() {
+        LocalDate hoje = LocalDate.now();
+        List<CobrancaPendenteResponse> cobrancas = new ArrayList<>();
+
+        for (PagamentoMensalidade p : pagamentoMensalidadeRepository.findByPagoFalseOrderByVencimentoAsc()) {
+            cobrancas.add(new CobrancaPendenteResponse(
+                    p.getId(),
+                    "MENSALIDADE",
+                    p.getMensalidade().getReservaRecorrente().getCliente().getNome(),
+                    "Mensalidade - " + p.getReferenciaMes(),
+                    p.getReferenciaMes(),
+                    p.getValor(),
+                    p.getVencimento(),
+                    p.getVencimento().isBefore(hoje)
+            ));
+        }
+
+        for (PagamentoMatriculaCliente p : pagamentoMatriculaClienteRepository.findByPagoFalseOrderByVencimentoAsc()) {
+            cobrancas.add(new CobrancaPendenteResponse(
+                    p.getId(),
+                    "MATRICULA_CLIENTE",
+                    p.getMatriculaCliente().getCliente().getNome(),
+                    "Matricula - " + p.getReferenciaMes(),
+                    p.getReferenciaMes(),
+                    p.getValor(),
+                    p.getVencimento(),
+                    p.getVencimento().isBefore(hoje)
+            ));
+        }
+
+        for (PagamentoMatricula p : pagamentoMatriculaTurmaRepository.findByPagoFalseOrderByVencimentoAsc()) {
+            cobrancas.add(new CobrancaPendenteResponse(
+                    p.getId(),
+                    "MATRICULA_TURMA",
+                    p.getMatricula().getCliente().getNome(),
+                    "Matricula de turma - " + p.getReferenciaMes(),
+                    p.getReferenciaMes(),
+                    p.getValor(),
+                    p.getVencimento(),
+                    p.getVencimento().isBefore(hoje)
+            ));
+        }
+
+        cobrancas.sort(Comparator.comparing(CobrancaPendenteResponse::vencimento));
+        return cobrancas;
+    }
+
+    /**
+     * Exclui um pagamento registrado por engano (por exemplo, um pagamento
+     * registrado diretamente contra uma reserva gerada por matricula/
+     * mensalidade, que deveria ter sido registrado como cobranca ao inves
+     * disso). Nao afeta PagamentoMensalidade/PagamentoMatricula/
+     * PagamentoMatriculaCliente - essas tem seus proprios fluxos de
+     * pagamento e nao sao excluidas por aqui.
+     */
+    @Transactional
+    public void excluir(Long id) {
+        Pagamento pagamento = pagamentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento nao encontrado: " + id));
+        pagamentoRepository.delete(pagamento);
     }
 }

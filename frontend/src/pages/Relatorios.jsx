@@ -48,11 +48,31 @@ export default function Relatorios() {
     setCarregando(chave)
     try {
       await fn()
-    } catch {
-      setErro('Não foi possível gerar o relatório.')
+    } catch (err) {
+      setErro(await mensagemDeErro(err))
     } finally {
       setCarregando('')
     }
+  }
+
+  // Os downloads usam responseType: 'blob', entao um erro do backend (ex.:
+  // "data final antes da data inicial") chega como Blob, nao como JSON pronto
+  // - precisamos ler o texto do blob e fazer o parse manualmente para mostrar
+  // a mensagem real em vez de um "não foi possível gerar" genérico.
+  async function mensagemDeErro(err) {
+    const dados = err.response?.data
+    if (dados instanceof Blob) {
+      try {
+        const texto = await dados.text()
+        const corpo = JSON.parse(texto)
+        if (corpo?.mensagem) return corpo.mensagem
+      } catch {
+        // corpo não era JSON (ex.: erro de rede/HTML de proxy) - cai no padrão abaixo
+      }
+    } else if (dados?.mensagem) {
+      return dados.mensagem
+    }
+    return 'Não foi possível gerar o relatório.'
   }
 
   return (

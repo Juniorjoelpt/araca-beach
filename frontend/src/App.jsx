@@ -39,13 +39,13 @@ export default function App() {
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/quadras" element={<Quadras />} />
         <Route path="/clientes" element={<Clientes />} />
-        <Route path="/financeiro" element={<AdminRoute><Financeiro /></AdminRoute>} />
+        <Route path="/financeiro" element={<Financeiro />} />
         <Route path="/aulas" element={<Aulas />} />
         <Route path="/torneios" element={<Torneios />} />
         <Route path="/loja" element={<Loja />} />
         <Route path="/estoque" element={<AdminRoute><Estoque /></AdminRoute>} />
         <Route path="/despesas" element={<AdminRoute><Despesas /></AdminRoute>} />
-        <Route path="/mensalidades" element={<AdminRoute><Mensalidades /></AdminRoute>} />
+        <Route path="/mensalidades" element={<Mensalidades />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
       </Route>

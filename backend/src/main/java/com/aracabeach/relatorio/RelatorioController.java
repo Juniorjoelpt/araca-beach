@@ -36,6 +36,7 @@ public class RelatorioController {
     public ResponseEntity<byte[]> comissoes(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) throws Exception {
+        validarPeriodo(inicio, fim);
         byte[] pdf = relatorioPdfService.gerarComissoesProfessores(inicio, fim);
         String nomeArquivo = "comissoes-" + inicio.format(FORMATO_ARQUIVO) + "-a-" + fim.format(FORMATO_ARQUIVO) + ".pdf";
         return respostaArquivo(pdf, nomeArquivo, MediaType.APPLICATION_PDF);
@@ -45,9 +46,18 @@ public class RelatorioController {
     public ResponseEntity<byte[]> reservas(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) throws Exception {
+        validarPeriodo(inicio, fim);
         byte[] excel = relatorioExcelService.gerarReservas(inicio, fim);
         String nomeArquivo = "reservas-" + inicio.format(FORMATO_ARQUIVO) + "-a-" + fim.format(FORMATO_ARQUIVO) + ".xlsx";
         return respostaArquivo(excel, nomeArquivo, MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    }
+
+    // Sem isso, "De" > "Ate" gerava um relatorio vazio (ou um PDF/Excel sem
+    // sentido) em vez de avisar o usuario que o periodo esta invertido.
+    private void validarPeriodo(LocalDate inicio, LocalDate fim) {
+        if (fim.isBefore(inicio)) {
+            throw new IllegalArgumentException("A data final nao pode ser anterior a data inicial.");
+        }
     }
 
     @GetMapping("/clientes")

@@ -29,6 +29,9 @@ export default function Torneios() {
   const [carregandoChaveamento, setCarregandoChaveamento] = useState(false)
   const [formInscricao, setFormInscricao] = useState({ participante: '', parceiro: '', categoria: '' })
 
+  const [confrontoParaResultado, setConfrontoParaResultado] = useState(null)
+  const [resultadoForm, setResultadoForm] = useState({ vencedor: '', placar: '' })
+
   async function carregarTorneios() {
     try {
       const lista = await torneioService.listar()
@@ -83,17 +86,24 @@ export default function Torneios() {
     }
   }
 
-  async function handleRegistrarResultado(confronto) {
+  // Abre o modal de registro de resultado (antes usava window.prompt(), que
+  // trava a aba inteira e tem uma UX ruim em telas menores/touch).
+  function abrirResultado(confronto) {
     const opcoes = [confronto.participanteA, confronto.participanteB].filter(Boolean)
-    const vencedor = prompt(`Quem venceu?\n1 - ${opcoes[0]}\n2 - ${opcoes[1]}`, '1')
-    if (vencedor === null) return
-    const nomeVencedor = vencedor.trim() === '2' ? opcoes[1] : opcoes[0]
-    const placar = prompt('Placar (opcional):') || ''
+    setConfrontoParaResultado(confronto)
+    setResultadoForm({ vencedor: opcoes[0] || '', placar: '' })
+    setErro('')
+  }
+
+  async function handleRegistrarResultado(e) {
+    e.preventDefault()
+    if (!confrontoParaResultado || !resultadoForm.vencedor) return
     try {
-      const lista = await chaveamentoService.registrarResultado(confronto.id, { vencedor: nomeVencedor, placar })
+      const lista = await chaveamentoService.registrarResultado(confrontoParaResultado.id, resultadoForm)
       setConfrontos(lista)
-    } catch {
-      setErro('Não foi possível registrar o resultado.')
+      setConfrontoParaResultado(null)
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível registrar o resultado.')
     }
   }
 
@@ -382,7 +392,7 @@ export default function Torneios() {
                         ))}
                         {!c.vencedor && c.participanteA && c.participanteB && (
                           <button
-                            onClick={() => handleRegistrarResultado(c)}
+                            onClick={() => abrirResultado(c)}
                             className="w-full text-xs text-araca-verde-escuro hover:bg-araca-areia-escura py-1.5 transition"
                           >
                             Registrar resultado
@@ -397,6 +407,66 @@ export default function Torneios() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {confrontoParaResultado && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-5">
+            <h3 className="font-semibold text-araca-azul mb-4">Registrar resultado</h3>
+            <form onSubmit={handleRegistrarResultado} className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500">Quem venceu?</p>
+                {[confrontoParaResultado.participanteA, confrontoParaResultado.participanteB]
+                  .filter(Boolean)
+                  .map((participante) => (
+                    <label
+                      key={participante}
+                      className={`flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer text-sm ${
+                        resultadoForm.vencedor === participante
+                          ? 'border-araca-verde-escuro bg-araca-verde-claro/30 font-semibold'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="vencedor"
+                        value={participante}
+                        checked={resultadoForm.vencedor === participante}
+                        onChange={(e) => setResultadoForm({ ...resultadoForm, vencedor: e.target.value })}
+                      />
+                      {participante}
+                    </label>
+                  ))}
+              </div>
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Placar (opcional)</label>
+                <input
+                  type="text"
+                  value={resultadoForm.placar}
+                  onChange={(e) => setResultadoForm({ ...resultadoForm, placar: e.target.value })}
+                  placeholder="Ex.: 2 sets a 1"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfrontoParaResultado(null)}
+                  className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!resultadoForm.vencedor}
+                  className="bg-araca-verde text-araca-azul text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

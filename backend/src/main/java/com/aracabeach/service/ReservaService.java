@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,6 +37,10 @@ public class ReservaService {
     public Reserva criar(ReservaRequest request) {
         if (!request.fim().isAfter(request.inicio())) {
             throw new IllegalArgumentException("O horario de termino deve ser posterior ao de inicio.");
+        }
+
+        if (request.inicio().toLocalDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Nao e possivel criar uma reserva em uma data passada.");
         }
 
         Quadra quadra = quadraRepository.findById(request.quadraId())

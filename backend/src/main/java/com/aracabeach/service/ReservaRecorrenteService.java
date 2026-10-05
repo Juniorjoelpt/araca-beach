@@ -132,6 +132,60 @@ public class ReservaRecorrenteService {
         reservaRepository.saveAll(futuras);
     }
 
+    /**
+     * Estende o horizonte de geracao das recorrencias ativas "sem data final"
+     * (vigenciaFim == null): gera as proximas ocorrencias que ainda faltam
+     * entre a ultima reserva ja existente e hoje + HORIZONTE_PADRAO_SEMANAS.
+     * Chamado periodicamente por ReservaRecorrenteScheduler - sem isso, uma
+     * recorrencia sem data final parava de gerar novas reservas apos as 12
+     * semanas iniciais (ver HORIZONTE_PADRAO_SEMANAS).
+     * Idempotente: so cria ocorrencias cuja data ainda nao existe para essa
+     * recorrencia, entao pode ser chamado quantas vezes for preciso.
+     */
+    @Transactional
+    public void estenderHorizonte() {
+        LocalDate limiteDesejado = LocalDate.now().plusWeeks(HORIZONTE_PADRAO_SEMANAS);
+
+        for (ReservaRecorrente recorrencia : reservaRecorrenteRepository.findByAtivaTrueAndVigenciaFimIsNull()) {
+            List<Reserva> existentes = reservaRepository.findByReservaRecorrenteId(recorrencia.getId());
+
+            LocalDate ultimaData = existentes.stream()
+                    .map(r -> r.getInicio().toLocalDate())
+                    .max(LocalDate::compareTo)
+                    .orElse(recorrencia.getVigenciaInicio().minusWeeks(1));
+
+            Quadra quadra = recorrencia.getQuadra();
+            Cliente cliente = recorrencia.getCliente();
+
+            BigDecimal horas = BigDecimal.valueOf(
+                            Duration.between(recorrencia.getHoraInicio(), recorrencia.getHoraFim()).toMinutes())
+                    .divide(BigDecimal.valueOf(60));
+            BigDecimal valorPorOcorrencia = quadra.getValorHora().multiply(horas);
+
+            for (LocalDate data = ultimaData.plusWeeks(1); !data.isAfter(limiteDesejado); data = data.plusWeeks(1)) {
+                LocalDateTime inicio = LocalDateTime.of(data, recorrencia.getHoraInicio());
+                LocalDateTime fim = LocalDateTime.of(data, recorrencia.getHoraFim());
+
+                boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
+                if (conflito) {
+                    continue;
+                }
+
+                Reserva reserva = Reserva.builder()
+                        .quadra(quadra)
+                        .cliente(cliente)
+                        .inicio(inicio)
+                        .fim(fim)
+                        .status(StatusReserva.CONFIRMADA)
+                        .origem(OrigemReserva.RECEPCAO)
+                        .reservaRecorrenteId(recorrencia.getId())
+                        .valorTotal(valorPorOcorrencia)
+                        .build();
+                reservaRepository.save(reserva);
+            }
+        }
+    }
+
     private ReservaRecorrenteResponse paraResponse(ReservaRecorrente r, List<LocalDate> criadas, List<LocalDate> conflitos) {
         return new ReservaRecorrenteResponse(
                 r.getId(),

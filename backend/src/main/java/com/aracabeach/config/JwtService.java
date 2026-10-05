@@ -56,9 +56,19 @@ public class JwtService {
         return extrairClaim(token, claims -> claims.get("tipo", String.class));
     }
 
+    /**
+     * Alem de login/expiracao, verificamos userDetails.isEnabled(): sem isso,
+     * um usuario desativado (Usuario.ativo = false) continuava autenticado
+     * normalmente ate o token expirar (ate 8h depois de desativado), porque
+     * o JwtAuthFilter monta o UsernamePasswordAuthenticationToken na mao e
+     * nunca passa pelo AuthenticationManager/DaoAuthenticationProvider
+     * (que e quem normalmente checa isEnabled()).
+     */
     public boolean tokenValido(String token, UserDetails userDetails) {
         String login = extrairLogin(token);
-        return login.equals(userDetails.getUsername()) && !tokenExpirado(token);
+        return login.equals(userDetails.getUsername())
+                && !tokenExpirado(token)
+                && userDetails.isEnabled();
     }
 
     private boolean tokenExpirado(String token) {

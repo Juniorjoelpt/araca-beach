@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { clienteService } from '../services/clienteService.js'
-import { Users, X, History } from 'lucide-react'
+import { Users, X, History, Trash2 } from 'lucide-react'
 
 const vazio = { nome: '', telefone: '', email: '' }
 
@@ -45,8 +45,19 @@ export default function Clientes() {
       await clienteService.criar(form)
       setForm(vazio)
       carregar()
-    } catch {
-      setErro('Não foi possível salvar o cliente.')
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível salvar o cliente.')
+    }
+  }
+
+  async function handleExcluir(cliente) {
+    if (!confirm(`Excluir o cliente "${cliente.nome}"? Essa ação não pode ser desfeita.`)) return
+    setErro('')
+    try {
+      await clienteService.deletar(cliente.id)
+      carregar()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível excluir o cliente.')
     }
   }
 
@@ -135,12 +146,20 @@ export default function Clientes() {
                 <td className="px-4 py-3">{c.telefone || '—'}</td>
                 <td className="px-4 py-3">{c.email || '—'}</td>
                 <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => handleVerHistorico(c)}
-                    className="flex items-center gap-1 text-araca-verde-escuro hover:underline ml-auto"
-                  >
-                    <History size={14} /> Histórico
-                  </button>
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      onClick={() => handleVerHistorico(c)}
+                      className="flex items-center gap-1 text-araca-verde-escuro hover:underline"
+                    >
+                      <History size={14} /> Histórico
+                    </button>
+                    <button
+                      onClick={() => handleExcluir(c)}
+                      className="flex items-center gap-1 text-red-600 hover:underline"
+                    >
+                      <Trash2 size={14} /> Excluir
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -158,7 +158,10 @@ export default function Agenda() {
       setModalAberto(false)
       carregarReservas()
     } catch (err) {
-      if (err.response?.status === 409) {
+      const mensagem = err.response?.data?.mensagem
+      if (mensagem) {
+        setErro(mensagem)
+      } else if (err.response?.status === 409) {
         setErro('Já existe uma reserva para esta quadra nesse horário.')
       } else {
         setErro('Não foi possível criar a reserva.')
@@ -191,8 +194,8 @@ export default function Agenda() {
       setModalAberto(false)
       carregarReservas()
       carregarRecorrencias()
-    } catch {
-      setErro('Não foi possível criar a reserva recorrente.')
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível criar a reserva recorrente.')
     }
   }
 
@@ -202,8 +205,8 @@ export default function Agenda() {
       await reservaService.cancelar(id)
       setReservaSelecionada(null)
       carregarReservas()
-    } catch {
-      setErro('Não foi possível cancelar a reserva.')
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível cancelar a reserva.')
     }
   }
 
