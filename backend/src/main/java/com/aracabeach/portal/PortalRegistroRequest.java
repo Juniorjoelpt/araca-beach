@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 public record PortalRegistroRequest(
         @NotBlank String nome,
         @NotBlank @Email String email,
-        String telefone,
+        @NotBlank(message = "Informe seu telefone") String telefone,
         @NotBlank @Size(min = 6, message = "A senha deve ter pelo menos 6 caracteres") String senha
 ) {
 }

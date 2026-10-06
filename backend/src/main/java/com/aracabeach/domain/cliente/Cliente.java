@@ -63,6 +63,10 @@ public class Cliente implements UserDetails {
     @Column(length = 300)
     private String observacoes;
 
+    /** RECEPCAO (cadastrado pela equipe) ou PORTAL (auto-cadastro do jogador). Nulo = RECEPCAO (dados antigos). */
+    @Column(name = "origem_cadastro", length = 20)
+    private String origemCadastro;
+
     @Transient
     public boolean isPossuiAcessoPortal() {
         return senhaHash != null && !senhaHash.isBlank();

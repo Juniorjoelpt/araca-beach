@@ -31,16 +31,38 @@ public class PortalAuthService {
             throw new IllegalArgumentException("Já existe uma conta com este e-mail. Faça login.");
         }
 
+        String telefone = request.telefone().trim();
+        if (apenasDigitos(telefone).length() < 10) {
+            throw new IllegalArgumentException("Informe o telefone com DDD.");
+        }
+
+        // O cadastro do portal ja e o cadastro de cliente/aluno da arena (a mesma
+        // entidade Cliente alimenta reservas, pacotes, turmas e cobrancas). Para nao
+        // duplicar, se o telefone ja existe em OUTRO cadastro, nao criamos um novo
+        // nem vinculamos automaticamente (qualquer pessoa poderia assumir o historico
+        // de outra digitando o telefone): a recepcao vincula o e-mail ao cadastro.
+        String digitos = apenasDigitos(telefone);
+        Long idDoEmail = cliente != null ? cliente.getId() : null;
+        boolean telefoneEmOutroCadastro = clienteRepository.findAll().stream()
+                .filter(c -> c.getTelefone() != null && !c.getTelefone().isBlank())
+                .filter(c -> !c.getId().equals(idDoEmail))
+                .anyMatch(c -> apenasDigitos(c.getTelefone()).equals(digitos));
+        if (telefoneEmOutroCadastro) {
+            throw new IllegalArgumentException(
+                    "Esse telefone já está cadastrado na arena. Peça à recepção para vincular o seu e-mail ao cadastro e depois crie a conta.");
+        }
+
         if (cliente == null) {
             cliente = Cliente.builder()
                     .nome(request.nome())
                     .email(request.email())
-                    .telefone(request.telefone())
+                    .telefone(telefone)
+                    .origemCadastro("PORTAL")
                     .build();
         } else {
             cliente.setNome(request.nome());
-            if (request.telefone() != null && !request.telefone().isBlank()) {
-                cliente.setTelefone(request.telefone());
+            if (cliente.getTelefone() == null || cliente.getTelefone().isBlank()) {
+                cliente.setTelefone(telefone);
             }
         }
 
@@ -62,5 +84,9 @@ public class PortalAuthService {
 
         String token = jwtService.gerarToken(cliente, JwtService.TIPO_CLIENTE);
         return new PortalAuthResponse(token, cliente.getId(), cliente.getNome(), cliente.getEmail());
+    }
+
+    private static String apenasDigitos(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
     }
 }

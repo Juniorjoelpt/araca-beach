@@ -57,6 +57,7 @@ export default function PortalCadastro() {
               placeholder="(00) 00000-0000"
               value={form.telefone}
               onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+              required
             />
           </div>
           <div>

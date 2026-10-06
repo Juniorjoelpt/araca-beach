@@ -142,7 +142,14 @@ export default function Clientes() {
             )}
             {clientes.map((c) => (
               <tr key={c.id} className="border-t">
-                <td className="px-4 py-3 font-medium text-araca-azul">{c.nome}</td>
+                <td className="px-4 py-3 font-medium text-araca-azul">
+                  {c.nome}
+                  {(c.origemCadastro === 'PORTAL' || c.possuiAcessoPortal) && (
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700">
+                      {c.possuiAcessoPortal ? 'Portal' : 'Portal (sem acesso)'}
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3">{c.telefone || '—'}</td>
                 <td className="px-4 py-3">{c.email || '—'}</td>
                 <td className="px-4 py-3 text-right">

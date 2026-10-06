@@ -29,6 +29,7 @@ public class ClienteService {
     @Transactional
     public Cliente criar(Cliente cliente) {
         cliente.setId(null);
+        cliente.setOrigemCadastro("RECEPCAO");
         validarDuplicidade(cliente.getEmail(), cliente.getTelefone(), null);
         return clienteRepository.save(cliente);
     }
@@ -38,6 +39,11 @@ public class ClienteService {
         Cliente existente = buscarPorId(id);
         validarDuplicidade(cliente.getEmail(), cliente.getTelefone(), id);
         cliente.setId(existente.getId());
+        // Campos que nao vem do formulario da recepcao (senha do portal e @JsonIgnore):
+        // preservar para a edicao nao apagar o acesso do jogador ao portal.
+        cliente.setSenhaHash(existente.getSenhaHash());
+        cliente.setOrigemCadastro(existente.getOrigemCadastro());
+        cliente.setCriadoEm(existente.getCriadoEm());
         return clienteRepository.save(cliente);
     }
 
