@@ -42,9 +42,15 @@ export default function Layout() {
 
   const menu = menuBase.filter((item) => !item.soAdmin || usuario?.perfil === 'ADMIN')
 
-  const ativoIndex = menu.findIndex((item) =>
-    item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
-  )
+  // Item ativo = o de rota mais especifica que casa com a URL (ex.: /restaurante/reservas
+  // vence /restaurante, que tambem e prefixo dela).
+  const ativoIndex = menu.reduce((melhor, item, i) => {
+    const casa = item.to === '/'
+      ? location.pathname === '/'
+      : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+    if (!casa) return melhor
+    return melhor === -1 || item.to.length > menu[melhor].to.length ? i : melhor
+  }, -1)
 
   function handleLogout() {
     authService.logout()
@@ -75,7 +81,7 @@ export default function Layout() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/' || item.to === '/restaurante'}
+                end={item.to === '/'}
                 className="relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors"
               >
                 {ativo && (
