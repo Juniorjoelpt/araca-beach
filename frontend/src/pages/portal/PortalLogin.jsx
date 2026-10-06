@@ -65,6 +65,9 @@ export default function PortalLogin() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-4">
+          <Link to="/portal/esqueci-senha" className="text-araca-verde-escuro font-medium hover:underline">Esqueci minha senha</Link>
+        </p>
+        <p className="text-center text-sm text-gray-500 mt-4">
           Ainda não tem conta?{' '}
           <Link to="/portal/cadastro" className="text-araca-verde-escuro font-medium hover:underline">Criar conta</Link>
         </p>

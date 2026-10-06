@@ -63,6 +63,15 @@ public class Cliente implements UserDetails {
     @Column(length = 300)
     private String observacoes;
 
+    /** SHA-256 do token de recuperacao de senha (o token em si so vai por e-mail). */
+    @JsonIgnore
+    @Column(name = "reset_token_hash", length = 64)
+    private String resetTokenHash;
+
+    @JsonIgnore
+    @Column(name = "reset_expira_em")
+    private LocalDateTime resetExpiraEm;
+
     /** RECEPCAO (cadastrado pela equipe) ou PORTAL (auto-cadastro do jogador). Nulo = RECEPCAO (dados antigos). */
     @Column(name = "origem_cadastro", length = 20)
     private String origemCadastro;

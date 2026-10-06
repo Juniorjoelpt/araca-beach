@@ -57,6 +57,8 @@ araca-beach:
     horario-abertura: 6
     horario-fechamento: 23
     duracao-slot-minutos: 60
+    # Endereco publico do sistema (usado no link do e-mail de recuperacao de senha)
+    url-base: ${PORTAL_URL:http://localhost:5173}
 
 springdoc:
   swagger-ui:

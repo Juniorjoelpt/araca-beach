@@ -164,6 +164,24 @@ public class NotificacaoService {
         enviar(email, assunto, corpo);
     }
 
+    public void enviarRecuperacaoSenha(com.aracabeach.domain.cliente.Cliente cliente, String link) {
+        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
+            return;
+        }
+        String corpo = """
+                Olá, %s!
+
+                Recebemos um pedido para redefinir a senha da sua conta no portal da Araça Beach.
+                Use o link abaixo (vale por 1 hora):
+
+                %s
+
+                Se não foi você, ignore este e-mail: sua senha continua a mesma.
+                Araça Beach - Vôlei, Futevôlei e Beach Tennis
+                """.formatted(cliente.getNome(), link);
+        enviar(cliente.getEmail(), "Redefinir senha - Araça Beach", corpo);
+    }
+
     private String emailDoCliente(Reserva reserva) {
         String email = reserva.getCliente() != null ? reserva.getCliente().getEmail() : null;
         if (email == null || email.isBlank()) {

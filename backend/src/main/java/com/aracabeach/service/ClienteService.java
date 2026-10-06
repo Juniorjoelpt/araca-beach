@@ -43,6 +43,8 @@ public class ClienteService {
         // preservar para a edicao nao apagar o acesso do jogador ao portal.
         cliente.setSenhaHash(existente.getSenhaHash());
         cliente.setOrigemCadastro(existente.getOrigemCadastro());
+        cliente.setResetTokenHash(existente.getResetTokenHash());
+        cliente.setResetExpiraEm(existente.getResetExpiraEm());
         cliente.setCriadoEm(existente.getCriadoEm());
         return clienteRepository.save(cliente);
     }

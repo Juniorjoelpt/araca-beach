@@ -28,6 +28,17 @@ export const portalAuthService = {
     salvarSessao(data)
     return data
   },
+  esqueciSenha: (email) => apiPortal.post('/auth/esqueci-senha', { email }),
+  redefinirSenha: (token, novaSenha) => apiPortal.post('/auth/redefinir-senha', { token, novaSenha }),
+  perfil: () => apiPortal.get('/perfil').then((r) => r.data),
+  atualizarPerfil: async (nome, telefone) => {
+    const { data } = await apiPortal.put('/perfil', { nome, telefone })
+    const raw = localStorage.getItem('araca_beach_cliente_dados')
+    const dados = raw ? JSON.parse(raw) : {}
+    localStorage.setItem('araca_beach_cliente_dados', JSON.stringify({ ...dados, nome: data.nome }))
+    return data
+  },
+  alterarSenha: (senhaAtual, novaSenha) => apiPortal.patch('/senha', { senhaAtual, novaSenha }),
   logout: () => {
     localStorage.removeItem('araca_beach_cliente_token')
     localStorage.removeItem('araca_beach_cliente_dados')

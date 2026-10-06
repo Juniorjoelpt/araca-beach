@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { CalendarPlus, CalendarCheck, GraduationCap, Wallet, LogOut } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { CalendarPlus, CalendarCheck, GraduationCap, Wallet, UserRound, LogOut } from 'lucide-react'
 import { portalAuthService } from '../services/portalAuthService.js'
 import logoIcone from '../assets/logos/icone-256.png'
 
@@ -30,9 +30,14 @@ export default function PortalLayout() {
             {cliente && <p className="text-[11px] text-white/60 mt-0.5">Olá, {cliente.nome.split(' ')[0]}</p>}
           </div>
         </div>
-        <button onClick={handleSair} aria-label="Sair" className="text-white/70 hover:text-araca-verde transition-colors">
-          <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-4">
+          <Link to="/portal/perfil" aria-label="Meu perfil" className="text-white/70 hover:text-araca-verde transition-colors">
+            <UserRound size={20} />
+          </Link>
+          <button onClick={handleSair} aria-label="Sair" className="text-white/70 hover:text-araca-verde transition-colors">
+            <LogOut size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Conteudo da pagina */}

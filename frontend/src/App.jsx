@@ -22,6 +22,9 @@ import PortalCadastro from './pages/portal/PortalCadastro.jsx'
 import PortalLogin from './pages/portal/PortalLogin.jsx'
 import PortalAgendar from './pages/portal/PortalAgendar.jsx'
 import PortalMinhasReservas from './pages/portal/PortalMinhasReservas.jsx'
+import PortalPerfil from './pages/portal/PortalPerfil.jsx'
+import PortalEsqueciSenha from './pages/portal/PortalEsqueciSenha.jsx'
+import PortalRedefinirSenha from './pages/portal/PortalRedefinirSenha.jsx'
 import PortalAulas from './pages/portal/PortalAulas.jsx'
 import PortalConta from './pages/portal/PortalConta.jsx'
 import Pacotes from './pages/Pacotes.jsx'
@@ -61,6 +64,8 @@ export default function App() {
       {/* Portal do cliente (mobile) */}
       <Route path="/portal/entrar" element={<PortalLogin />} />
       <Route path="/portal/cadastro" element={<PortalCadastro />} />
+      <Route path="/portal/esqueci-senha" element={<PortalEsqueciSenha />} />
+      <Route path="/portal/redefinir-senha" element={<PortalRedefinirSenha />} />
       <Route
         element={
           <PortalProtectedRoute>
@@ -72,6 +77,7 @@ export default function App() {
         <Route path="/portal/minhas-reservas" element={<PortalMinhasReservas />} />
         <Route path="/portal/aulas" element={<PortalAulas />} />
         <Route path="/portal/conta" element={<PortalConta />} />
+        <Route path="/portal/perfil" element={<PortalPerfil />} />
       </Route>
     </Routes>
   )
