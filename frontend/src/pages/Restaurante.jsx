@@ -223,7 +223,7 @@ export default function Restaurante() {
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
       {aviso && <p className="text-green-700 text-sm mb-3">{aviso}</p>}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_340px] gap-4 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_320px] gap-4 items-start">
         {/* comandas abertas */}
         <div className="bg-white rounded-xl shadow p-3">
           <h3 className="font-semibold text-araca-azul mb-2 text-sm">Comandas abertas ({comandas.length})</h3>
@@ -251,7 +251,7 @@ export default function Restaurante() {
         </div>
 
         {/* cardápio */}
-        <div className="bg-white rounded-xl shadow p-4">
+        <div className="bg-white rounded-xl shadow p-4 min-w-0">
           {!selecionada ? (
             <p className="text-gray-400 text-sm py-10 text-center">Selecione ou abra uma comanda para lançar pedidos.</p>
           ) : (
@@ -294,7 +294,7 @@ export default function Restaurante() {
         </div>
 
         {/* pedido + conta */}
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           {selecionada && (
             <div className="bg-white rounded-xl shadow p-4">
               <h3 className="font-semibold text-araca-azul mb-2 text-sm">Novo pedido</h3>
