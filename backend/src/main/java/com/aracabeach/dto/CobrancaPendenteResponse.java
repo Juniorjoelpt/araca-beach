@@ -13,7 +13,7 @@ import java.time.LocalDate;
  */
 public record CobrancaPendenteResponse(
         Long pagamentoId,
-        String tipo, // MENSALIDADE | MATRICULA_CLIENTE | MATRICULA_TURMA
+        String tipo, // MENSALIDADE | MATRICULA_CLIENTE | MATRICULA_TURMA | PACOTE
         String clienteNome,
         String descricao,
         String referenciaMes,

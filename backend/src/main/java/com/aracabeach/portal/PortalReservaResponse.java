@@ -3,6 +3,10 @@ package com.aracabeach.portal;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * taxaSeCancelarAgora / cancelamentoGratisAte so vem preenchidos para reservas
+ * confirmadas e futuras. taxaCancelamento = multa efetivamente aplicada.
+ */
 public record PortalReservaResponse(
         Long id,
         String quadraNome,
@@ -10,6 +14,10 @@ public record PortalReservaResponse(
         LocalDateTime fim,
         String status,
         BigDecimal valorTotal,
-        String statusPagamento
+        String statusPagamento,
+        BigDecimal taxaCancelamento,
+        BigDecimal taxaSeCancelarAgora,
+        LocalDateTime cancelamentoGratisAte,
+        String mensagemCancelamento
 ) {
 }

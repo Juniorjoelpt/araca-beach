@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -18,11 +18,14 @@ const menuBase = [
   { to: '/financeiro', label: 'Financeiro', icon: Wallet },
   { to: '/despesas', label: 'Despesas', icon: Receipt, soAdmin: true },
   { to: '/mensalidades', label: 'Mensalidades', icon: CalendarCheck2 },
+  { to: '/pacotes', label: 'Pacotes de aulas', icon: Package },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/aulas', label: 'Aulas', icon: GraduationCap },
   { to: '/torneios', label: 'Torneios', icon: Trophy },
   { to: '/loja', label: 'Loja', icon: ShoppingBag },
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
+  { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },
+  { to: '/regras', label: 'Regras de reserva', icon: SlidersHorizontal, soAdmin: true },
   { to: '/usuarios', label: 'Usuários', icon: UserCog, soAdmin: true },
 ]
 

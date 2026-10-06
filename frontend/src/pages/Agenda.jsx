@@ -59,6 +59,23 @@ export default function Agenda() {
     clienteId: '', diaSemana: 'MONDAY', horaInicio: '08:00', duracao: 60, vigenciaFim: '',
   })
 
+  const [precoPrevisto, setPrecoPrevisto] = useState(null)
+
+  // Simula o preco (pico/fora de pico + desconto de mensalista) no modal de nova reserva
+  useEffect(() => {
+    setPrecoPrevisto(null)
+    if (!modalAberto || tipoReserva !== 'unica' || !quadraId || !form.data || !form.horaInicio) return
+    const inicio = new Date(`${form.data}T${form.horaInicio}:00`)
+    if (Number.isNaN(inicio.getTime())) return
+    const fim = new Date(inicio.getTime() + form.duracao * 60000)
+    let cancelado = false
+    reservaService
+      .preco(quadraId, form.clienteId, format(inicio, "yyyy-MM-dd'T'HH:mm:ss"), format(fim, "yyyy-MM-dd'T'HH:mm:ss"))
+      .then((p) => { if (!cancelado) setPrecoPrevisto(p) })
+      .catch(() => {})
+    return () => { cancelado = true }
+  }, [modalAberto, tipoReserva, quadraId, form.clienteId, form.data, form.horaInicio, form.duracao])
+
   const diasDaSemana = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(semanaBase, i)),
     [semanaBase]
@@ -199,14 +216,47 @@ export default function Agenda() {
     }
   }
 
-  async function handleCancelar(id) {
-    if (!confirm('Cancelar esta reserva?')) return
+  async function handleCancelar(reserva) {
+    let isentarMulta = false
     try {
-      await reservaService.cancelar(id)
+      const politica = await reservaService.politicaCancelamento(reserva.id)
+      if (politica.gratis) {
+        if (!confirm('Cancelar esta reserva? (sem multa)')) return
+      } else {
+        const taxa = Number(politica.taxa).toFixed(2)
+        if (!confirm(`${politica.mensagem}\n\nCancelar COBRANDO a multa de R$ ${taxa}?`)) {
+          if (!confirm('Cancelar SEM cobrar a multa (isentar)?')) return
+          isentarMulta = true
+        }
+      }
+    } catch {
+      if (!confirm('Cancelar esta reserva?')) return
+    }
+    try {
+      const resp = await reservaService.cancelar(reserva.id, isentarMulta)
       setReservaSelecionada(null)
+      if (resp.taxaCancelamento && Number(resp.taxaCancelamento) > 0) {
+        setSucesso(`Reserva cancelada. Multa de R$ ${Number(resp.taxaCancelamento).toFixed(2)} lançada no Financeiro.`)
+      }
       carregarReservas()
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível cancelar a reserva.')
+    }
+  }
+
+  async function handleNaoCompareceu(reserva) {
+    let isentarMulta = false
+    if (!confirm('Registrar que o cliente NÃO COMPARECEU? A multa de no-show será lançada no Financeiro.')) return
+    if (confirm('Isentar a multa deste cliente? (OK = isentar, Cancelar = cobrar)')) isentarMulta = true
+    try {
+      const resp = await reservaService.naoCompareceu(reserva.id, isentarMulta)
+      setReservaSelecionada(null)
+      setSucesso(resp.taxaCancelamento && Number(resp.taxaCancelamento) > 0
+        ? `No-show registrado. Multa de R$ ${Number(resp.taxaCancelamento).toFixed(2)} lançada no Financeiro.`
+        : 'No-show registrado sem multa.')
+      carregarReservas()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível registrar o não comparecimento.')
     }
   }
 
@@ -292,7 +342,7 @@ export default function Agenda() {
 
         {quadraSelecionada && (
           <p className="text-sm text-gray-500 ml-auto">
-            Valor da hora: <span className="font-semibold text-araca-azul">R$ {Number(quadraSelecionada.valorHora).toFixed(2)}</span>
+            Valor da hora (base): <span className="font-semibold text-araca-azul">R$ {Number(quadraSelecionada.valorHora).toFixed(2)}</span>
           </p>
         )}
       </div>
@@ -347,7 +397,7 @@ export default function Agenda() {
 
                     {reservasDoDia(dia).map((r) => {
                       const statusPagamento = pagamentosPorReserva[r.id] || 'PENDENTE'
-                      const cancelada = r.status === 'CANCELADA'
+                      const cancelada = r.status === 'CANCELADA' || r.status === 'NAO_COMPARECEU'
                       const cor = cancelada ? 'bg-gray-300 border-gray-300' : CORES_STATUS_PAGAMENTO[statusPagamento]
                       return (
                         <button
@@ -418,15 +468,29 @@ export default function Agenda() {
             </p>
             <p className="text-sm text-gray-600 mb-1"><strong className="text-araca-azul">Status:</strong> {reservaSelecionada.status}</p>
             {reservaSelecionada.valorTotal && (
-              <p className="text-sm text-gray-600 mb-4"><strong className="text-araca-azul">Valor:</strong> R$ {Number(reservaSelecionada.valorTotal).toFixed(2)}</p>
+              <p className="text-sm text-gray-600 mb-1"><strong className="text-araca-azul">Valor:</strong> R$ {Number(reservaSelecionada.valorTotal).toFixed(2)}</p>
             )}
+            {reservaSelecionada.taxaCancelamento && (
+              <p className="text-sm text-red-600 mb-1">Multa aplicada: R$ {Number(reservaSelecionada.taxaCancelamento).toFixed(2)}</p>
+            )}
+            <div className="mb-3" />
             {reservaSelecionada.status === 'CONFIRMADA' && (
-              <button
-                onClick={() => handleCancelar(reservaSelecionada.id)}
-                className="w-full border border-red-200 text-red-600 rounded-lg py-2 hover:bg-red-50 transition"
-              >
-                Cancelar reserva
-              </button>
+              <div className="space-y-2">
+                {new Date(reservaSelecionada.inicio) <= new Date() && (
+                  <button
+                    onClick={() => handleNaoCompareceu(reservaSelecionada)}
+                    className="w-full border border-amber-300 text-amber-700 rounded-lg py-2 hover:bg-amber-50 transition"
+                  >
+                    Não compareceu (no-show)
+                  </button>
+                )}
+                <button
+                  onClick={() => handleCancelar(reservaSelecionada)}
+                  className="w-full border border-red-200 text-red-600 rounded-lg py-2 hover:bg-red-50 transition"
+                >
+                  Cancelar reserva
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -506,6 +570,14 @@ export default function Agenda() {
                     {DURACOES.map((d) => <option key={d.minutos} value={d.minutos}>{d.label}</option>)}
                   </select>
                 </div>
+                {precoPrevisto && (
+                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                    Valor: <strong className="text-araca-azul">R$ {Number(precoPrevisto.valorTotal).toFixed(2)}</strong>
+                    {precoPrevisto.mensalista && Number(precoPrevisto.desconto) > 0 && (
+                      <span className="text-green-700"> (mensalista: −R$ {Number(precoPrevisto.desconto).toFixed(2)})</span>
+                    )}
+                  </p>
+                )}
                 <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
                   Criar reserva
                 </button>

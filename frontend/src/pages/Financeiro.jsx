@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { financeiroService } from '../services/financeiroService.js'
 import { mensalidadeService, matriculaClienteService } from '../services/mensalidadeService.js'
 import { matriculaService } from '../services/turmaService.js'
+import { pacoteService } from '../services/pacoteService.js'
 import { Wallet, Clock } from 'lucide-react'
 
 const FORMAS = [
@@ -23,6 +24,7 @@ const TIPO_LABEL = {
   MENSALIDADE: 'Mensalidade',
   MATRICULA_CLIENTE: 'Matrícula',
   MATRICULA_TURMA: 'Matrícula de turma',
+  PACOTE: 'Pacote de aulas',
 }
 
 export default function Financeiro() {
@@ -117,6 +119,8 @@ export default function Financeiro() {
         await matriculaClienteService.registrarPagamento(cobranca.pagamentoId, dados)
       } else if (cobranca.tipo === 'MATRICULA_TURMA') {
         await matriculaService.registrarPagamento(cobranca.pagamentoId, dados)
+      } else if (cobranca.tipo === 'PACOTE') {
+        await pacoteService.pagar(cobranca.pagamentoId, formaCobranca)
       }
       setCobrancaSelecionada(null)
       carregarCobrancas()

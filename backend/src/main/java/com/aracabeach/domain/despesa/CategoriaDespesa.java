@@ -8,5 +8,6 @@ public enum CategoriaDespesa {
     SALARIO,
     FORNECEDOR,
     ALUGUEL,
+    COMISSAO,
     OUTRO
 }

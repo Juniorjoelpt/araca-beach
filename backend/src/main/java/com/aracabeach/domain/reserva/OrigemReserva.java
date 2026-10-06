@@ -4,5 +4,6 @@ public enum OrigemReserva {
     RECEPCAO,
     TELEFONE,
     WHATSAPP,
-    ONLINE
+    ONLINE,
+    AULA
 }

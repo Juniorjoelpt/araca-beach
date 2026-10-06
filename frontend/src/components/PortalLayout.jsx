@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { CalendarPlus, CalendarCheck, LogOut } from 'lucide-react'
+import { CalendarPlus, CalendarCheck, GraduationCap, Wallet, LogOut } from 'lucide-react'
 import { portalAuthService } from '../services/portalAuthService.js'
 import logoIcone from '../assets/logos/icone-256.png'
 
 const abas = [
   { to: '/portal', label: 'Agendar', icon: CalendarPlus, end: true },
-  { to: '/portal/minhas-reservas', label: 'Minhas Reservas', icon: CalendarCheck },
+  { to: '/portal/minhas-reservas', label: 'Reservas', icon: CalendarCheck },
+  { to: '/portal/aulas', label: 'Aulas', icon: GraduationCap },
+  { to: '/portal/conta', label: 'Conta', icon: Wallet },
 ]
 
 export default function PortalLayout() {

@@ -3,6 +3,7 @@ package com.aracabeach.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -54,6 +55,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/mensalidades/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/matriculas/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/estoque/**").hasRole("ADMIN")
+                        // Regras de reserva: todos os logados da equipe leem (a Agenda simula
+                        // preco); so ADMIN altera configuracao, bloqueios e tabela de precos.
+                        .requestMatchers(HttpMethod.GET, "/api/regras/**").hasAnyRole("ADMIN", "RECEPCAO")
+                        .requestMatchers("/api/regras/**").hasRole("ADMIN")
+                        .requestMatchers("/api/pacotes/**").hasAnyRole("ADMIN", "RECEPCAO")
+                        .requestMatchers("/api/comissoes/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

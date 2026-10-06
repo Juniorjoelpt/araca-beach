@@ -1,6 +1,7 @@
 package com.aracabeach.service;
 
 import com.aracabeach.domain.produto.Produto;
+import com.aracabeach.domain.regra.ListaEspera;
 import com.aracabeach.domain.reserva.Reserva;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,12 +102,15 @@ public class NotificacaoService {
                 Quadra: %s
                 Data e horário: %s
 
-                Qualquer dúvida, fale com a nossa recepção.
+                %sQualquer dúvida, fale com a nossa recepção.
                 Araça Beach - Vôlei, Futevôlei e Beach Tennis
                 """.formatted(
                 reserva.getCliente().getNome(),
                 reserva.getQuadra().getNome(),
-                reserva.getInicio().format(FORMATO_DATA_HORA)
+                reserva.getInicio().format(FORMATO_DATA_HORA),
+                reserva.getTaxaCancelamento() != null && reserva.getTaxaCancelamento().signum() > 0
+                        ? "Multa de cancelamento: R$ " + reserva.getTaxaCancelamento() + " (cancelamento fora do prazo gratuito).\n\n"
+                        : ""
         );
 
         enviar(email, assunto, corpo);
@@ -133,6 +137,30 @@ public class NotificacaoService {
                 reserva.getInicio().format(FORMATO_DATA_HORA)
         );
 
+        enviar(email, assunto, corpo);
+    }
+
+    public void enviarVagaLiberada(ListaEspera espera) {
+        String email = espera.getCliente() != null ? espera.getCliente().getEmail() : null;
+        if (email == null || email.isBlank()) {
+            return;
+        }
+        String assunto = "Vaga liberada - Araça Beach";
+        String corpo = """
+                Olá, %s!
+
+                O horário que você estava aguardando ficou livre:
+
+                Quadra: %s
+                Data e horário: %s
+
+                Reserve pelo portal agora — quem reservar primeiro garante a vaga.
+                Araça Beach - Vôlei, Futevôlei e Beach Tennis
+                """.formatted(
+                espera.getCliente().getNome(),
+                espera.getQuadra().getNome(),
+                espera.getInicio().format(FORMATO_DATA_HORA)
+        );
         enviar(email, assunto, corpo);
     }
 

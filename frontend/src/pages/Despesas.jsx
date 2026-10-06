@@ -12,6 +12,7 @@ const CATEGORIAS = [
   { value: 'SALARIO', label: 'Salário' },
   { value: 'FORNECEDOR', label: 'Fornecedor' },
   { value: 'ALUGUEL', label: 'Aluguel' },
+  { value: 'COMISSAO', label: 'Comissão' },
   { value: 'OUTRO', label: 'Outro' },
 ]
 

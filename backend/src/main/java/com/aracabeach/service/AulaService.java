@@ -25,6 +25,7 @@ public class AulaService {
     private final AulaRepository aulaRepository;
     private final ProfessorRepository professorRepository;
     private final QuadraRepository quadraRepository;
+    private final ComissaoService comissaoService;
 
     @Transactional
     public Aula criar(AulaRequest request) {
@@ -55,7 +56,11 @@ public class AulaService {
                 .valor(request.valor())
                 .build();
 
-        return aulaRepository.save(aula);
+        Aula salva = aulaRepository.save(aula);
+        comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
+                "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
+                salva.getInicio().toLocalDate(), salva.getValor());
+        return salva;
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +70,7 @@ public class AulaService {
 
     @Transactional
     public void remover(Long id) {
+        comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, id);
         aulaRepository.deleteById(id);
     }
 

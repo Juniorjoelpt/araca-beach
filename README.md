@@ -149,6 +149,20 @@ está no código — veja os comentários em
 para o passo a passo de como plugar um gateway (Mercado Pago, Asaas, etc.)
 quando for a hora.
 
+## Regras de reserva, pacotes de aulas e comissões
+
+- **Regras de reserva** (menu *Regras de reserva*, só ADMIN): cancelamento gratuito até X horas antes,
+  multa de cancelamento tardio e de no-show, desconto de mensalista, preço por horário (pico/fora de pico),
+  bloqueio de quadra (manutenção/evento) e lista de espera (e-mail quando o horário libera).
+  Padrões: 24h grátis, multa 50%, no-show 100%, desconto 0%.
+- **Pacotes de aulas** (menu *Pacotes de aulas*): planos, venda, saldo de aulas, agendamento (reserva a quadra),
+  chamada/presença e reposição (falta avisada devolve o crédito).
+- **Comissões** (menu *Comissões*, só ADMIN): lançadas automaticamente por aula avulsa, mensalidade de turma paga
+  e aula de pacote realizada; pagamento em lote com lançamento opcional em Despesas.
+- **Portal do cliente**: preço por horário, lista de espera, aviso de multa ao cancelar, aba *Aulas* (pacotes, saldo,
+  avisar falta) e aba *Conta* (cobranças em aberto).
+- Ao atualizar um banco existente, rode `backend/sql/03-migracao-regras-pacotes-comissao.sql` uma vez.
+
 ## Deploy em produção
 
 Para colocar o sistema no ar numa VPS com Docker, veja o guia completo

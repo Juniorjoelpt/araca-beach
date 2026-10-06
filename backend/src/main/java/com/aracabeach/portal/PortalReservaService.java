@@ -2,22 +2,25 @@ package com.aracabeach.portal;
 
 import com.aracabeach.domain.cliente.Cliente;
 import com.aracabeach.domain.quadra.Quadra;
+import com.aracabeach.domain.quadra.StatusQuadra;
 import com.aracabeach.domain.reserva.OrigemReserva;
 import com.aracabeach.domain.reserva.Reserva;
 import com.aracabeach.domain.reserva.StatusReserva;
-import com.aracabeach.dto.ReservaFinanceiroResponse;
-import com.aracabeach.exception.ConflitoHorarioException;
+import com.aracabeach.dto.PoliticaCancelamentoResponse;
+import com.aracabeach.dto.PrecoResponse;
 import com.aracabeach.exception.RecursoNaoEncontradoException;
+import com.aracabeach.repository.BloqueioQuadraRepository;
 import com.aracabeach.repository.QuadraRepository;
 import com.aracabeach.repository.ReservaRepository;
 import com.aracabeach.service.PagamentoService;
+import com.aracabeach.service.PrecificacaoService;
+import com.aracabeach.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,11 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras de negocio do portal do cliente (app mobile). Reaproveita as
- * mesmas entidades/repositorios do sistema interno - o portal e so mais
- * uma "porta de entrada" para criar Reserva, com a diferenca de que o
- * clienteId vem sempre do token autenticado (nunca do corpo da requisicao,
- * para um cliente jamais conseguir reservar em nome de outro).
+ * Regras de negocio do portal do cliente (app mobile). Usa o mesmo nucleo do
+ * painel interno (ReservaService) - preco, bloqueio, conflito, multa de
+ * cancelamento -, com a diferenca de que o clienteId vem sempre do token
+ * autenticado (nunca do corpo da requisicao).
  */
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,9 @@ public class PortalReservaService {
     private final QuadraRepository quadraRepository;
     private final ReservaRepository reservaRepository;
     private final PagamentoService pagamentoService;
+    private final ReservaService reservaService;
+    private final PrecificacaoService precificacaoService;
+    private final BloqueioQuadraRepository bloqueioQuadraRepository;
 
     @Value("${araca-beach.portal.horario-abertura:6}")
     private int horarioAbertura;
@@ -51,14 +56,15 @@ public class PortalReservaService {
     @Transactional(readOnly = true)
     public List<PortalQuadraResponse> listarQuadrasDisponiveis() {
         return quadraRepository.findAll().stream()
+                .filter(q -> q.getStatus() == StatusQuadra.DISPONIVEL)
                 .map(q -> new PortalQuadraResponse(q.getId(), q.getNome(), q.getTipo().name(), q.getValorHora(), q.getCapacidade()))
                 .toList();
     }
 
     /**
      * Gera os horarios do dia (a cada duracaoSlotMinutos, entre a abertura
-     * e o fechamento configurados) e marca quais ja estao ocupados por uma
-     * reserva existente naquela quadra.
+     * e o fechamento configurados), com o preco de cada um e o motivo de
+     * indisponibilidade (ocupado, bloqueado ou ja passou).
      */
     @Transactional(readOnly = true)
     public List<PortalSlotResponse> disponibilidade(Long quadraId, LocalDate data) {
@@ -69,8 +75,10 @@ public class PortalReservaService {
         LocalDateTime fimDia = LocalDateTime.of(data, LocalTime.MAX);
         List<Reserva> reservasDoDia = reservaRepository.findByQuadraIdAndInicioBetween(quadra.getId(), inicioDia, fimDia)
                 .stream()
-                .filter(r -> r.getStatus() != StatusReserva.CANCELADA)
+                .filter(r -> r.getStatus() != StatusReserva.CANCELADA && r.getStatus() != StatusReserva.NAO_COMPARECEU)
                 .toList();
+        boolean quadraAtiva = quadra.getStatus() == StatusQuadra.DISPONIVEL;
+        LocalDateTime agora = LocalDateTime.now();
 
         List<PortalSlotResponse> slots = new ArrayList<>();
         LocalDateTime cursor = LocalDateTime.of(data, LocalTime.of(horarioAbertura, 0));
@@ -82,12 +90,31 @@ public class PortalReservaService {
 
             boolean ocupado = reservasDoDia.stream()
                     .anyMatch(r -> inicioSlot.isBefore(r.getFim()) && fimSlot.isAfter(r.getInicio()));
+            boolean bloqueado = !quadraAtiva
+                    || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicioSlot, fimSlot).isEmpty();
+            boolean passado = inicioSlot.isBefore(agora);
 
-            slots.add(new PortalSlotResponse(inicioSlot, fimSlot, !ocupado));
+            String motivo = null;
+            if (passado) {
+                motivo = "PASSADO";
+            } else if (bloqueado) {
+                motivo = "BLOQUEADO";
+            } else if (ocupado) {
+                motivo = "OCUPADO";
+            }
+
+            BigDecimal preco = precificacaoService.calcular(quadra, inicioSlot, fimSlot, null).valorTotal();
+            slots.add(new PortalSlotResponse(inicioSlot, fimSlot, motivo == null, preco, motivo));
             cursor = fimSlot;
         }
 
         return slots;
+    }
+
+    /** Preco da reserva para o cliente logado (com desconto de mensalista, se houver). */
+    @Transactional(readOnly = true)
+    public PrecoResponse preco(Cliente cliente, Long quadraId, LocalDateTime inicio, LocalDateTime fim) {
+        return reservaService.simularPreco(quadraId, inicio, fim, cliente.getId());
     }
 
     @Transactional
@@ -102,15 +129,6 @@ public class PortalReservaService {
         Quadra quadra = quadraRepository.findById(request.quadraId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Quadra não encontrada: " + request.quadraId()));
 
-        boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), request.inicio(), request.fim()).isEmpty();
-        if (conflito) {
-            throw new ConflitoHorarioException("Esse horário acabou de ser reservado por outra pessoa. Escolha outro horário.");
-        }
-
-        BigDecimal horas = BigDecimal.valueOf(Duration.between(request.inicio(), request.fim()).toMinutes())
-                .divide(BigDecimal.valueOf(60));
-        BigDecimal valorTotal = quadra.getValorHora().multiply(horas);
-
         // NOTA PARA IMPLEMENTACAO FUTURA DE PAGAMENTO ONLINE:
         // por enquanto a reserva feita pelo portal ja nasce CONFIRMADA, sem
         // exigir pagamento (igual a uma reserva feita por telefone). Quando
@@ -120,29 +138,21 @@ public class PortalReservaService {
         // 3) so confirmar a reserva quando o webhook do gateway avisar que
         //    o pagamento foi aprovado (e cancelar/liberar o horario se o
         //    pagamento expirar sem ser concluido).
-        Reserva reserva = Reserva.builder()
-                .quadra(quadra)
-                .cliente(cliente)
-                .inicio(request.inicio())
-                .fim(request.fim())
-                .status(StatusReserva.CONFIRMADA)
-                .origem(OrigemReserva.ONLINE)
-                .valorTotal(valorTotal)
-                .build();
-
-        reserva = reservaRepository.save(reserva);
+        Reserva reserva = reservaService.criarReserva(quadra, cliente, request.inicio(), request.fim(),
+                OrigemReserva.ONLINE, null);
         return paraResponse(reserva, "PENDENTE");
     }
 
     @Transactional(readOnly = true)
     public List<PortalReservaResponse> minhasReservas(Cliente cliente) {
         return reservaRepository.findByClienteIdOrderByInicioDesc(cliente.getId()).stream()
+                .filter(r -> r.getOrigem() != OrigemReserva.AULA) // aulas de pacote aparecem em "Aulas"
                 .map(r -> paraResponse(r, null))
                 .toList();
     }
 
     @Transactional
-    public void cancelarReserva(Cliente cliente, Long reservaId) {
+    public PortalReservaResponse cancelarReserva(Cliente cliente, Long reservaId) {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Reserva não encontrada: " + reservaId));
 
@@ -153,15 +163,45 @@ public class PortalReservaService {
             throw new IllegalArgumentException("Não é possível cancelar uma reserva que já passou.");
         }
 
-        reserva.setStatus(StatusReserva.CANCELADA);
-        reservaRepository.save(reserva);
+        Reserva cancelada = reservaService.cancelar(reservaId, false);
+        return paraResponse(cancelada, null);
+    }
+
+    /** Politica vigente (para exibir antes de reservar/cancelar). */
+    @Transactional(readOnly = true)
+    public PoliticaCancelamentoResponse politicaDaReserva(Cliente cliente, Long reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Reserva não encontrada: " + reservaId));
+        if (!reserva.getCliente().getId().equals(cliente.getId())) {
+            throw new IllegalArgumentException("Esta reserva não pertence a você.");
+        }
+        return reservaService.simularCancelamento(reserva);
     }
 
     private PortalReservaResponse paraResponse(Reserva reserva, String statusPagamentoConhecido) {
         String statusPagamento = statusPagamentoConhecido;
         if (statusPagamento == null) {
-            statusPagamento = pagamentoService.listarPorReserva(reserva.getId()).isEmpty() ? "PENDENTE" : "PAGO";
+            BigDecimal pago = pagamentoService.listarPorReserva(reserva.getId()).stream()
+                    .map(p -> p.getValor())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal total = reserva.getValorTotal() != null ? reserva.getValorTotal() : BigDecimal.ZERO;
+            if (pago.signum() <= 0) {
+                statusPagamento = "PENDENTE";
+            } else {
+                statusPagamento = pago.compareTo(total) >= 0 ? "PAGO" : "PARCIAL";
+            }
         }
+
+        BigDecimal taxaAgora = null;
+        LocalDateTime gratisAte = null;
+        String mensagem = null;
+        if (reserva.getStatus() == StatusReserva.CONFIRMADA && reserva.getInicio().isAfter(LocalDateTime.now())) {
+            PoliticaCancelamentoResponse politica = reservaService.simularCancelamento(reserva);
+            taxaAgora = politica.taxa();
+            gratisAte = politica.gratisAte();
+            mensagem = politica.mensagem();
+        }
+
         return new PortalReservaResponse(
                 reserva.getId(),
                 reserva.getQuadra().getNome(),
@@ -169,7 +209,11 @@ public class PortalReservaService {
                 reserva.getFim(),
                 reserva.getStatus().name(),
                 reserva.getValorTotal(),
-                statusPagamento
+                statusPagamento,
+                reserva.getTaxaCancelamento(),
+                taxaAgora,
+                gratisAte,
+                mensagem
         );
     }
 }

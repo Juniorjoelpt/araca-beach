@@ -63,6 +63,13 @@ public class Reserva {
     @Column(length = 300)
     private String observacoes;
 
+    /** Multa cobrada em cancelamento tardio / nao comparecimento (null = sem multa). */
+    @Column(name = "taxa_cancelamento", precision = 10, scale = 2)
+    private BigDecimal taxaCancelamento;
+
+    @Column(name = "cancelada_em")
+    private LocalDateTime canceladaEm;
+
     @Column(name = "lembrete_enviado")
     @Builder.Default
     private Boolean lembreteEnviado = false;

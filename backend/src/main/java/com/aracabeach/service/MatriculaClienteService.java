@@ -69,6 +69,7 @@ public class MatriculaClienteService {
     private final ClienteRepository clienteRepository;
     private final QuadraRepository quadraRepository;
     private final ReservaRepository reservaRepository;
+    private final com.aracabeach.repository.BloqueioQuadraRepository bloqueioQuadraRepository;
     private final PagamentoRepository pagamentoCaixaRepository;
 
     @Transactional
@@ -129,7 +130,7 @@ public class MatriculaClienteService {
     private int[] gerarOcorrencias(MatriculaClienteHorario horario, LocalDate desde, LocalDate ate) {
         Quadra quadra = horario.getQuadra();
         BigDecimal horas = BigDecimal.valueOf(Duration.between(horario.getHoraInicio(), horario.getHoraFim()).toMinutes())
-                .divide(BigDecimal.valueOf(60));
+                .divide(BigDecimal.valueOf(60), 6, java.math.RoundingMode.HALF_UP);
         // Zero porque a cobranca e feita pela matricula combinada (mensal), nao por sessao.
         BigDecimal valorPorOcorrencia = BigDecimal.ZERO;
 
@@ -141,7 +142,8 @@ public class MatriculaClienteService {
             LocalDateTime inicio = LocalDateTime.of(data, horario.getHoraInicio());
             LocalDateTime fim = LocalDateTime.of(data, horario.getHoraFim());
 
-            boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
+            boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
+                    || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
             if (conflito) {
                 comConflito++;
                 continue;

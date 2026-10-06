@@ -13,4 +13,11 @@ public interface PagamentoMatriculaClienteRepository extends JpaRepository<Pagam
     Optional<PagamentoMatriculaCliente> findByMatriculaClienteIdAndReferenciaMes(Long matriculaClienteId, String referenciaMes);
 
     List<PagamentoMatriculaCliente> findByPagoFalseOrderByVencimentoAsc();
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT p FROM PagamentoMatriculaCliente p
+        WHERE p.pago = false AND p.matriculaCliente.cliente.id = :clienteId
+        ORDER BY p.vencimento ASC
+        """)
+    List<PagamentoMatriculaCliente> pendentesDoCliente(@org.springframework.data.repository.query.Param("clienteId") Long clienteId);
 }

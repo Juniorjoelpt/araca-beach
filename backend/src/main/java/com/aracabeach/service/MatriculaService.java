@@ -47,6 +47,7 @@ public class MatriculaService {
     private final TurmaRepository turmaRepository;
     private final ClienteRepository clienteRepository;
     private final PagamentoRepository pagamentoRepository;
+    private final ComissaoService comissaoService;
 
     @Transactional
     public MatriculaResponse criar(MatriculaRequest request) {
@@ -152,6 +153,11 @@ public class MatriculaService {
                 .ehSinal(false)
                 .build();
         pagamentoRepository.save(pagamentoCaixa);
+
+        Turma turma = pagamento.getMatricula().getTurma();
+        comissaoService.lancar(turma.getProfessor(), com.aracabeach.domain.comissao.OrigemComissao.MATRICULA,
+                pagamento.getId(), "Mensalidade " + turma.getNome() + " " + pagamento.getReferenciaMes(),
+                pagamento.getDataPagamento(), pagamento.getValor());
 
         return paraPagamentoResponse(pagamento);
     }

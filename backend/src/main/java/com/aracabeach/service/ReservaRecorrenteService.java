@@ -41,6 +41,7 @@ public class ReservaRecorrenteService {
     private final ReservaRepository reservaRepository;
     private final QuadraRepository quadraRepository;
     private final ClienteRepository clienteRepository;
+    private final com.aracabeach.repository.BloqueioQuadraRepository bloqueioQuadraRepository;
 
     @Transactional
     public ReservaRecorrenteResponse criar(ReservaRecorrenteRequest request) {
@@ -75,14 +76,15 @@ public class ReservaRecorrenteService {
         List<LocalDate> datasComConflito = new ArrayList<>();
 
         BigDecimal horas = BigDecimal.valueOf(Duration.between(request.horaInicio(), request.horaFim()).toMinutes())
-                .divide(BigDecimal.valueOf(60));
-        BigDecimal valorPorOcorrencia = quadra.getValorHora().multiply(horas);
+                .divide(BigDecimal.valueOf(60), 6, java.math.RoundingMode.HALF_UP);
+        BigDecimal valorPorOcorrencia = quadra.getValorHora().multiply(horas).setScale(2, java.math.RoundingMode.HALF_UP);
 
         for (LocalDate data = primeiraData; !data.isAfter(limite); data = data.plusWeeks(1)) {
             LocalDateTime inicio = LocalDateTime.of(data, request.horaInicio());
             LocalDateTime fim = LocalDateTime.of(data, request.horaFim());
 
-            boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
+            boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
+                    || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
             if (conflito) {
                 datasComConflito.add(data);
                 continue;
@@ -159,14 +161,15 @@ public class ReservaRecorrenteService {
 
             BigDecimal horas = BigDecimal.valueOf(
                             Duration.between(recorrencia.getHoraInicio(), recorrencia.getHoraFim()).toMinutes())
-                    .divide(BigDecimal.valueOf(60));
-            BigDecimal valorPorOcorrencia = quadra.getValorHora().multiply(horas);
+                    .divide(BigDecimal.valueOf(60), 6, java.math.RoundingMode.HALF_UP);
+            BigDecimal valorPorOcorrencia = quadra.getValorHora().multiply(horas).setScale(2, java.math.RoundingMode.HALF_UP);
 
             for (LocalDate data = ultimaData.plusWeeks(1); !data.isAfter(limiteDesejado); data = data.plusWeeks(1)) {
                 LocalDateTime inicio = LocalDateTime.of(data, recorrencia.getHoraInicio());
                 LocalDateTime fim = LocalDateTime.of(data, recorrencia.getHoraFim());
 
-                boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
+                boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
+                    || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
                 if (conflito) {
                     continue;
                 }

@@ -13,4 +13,13 @@ public interface PagamentoMatriculaRepository extends JpaRepository<PagamentoMat
     Optional<PagamentoMatricula> findByMatriculaIdAndReferenciaMes(Long matriculaId, String referenciaMes);
 
     List<PagamentoMatricula> findByPagoFalseOrderByVencimentoAsc();
+
+    List<PagamentoMatricula> findByPagoTrueAndDataPagamentoGreaterThanEqual(java.time.LocalDate data);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT p FROM PagamentoMatricula p
+        WHERE p.pago = false AND p.matricula.cliente.id = :clienteId
+        ORDER BY p.vencimento ASC
+        """)
+    List<PagamentoMatricula> pendentesDoCliente(@org.springframework.data.repository.query.Param("clienteId") Long clienteId);
 }

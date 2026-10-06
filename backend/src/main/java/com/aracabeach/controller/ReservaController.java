@@ -1,6 +1,7 @@
 package com.aracabeach.controller;
 
 import com.aracabeach.domain.reserva.Reserva;
+import com.aracabeach.dto.PoliticaCancelamentoResponse;
 import com.aracabeach.dto.ReservaRequest;
 import com.aracabeach.service.ReservaService;
 import jakarta.validation.Valid;
@@ -39,7 +40,20 @@ public class ReservaController {
     }
 
     @PatchMapping("/{id}/cancelar")
-    public Reserva cancelar(@PathVariable Long id) {
-        return reservaService.cancelar(id);
+    public Reserva cancelar(@PathVariable Long id,
+                            @RequestParam(defaultValue = "false") boolean isentarMulta) {
+        return reservaService.cancelar(id, isentarMulta);
+    }
+
+    @PatchMapping("/{id}/nao-compareceu")
+    public Reserva naoCompareceu(@PathVariable Long id,
+                                 @RequestParam(defaultValue = "false") boolean isentarMulta) {
+        return reservaService.marcarNaoCompareceu(id, isentarMulta);
+    }
+
+    /** O que acontece se cancelar agora (multa ou nao). */
+    @GetMapping("/{id}/politica-cancelamento")
+    public PoliticaCancelamentoResponse politicaCancelamento(@PathVariable Long id) {
+        return reservaService.simularCancelamento(id);
     }
 }

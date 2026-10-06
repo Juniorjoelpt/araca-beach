@@ -22,6 +22,11 @@ import PortalCadastro from './pages/portal/PortalCadastro.jsx'
 import PortalLogin from './pages/portal/PortalLogin.jsx'
 import PortalAgendar from './pages/portal/PortalAgendar.jsx'
 import PortalMinhasReservas from './pages/portal/PortalMinhasReservas.jsx'
+import PortalAulas from './pages/portal/PortalAulas.jsx'
+import PortalConta from './pages/portal/PortalConta.jsx'
+import Pacotes from './pages/Pacotes.jsx'
+import Regras from './pages/Regras.jsx'
+import Comissoes from './pages/Comissoes.jsx'
 
 export default function App() {
   return (
@@ -46,6 +51,9 @@ export default function App() {
         <Route path="/estoque" element={<AdminRoute><Estoque /></AdminRoute>} />
         <Route path="/despesas" element={<AdminRoute><Despesas /></AdminRoute>} />
         <Route path="/mensalidades" element={<Mensalidades />} />
+        <Route path="/pacotes" element={<Pacotes />} />
+        <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
+        <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
       </Route>
@@ -62,6 +70,8 @@ export default function App() {
       >
         <Route path="/portal" element={<PortalAgendar />} />
         <Route path="/portal/minhas-reservas" element={<PortalMinhasReservas />} />
+        <Route path="/portal/aulas" element={<PortalAulas />} />
+        <Route path="/portal/conta" element={<PortalConta />} />
       </Route>
     </Routes>
   )

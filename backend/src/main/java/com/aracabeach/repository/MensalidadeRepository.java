@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> {
     List<Mensalidade> findByAtivaTrue();
 
+    boolean existsByAtivaTrueAndReservaRecorrenteClienteId(Long clienteId);
+
     Optional<Mensalidade> findByReservaRecorrenteId(Long reservaRecorrenteId);
 }

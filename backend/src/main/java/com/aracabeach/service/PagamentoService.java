@@ -39,6 +39,7 @@ public class PagamentoService {
     private final PagamentoMensalidadeRepository pagamentoMensalidadeRepository;
     private final PagamentoMatriculaClienteRepository pagamentoMatriculaClienteRepository;
     private final PagamentoMatriculaRepository pagamentoMatriculaTurmaRepository;
+    private final com.aracabeach.repository.PacoteClienteRepository pacoteClienteRepository;
 
     @Transactional
     public Pagamento registrar(PagamentoRequest request) {
@@ -88,7 +89,9 @@ public class PagamentoService {
         if (valorPago.compareTo(BigDecimal.ZERO) <= 0) {
             // Reserva cancelada sem pagamento nao e uma cobranca pendente de
             // verdade - evita que ela apareca como "Pendente" no Financeiro.
-            statusPagamento = "CANCELADA".equals(reserva.getStatus().name()) ? "CANCELADA" : "PENDENTE";
+            boolean cancelada = "CANCELADA".equals(reserva.getStatus().name());
+            boolean temMulta = reserva.getTaxaCancelamento() != null && reserva.getTaxaCancelamento().signum() > 0;
+            statusPagamento = cancelada && !temMulta ? "CANCELADA" : "PENDENTE";
         } else if (valorPago.compareTo(valorTotal) >= 0) {
             statusPagamento = "PAGO";
         } else {
@@ -181,6 +184,19 @@ public class PagamentoService {
                     p.getValor(),
                     p.getVencimento(),
                     p.getVencimento().isBefore(hoje)
+            ));
+        }
+
+        for (com.aracabeach.domain.pacote.PacoteCliente p : pacoteClienteRepository.findByPagoFalseAndCanceladoFalseOrderByDataCompraAsc()) {
+            cobrancas.add(new CobrancaPendenteResponse(
+                    p.getId(),
+                    "PACOTE",
+                    p.getCliente().getNome(),
+                    "Pacote - " + p.getPlano().getNome(),
+                    p.getDataCompra().toString().substring(0, 7),
+                    p.getValor(),
+                    p.getDataCompra(),
+                    p.getDataCompra().isBefore(hoje)
             ));
         }
 
