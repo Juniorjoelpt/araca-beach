@@ -38,6 +38,7 @@ public class PagamentoService {
     private final AuditoriaService auditoria;
     private final ReservaRepository reservaRepository;
     private final PagamentoMensalidadeRepository pagamentoMensalidadeRepository;
+    private final com.aracabeach.repository.MensalidadeRepository mensalidadeRepository;
     private final PagamentoMatriculaClienteRepository pagamentoMatriculaClienteRepository;
     private final PagamentoMatriculaRepository pagamentoMatriculaTurmaRepository;
     private final com.aracabeach.repository.PacoteClienteRepository pacoteClienteRepository;
@@ -80,12 +81,27 @@ public class PagamentoService {
                 .toList();
     }
 
+    private boolean mensalidadeDoMesPaga(Reserva reserva) {
+        String referencia = java.time.YearMonth.from(reserva.getInicio()).toString(); // "yyyy-MM"
+        return mensalidadeRepository.findByReservaRecorrenteId(reserva.getReservaRecorrenteId())
+                .flatMap(m -> pagamentoMensalidadeRepository.findByMensalidadeIdAndReferenciaMes(m.getId(), referencia))
+                .map(PagamentoMensalidade::isPago)
+                .orElse(false);
+    }
+
     private ReservaFinanceiroResponse paraFinanceiroResponse(Reserva reserva) {
         BigDecimal valorPago = pagamentoRepository.findByReservaId(reserva.getId()).stream()
                 .map(Pagamento::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal valorTotal = reserva.getValorTotal() != null ? reserva.getValorTotal() : BigDecimal.ZERO;
+
+        // Reserva gerada por mensalidade: o recebimento entra na cobranca do mes (PagamentoMensalidade),
+        // nao em Pagamento por reserva. Se a cobranca do mes dessa reserva esta paga, a reserva esta paga.
+        if (valorPago.signum() <= 0 && valorTotal.signum() > 0 && reserva.getReservaRecorrenteId() != null
+                && !"CANCELADA".equals(reserva.getStatus().name()) && mensalidadeDoMesPaga(reserva)) {
+            valorPago = valorTotal;
+        }
 
         String statusPagamento;
         if (valorPago.compareTo(BigDecimal.ZERO) <= 0) {

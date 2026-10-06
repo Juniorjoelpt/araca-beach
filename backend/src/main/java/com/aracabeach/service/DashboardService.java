@@ -72,6 +72,8 @@ public class DashboardService {
 
         List<ReservaFinanceiroResponse> reservasPendentes = pagamentoService.visaoFinanceiraDoDia(data).stream()
                 .filter(r -> !"PAGO".equals(r.statusPagamento()) && r.statusReserva() != StatusReserva.CANCELADA)
+                // valor zero = sem cobranca propria (matricula/pacote): a cobranca fica no Financeiro
+                .filter(r -> r.valorTotal() != null && r.valorTotal().signum() > 0)
                 .toList();
 
         return new DashboardResponse(
