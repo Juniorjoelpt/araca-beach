@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -22,6 +22,9 @@ const menuBase = [
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/aulas', label: 'Aulas', icon: GraduationCap },
   { to: '/torneios', label: 'Torneios', icon: Trophy },
+  { to: '/restaurante', label: 'Restaurante', icon: UtensilsCrossed },
+  { to: '/restaurante/reservas', label: 'Reservas de mesa', icon: CalendarClock },
+  { to: '/restaurante/gestao', label: 'Gestão do restaurante', icon: ChefHat, soAdmin: true },
   { to: '/loja', label: 'Loja', icon: ShoppingBag },
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
   { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },
@@ -72,7 +75,7 @@ export default function Layout() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/'}
+                end={item.to === '/' || item.to === '/restaurante'}
                 className="relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors"
               >
                 {ativo && (

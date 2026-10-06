@@ -41,6 +41,9 @@ araca-beach:
   jwt:
     secret: ${JWT_SECRET:troque-esta-chave-em-producao-para-uma-bem-mais-longa-e-secreta}
     expiration-minutes: 480
+  restaurante:
+    # Taxa de servico sugerida ao abrir uma comanda (o caixa pode zerar ou alterar)
+    taxa-servico-percentual: ${RESTAURANTE_TAXA_SERVICO:10}
   auditoria:
     # Dias de retencao da trilha de auditoria (expurgo diario as 03:30)
     retencao-dias: ${AUDITORIA_RETENCAO_DIAS:365}

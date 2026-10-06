@@ -52,6 +52,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body(HttpStatus.BAD_REQUEST, mensagem));
     }
 
+    /** Validacao de parametros/corpos que nao sao um unico objeto (ex.: lista de linhas) - Spring 6.1+. */
+    @ExceptionHandler(org.springframework.web.method.annotation.HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, Object>> handleValidacaoMetodo(
+            org.springframework.web.method.annotation.HandlerMethodValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(body(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os valores informados."));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleCorpoIlegivel(
+            org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(body(HttpStatus.BAD_REQUEST, "Requisição inválida: confira os campos e valores enviados."));
+    }
+
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleConcorrencia(
+            org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body(HttpStatus.CONFLICT,
+                "Este registro foi alterado por outra pessoa ao mesmo tempo. Recarregue e tente de novo."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenerico(Exception ex) {
         log.error("Erro nao tratado em uma requisicao", ex);

@@ -174,6 +174,19 @@ quando for a hora.
   do portal é registrada com usuário, ação, módulo, id, IP e detalhes (ex.: multa isentada, pagamento excluído, mudança de
   regras, senha redefinida), além de logins e falhas de login. A tabela `auditoria` é criada automaticamente; registros
   são expurgados após `AUDITORIA_RETENCAO_DIAS` (padrão 365). O IP vem de `X-Forwarded-For` (nginx).
+- **Restaurante** (menus *Restaurante*, *Reservas de mesa* e, só ADMIN, *Gestão do restaurante*):
+  - **Comandas:** o caixa lança os pedidos. Com reserva de mesa, a comanda fica atrelada à mesa; sem reserva, ao cliente
+    (mesa é só um rótulo livre, não há número fixo de mesas). Cada envio gera um ticket por praça (cozinha/bar), pode
+    ser reimpresso, e itens podem ser cancelados (com motivo, registrado na auditoria).
+  - **Conta:** taxa de serviço (padrão 10%, `RESTAURANTE_TAXA_SERVICO`), desconto (só ADMIN), vários pagamentos para
+    dividir a conta, e o fechamento lança cada pagamento no caixa do dia (Financeiro/Painel gerencial).
+  - **Gestão:** cardápio (carga inicial a partir do cardápio impresso; categorias, preço, pausar item que acabou),
+    insumos com estoque e **ficha técnica** (a venda dá baixa automática no estoque e calcula custo e margem do prato)
+    e relatório (mais vendidos, margem, horários, dias da semana).
+  - **Impressora térmica (80mm):** os tickets saem pelo navegador do computador do caixa, na impressora térmica instalada
+    como impressora do sistema. Para imprimir direto, sem a janela de confirmação, abra o Chrome do caixa com o atalho
+    `chrome.exe --kiosk-printing` e deixe a térmica como impressora padrão. A conta impressa é uma pré-conta, sem valor
+    fiscal (NFC-e não está incluída).
 - Ao atualizar um banco existente, rode `backend/sql/03-migracao-regras-pacotes-comissao.sql` uma vez.
 
 ## Deploy em produção

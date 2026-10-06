@@ -32,6 +32,9 @@ import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
 import Comissoes from './pages/Comissoes.jsx'
 import Gerencial from './pages/Gerencial.jsx'
+import Restaurante from './pages/Restaurante.jsx'
+import RestauranteReservas from './pages/RestauranteReservas.jsx'
+import RestauranteGestao from './pages/RestauranteGestao.jsx'
 import Auditoria from './pages/Auditoria.jsx'
 
 export default function App() {
@@ -61,6 +64,9 @@ export default function App() {
         <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
         <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/restaurante" element={<Restaurante />} />
+        <Route path="/restaurante/reservas" element={<RestauranteReservas />} />
+        <Route path="/restaurante/gestao" element={<AdminRoute><RestauranteGestao /></AdminRoute>} />
         <Route path="/gerencial" element={<AdminRoute><Gerencial /></AdminRoute>} />
         <Route path="/auditoria" element={<AdminRoute><Auditoria /></AdminRoute>} />
         <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />

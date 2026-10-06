@@ -31,7 +31,13 @@ public class AuditoriaInterceptor implements HandlerInterceptor {
             Map.entry("avisar-falta", "Avisou falta em"),
             Map.entry("confirmar-email", "Confirmou e-mail de"),
             Map.entry("fechar", "Fechou"),
-            Map.entry("itens", "Adicionou item em"),
+            Map.entry("pedidos", "Lançou pedido em"),
+            Map.entry("mesa", "Alterou a mesa de"),
+            Map.entry("taxa-servico", "Alterou a taxa de serviço de"),
+            Map.entry("desconto", "Aplicou desconto em"),
+            Map.entry("ficha", "Alterou a ficha técnica de"),
+            Map.entry("pausa", "Alterou a disponibilidade de"),
+            Map.entry("movimentos", "Movimentou estoque de"),
             Map.entry("status", "Alterou status de"),
             Map.entry("senha", "Trocou senha de"),
             Map.entry("ajuste", "Ajustou"),
@@ -61,7 +67,10 @@ public class AuditoriaInterceptor implements HandlerInterceptor {
             Map.entry("estoque", "estoque"),
             Map.entry("comandas", "comanda"),
             Map.entry("lista-espera", "lista de espera"),
-            Map.entry("reservas-recorrentes", "reserva recorrente"));
+            Map.entry("reservas-recorrentes", "reserva recorrente"),
+            Map.entry("reservas-mesa", "reserva de mesa"),
+            Map.entry("insumos", "insumo"),
+            Map.entry("categorias", "categoria do cardápio"));
 
     private final AuditoriaService auditoriaService;
 
@@ -82,7 +91,9 @@ public class AuditoriaInterceptor implements HandlerInterceptor {
 
             String[] seg = caminho.substring("/api/".length()).split("/");
             boolean portal = seg.length > 1 && "portal".equals(seg[0]);
-            int base = portal ? 1 : 0;
+            boolean restaurante = seg.length > 1 && "restaurante".equals(seg[0]);
+            int base = portal || restaurante ? 1 : 0;
+            if (restaurante && seg.length > 2 && "gestao".equals(seg[1])) base = 2;
             String recursoSeg = seg.length > base ? seg[base] : "";
             String recursoId = null;
             String ultimoVerbo = null;
@@ -96,7 +107,13 @@ public class AuditoriaInterceptor implements HandlerInterceptor {
 
             String nomeRecurso = RECURSOS.getOrDefault(recursoSeg, recursoSeg);
             String acao;
-            if (ultimoVerbo != null && VERBOS.containsKey(ultimoVerbo)) {
+            if ("itens".equals(ultimoVerbo) && !"restaurante".equals(seg[0])) {
+                acao = ("DELETE".equals(metodo) ? "Removeu item de " : "Adicionou item em ") + nomeRecurso;
+            } else if ("restaurante".equals(seg[0]) && "itens".equals(ultimoVerbo) && recursoSeg.equals("comandas")) {
+                acao = "Cancelou item de " + nomeRecurso;
+            } else if ("pagamentos".equals(ultimoVerbo)) {
+                acao = ("DELETE".equals(metodo) ? "Removeu pagamento de " : "Registrou pagamento em ") + nomeRecurso;
+            } else if (ultimoVerbo != null && VERBOS.containsKey(ultimoVerbo)) {
                 acao = VERBOS.get(ultimoVerbo) + " " + nomeRecurso;
             } else {
                 String verbo = switch (metodo) {
@@ -110,7 +127,7 @@ public class AuditoriaInterceptor implements HandlerInterceptor {
 
             Object detalhe = request.getAttribute(AuditoriaService.ATRIBUTO_DETALHE);
             auditoriaService.registrarRequisicao(auth, metodo, caminho, status, acao,
-                    portal ? "portal/" + recursoSeg : recursoSeg, recursoId,
+                    portal ? "portal/" + recursoSeg : restaurante ? "restaurante/" + recursoSeg : recursoSeg, recursoId,
                     detalhe != null ? detalhe.toString() : null, ipDe(request));
         } catch (RuntimeException e) {
             // Auditar nunca pode quebrar a resposta ja concluida.
