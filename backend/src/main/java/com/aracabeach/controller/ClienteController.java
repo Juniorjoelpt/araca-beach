@@ -39,6 +39,11 @@ public class ClienteController {
         return clienteService.atualizar(id, cliente);
     }
 
+    @PatchMapping("/{id}/confirmar-email")
+    public Cliente confirmarEmail(@PathVariable Long id) {
+        return clienteService.confirmarEmailManualmente(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         clienteService.deletar(id);

@@ -8,6 +8,8 @@ export default function PortalLogin() {
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
+  const [emailPendente, setEmailPendente] = useState(false)
+  const [reenviado, setReenviado] = useState(false)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -17,10 +19,25 @@ export default function PortalLogin() {
     try {
       await portalAuthService.login(email, senha)
       navigate('/portal')
-    } catch {
-      setErro('E-mail ou senha inválidos.')
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setEmailPendente(true)
+        setErro(err.response?.data?.mensagem || 'Confirme seu e-mail para entrar.')
+      } else {
+        setEmailPendente(false)
+        setErro('E-mail ou senha inválidos.')
+      }
     } finally {
       setCarregando(false)
+    }
+  }
+
+  async function reenviar() {
+    try {
+      await portalAuthService.reenviarConfirmacao(email)
+      setReenviado(true)
+    } catch {
+      setErro('Não foi possível reenviar agora.')
     }
   }
 
@@ -54,6 +71,13 @@ export default function PortalLogin() {
           </div>
 
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
+          {emailPendente && (
+            <div className="text-sm">
+              {reenviado
+                ? <p className="text-green-700">Link reenviado. Confira seu e-mail (e o spam).</p>
+                : <button type="button" onClick={reenviar} className="text-araca-verde-escuro font-medium hover:underline">Reenviar e-mail de confirmação</button>}
+            </div>
+          )}
 
           <button
             type="submit"

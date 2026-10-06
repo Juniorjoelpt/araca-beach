@@ -1,6 +1,7 @@
 package com.aracabeach.domain.cliente;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,6 +64,22 @@ public class Cliente implements UserDetails {
     @Column(length = 300)
     private String observacoes;
 
+    /**
+     * Confirmacao do e-mail da conta do portal. Nulo = conta antiga (anterior a esta
+     * funcionalidade), tratada como confirmada; false = aguardando confirmacao.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Column(name = "email_confirmado")
+    private Boolean emailConfirmado;
+
+    @JsonIgnore
+    @Column(name = "confirmacao_token_hash", length = 64)
+    private String confirmacaoTokenHash;
+
+    @JsonIgnore
+    @Column(name = "confirmacao_expira_em")
+    private LocalDateTime confirmacaoExpiraEm;
+
     /** SHA-256 do token de recuperacao de senha (o token em si so vai por e-mail). */
     @JsonIgnore
     @Column(name = "reset_token_hash", length = 64)
@@ -75,6 +92,11 @@ public class Cliente implements UserDetails {
     /** RECEPCAO (cadastrado pela equipe) ou PORTAL (auto-cadastro do jogador). Nulo = RECEPCAO (dados antigos). */
     @Column(name = "origem_cadastro", length = 20)
     private String origemCadastro;
+
+    @Transient
+    public boolean isEmailPendente() {
+        return isPossuiAcessoPortal() && Boolean.FALSE.equals(emailConfirmado);
+    }
 
     @Transient
     public boolean isPossuiAcessoPortal() {

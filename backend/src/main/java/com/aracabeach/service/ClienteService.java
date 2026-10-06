@@ -45,7 +45,28 @@ public class ClienteService {
         cliente.setOrigemCadastro(existente.getOrigemCadastro());
         cliente.setResetTokenHash(existente.getResetTokenHash());
         cliente.setResetExpiraEm(existente.getResetExpiraEm());
+        cliente.setEmailConfirmado(existente.getEmailConfirmado());
+        cliente.setConfirmacaoTokenHash(existente.getConfirmacaoTokenHash());
+        cliente.setConfirmacaoExpiraEm(existente.getConfirmacaoExpiraEm());
+        // Trocar o e-mail de uma conta do portal exige confirmar o novo endereco.
+        boolean emailMudou = existente.getEmail() != null
+                && !existente.getEmail().equalsIgnoreCase(cliente.getEmail() == null ? "" : cliente.getEmail());
+        if (existente.isPossuiAcessoPortal() && emailMudou) {
+            cliente.setEmailConfirmado(false);
+            cliente.setConfirmacaoTokenHash(null);
+            cliente.setConfirmacaoExpiraEm(null);
+        }
         cliente.setCriadoEm(existente.getCriadoEm());
+        return clienteRepository.save(cliente);
+    }
+
+    /** Fallback da recepcao quando o e-mail de confirmacao nao chega (ex.: SMTP fora do ar). */
+    @Transactional
+    public Cliente confirmarEmailManualmente(Long id) {
+        Cliente cliente = buscarPorId(id);
+        cliente.setEmailConfirmado(true);
+        cliente.setConfirmacaoTokenHash(null);
+        cliente.setConfirmacaoExpiraEm(null);
         return clienteRepository.save(cliente);
     }
 

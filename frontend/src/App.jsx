@@ -23,6 +23,7 @@ import PortalLogin from './pages/portal/PortalLogin.jsx'
 import PortalAgendar from './pages/portal/PortalAgendar.jsx'
 import PortalMinhasReservas from './pages/portal/PortalMinhasReservas.jsx'
 import PortalPerfil from './pages/portal/PortalPerfil.jsx'
+import PortalConfirmarEmail from './pages/portal/PortalConfirmarEmail.jsx'
 import PortalEsqueciSenha from './pages/portal/PortalEsqueciSenha.jsx'
 import PortalRedefinirSenha from './pages/portal/PortalRedefinirSenha.jsx'
 import PortalAulas from './pages/portal/PortalAulas.jsx'
@@ -64,6 +65,7 @@ export default function App() {
       {/* Portal do cliente (mobile) */}
       <Route path="/portal/entrar" element={<PortalLogin />} />
       <Route path="/portal/cadastro" element={<PortalCadastro />} />
+      <Route path="/portal/confirmar-email" element={<PortalConfirmarEmail />} />
       <Route path="/portal/esqueci-senha" element={<PortalEsqueciSenha />} />
       <Route path="/portal/redefinir-senha" element={<PortalRedefinirSenha />} />
       <Route

@@ -59,6 +59,8 @@ araca-beach:
     duracao-slot-minutos: 60
     # Endereco publico do sistema (usado no link do e-mail de recuperacao de senha)
     url-base: ${PORTAL_URL:http://localhost:5173}
+    # Exige confirmar o e-mail (link enviado por e-mail) antes do primeiro login. Exige SMTP configurado.
+    exigir-confirmacao-email: ${PORTAL_EXIGIR_CONFIRMACAO_EMAIL:true}
 
 springdoc:
   swagger-ui:

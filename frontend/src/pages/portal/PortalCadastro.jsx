@@ -7,6 +7,8 @@ export default function PortalCadastro() {
   const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '' })
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
+  const [pendente, setPendente] = useState(false)
+  const [reenviado, setReenviado] = useState(false)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -14,13 +16,46 @@ export default function PortalCadastro() {
     setErro('')
     setCarregando(true)
     try {
-      await portalAuthService.registrar(form.nome, form.email, form.telefone, form.senha)
-      navigate('/portal')
+      const resp = await portalAuthService.registrar(form.nome, form.email, form.telefone, form.senha)
+      if (resp.confirmacaoPendente) {
+        setPendente(true)
+      } else {
+        navigate('/portal')
+      }
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível criar sua conta.')
     } finally {
       setCarregando(false)
     }
+  }
+
+  async function reenviar() {
+    try {
+      await portalAuthService.reenviarConfirmacao(form.email)
+      setReenviado(true)
+    } catch {
+      setErro('Não foi possível reenviar agora. Tente novamente em instantes.')
+    }
+  }
+
+  if (pendente) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-oceano-gradient p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm text-center">
+          <img src={logoIcone} alt="Araça Beach" className="w-16 h-16 rounded-full mx-auto mb-3" />
+          <h1 className="font-title text-2xl text-araca-verde-escuro mb-2">Confirme seu e-mail</h1>
+          <p className="text-gray-600 text-sm mb-4">
+            Enviamos um link para <strong>{form.email}</strong>. Clique nele para ativar sua conta (vale por 24 horas). Confira também o spam.
+          </p>
+          {reenviado && <p className="text-green-700 text-sm mb-2">Link reenviado.</p>}
+          {erro && <p className="text-red-600 text-sm mb-2">{erro}</p>}
+          <button onClick={reenviar} className="text-araca-verde-escuro font-medium text-sm hover:underline">Reenviar e-mail</button>
+          <p className="text-sm text-gray-500 mt-4">
+            <Link to="/portal/entrar" className="text-araca-verde-escuro font-medium hover:underline">Ir para o login</Link>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

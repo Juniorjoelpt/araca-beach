@@ -20,9 +20,16 @@ function salvarSessao(data) {
 export const portalAuthService = {
   registrar: async (nome, email, telefone, senha) => {
     const { data } = await apiPortal.post('/auth/registro', { nome, email, telefone, senha })
+    // Com confirmação de e-mail ligada, não há sessão ainda (data.sessao é nulo).
+    if (data.sessao) salvarSessao(data.sessao)
+    return data
+  },
+  confirmarEmail: async (token) => {
+    const { data } = await apiPortal.post('/auth/confirmar-email', { token })
     salvarSessao(data)
     return data
   },
+  reenviarConfirmacao: (email) => apiPortal.post('/auth/reenviar-confirmacao', { email }),
   login: async (email, senha) => {
     const { data } = await apiPortal.post('/auth/login', { email, senha })
     salvarSessao(data)

@@ -14,12 +14,23 @@ public class PortalAuthController {
 
     @PostMapping("/registro")
     @ResponseStatus(HttpStatus.CREATED)
-    public PortalAuthResponse registrar(@Valid @RequestBody PortalRegistroRequest request) {
+    public PortalRegistroResponse registrar(@Valid @RequestBody PortalRegistroRequest request) {
         return portalAuthService.registrar(request);
     }
 
     @PostMapping("/login")
     public PortalAuthResponse login(@Valid @RequestBody PortalLoginRequest request) {
         return portalAuthService.login(request);
+    }
+
+    @PostMapping("/confirmar-email")
+    public PortalAuthResponse confirmarEmail(@Valid @RequestBody PortalConfirmarEmailRequest request) {
+        return portalAuthService.confirmarEmail(request.token());
+    }
+
+    @PostMapping("/reenviar-confirmacao")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reenviarConfirmacao(@Valid @RequestBody PortalEsqueciSenhaRequest request) {
+        portalAuthService.reenviarConfirmacao(request.email());
     }
 }

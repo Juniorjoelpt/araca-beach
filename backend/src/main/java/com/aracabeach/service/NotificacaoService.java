@@ -164,6 +164,23 @@ public class NotificacaoService {
         enviar(email, assunto, corpo);
     }
 
+    public void enviarConfirmacaoEmail(com.aracabeach.domain.cliente.Cliente cliente, String link) {
+        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
+            return;
+        }
+        String corpo = """
+                Olá, %s!
+
+                Bem-vindo(a) à Araça Beach! Para ativar sua conta no portal, confirme seu e-mail pelo link abaixo (vale por 24 horas):
+
+                %s
+
+                Se você não criou essa conta, ignore este e-mail.
+                Araça Beach - Vôlei, Futevôlei e Beach Tennis
+                """.formatted(cliente.getNome(), link);
+        enviar(cliente.getEmail(), "Confirme seu e-mail - Araça Beach", corpo);
+    }
+
     public void enviarRecuperacaoSenha(com.aracabeach.domain.cliente.Cliente cliente, String link) {
         if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
             return;

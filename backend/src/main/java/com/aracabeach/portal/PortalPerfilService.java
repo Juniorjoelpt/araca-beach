@@ -9,13 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HexFormat;
 
 /** Perfil do jogador, troca de senha e recuperacao de senha por e-mail. */
 @Service
@@ -30,8 +24,6 @@ public class PortalPerfilService {
 
     @Value("${araca-beach.portal.url-base:http://localhost:5173}")
     private String urlBase;
-
-    private final SecureRandom random = new SecureRandom();
 
     @Transactional(readOnly = true)
     public PortalPerfilResponse perfil(Cliente cliente) {
@@ -84,10 +76,8 @@ public class PortalPerfilService {
         clienteRepository.findByEmail(email.trim())
                 .filter(Cliente::isPossuiAcessoPortal)
                 .ifPresent(cliente -> {
-                    byte[] bytes = new byte[32];
-                    random.nextBytes(bytes);
-                    String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-                    cliente.setResetTokenHash(sha256(token));
+                    String token = TokenUtil.gerar();
+                    cliente.setResetTokenHash(TokenUtil.sha256(token));
                     cliente.setResetExpiraEm(LocalDateTime.now().plusMinutes(VALIDADE_TOKEN_MINUTOS));
                     clienteRepository.save(cliente);
                     String base = urlBase.endsWith("/") ? urlBase.substring(0, urlBase.length() - 1) : urlBase;
@@ -97,13 +87,17 @@ public class PortalPerfilService {
 
     @Transactional
     public void redefinirSenha(PortalRedefinirSenhaRequest request) {
-        Cliente cliente = clienteRepository.findByResetTokenHash(sha256(request.token()))
+        Cliente cliente = clienteRepository.findByResetTokenHash(TokenUtil.sha256(request.token()))
                 .filter(c -> c.getResetExpiraEm() != null && c.getResetExpiraEm().isAfter(LocalDateTime.now()))
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Link inválido ou expirado. Peça um novo em \"Esqueci minha senha\"."));
         cliente.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
         cliente.setResetTokenHash(null);
         cliente.setResetExpiraEm(null);
+        // Receber o link no e-mail prova que a pessoa controla o endereco.
+        cliente.setEmailConfirmado(true);
+        cliente.setConfirmacaoTokenHash(null);
+        cliente.setConfirmacaoExpiraEm(null);
         clienteRepository.save(cliente);
     }
 
@@ -113,14 +107,5 @@ public class PortalPerfilService {
 
     private static String apenasDigitos(String valor) {
         return valor == null ? "" : valor.replaceAll("\\D", "");
-    }
-
-    private static String sha256(String valor) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return HexFormat.of().formatHex(md.digest(valor.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

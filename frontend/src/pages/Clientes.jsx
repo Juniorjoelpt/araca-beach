@@ -61,6 +61,17 @@ export default function Clientes() {
     }
   }
 
+  async function handleConfirmarEmail(cliente) {
+    if (!confirm(`Confirmar manualmente o e-mail de "${cliente.nome}" (${cliente.email})? Use só se tiver certeza de que o e-mail é da própria pessoa.`)) return
+    setErro('')
+    try {
+      await clienteService.confirmarEmail(cliente.id)
+      carregar()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível confirmar o e-mail.')
+    }
+  }
+
   async function handleVerHistorico(cliente) {
     setHistoricoAberto(true)
     setCarregandoHistorico(true)
@@ -149,11 +160,24 @@ export default function Clientes() {
                       {c.possuiAcessoPortal ? 'Portal' : 'Portal (sem acesso)'}
                     </span>
                   )}
+                  {c.emailPendente && (
+                    <span className="ml-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">
+                      E-mail não confirmado
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3">{c.telefone || '—'}</td>
                 <td className="px-4 py-3">{c.email || '—'}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-3">
+                    {c.emailPendente && (
+                      <button
+                        onClick={() => handleConfirmarEmail(c)}
+                        className="text-amber-700 hover:underline"
+                      >
+                        Confirmar e-mail
+                      </button>
+                    )}
                     <button
                       onClick={() => handleVerHistorico(c)}
                       className="flex items-center gap-1 text-araca-verde-escuro hover:underline"

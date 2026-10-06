@@ -161,6 +161,11 @@ quando for a hora.
   e aula de pacote realizada; pagamento em lote com lançamento opcional em Despesas.
 - **Portal do cliente**: preço por horário, lista de espera, aviso de multa ao cancelar, aba *Aulas* (pacotes, saldo,
   avisar falta) e aba *Conta* (cobranças em aberto).
+- **Contas do portal**: o cadastro exige confirmar o e-mail (link válido por 24h) antes do primeiro login, e há
+  recuperação de senha por e-mail. Precisa de SMTP configurado (`MAIL_*`) e da variável `PORTAL_URL` (endereço público
+  do site, usado nos links). Contas criadas antes desta versão continuam entrando normalmente. Se o e-mail não chegar,
+  a recepção confirma manualmente em *Clientes → Confirmar e-mail*. Para desligar a exigência:
+  `PORTAL_EXIGIR_CONFIRMACAO_EMAIL=false`.
 - Ao atualizar um banco existente, rode `backend/sql/03-migracao-regras-pacotes-comissao.sql` uma vez.
 
 ## Deploy em produção
