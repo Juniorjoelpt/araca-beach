@@ -17,15 +17,32 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
+    private final AuditoriaService auditoriaService;
 
     public LoginResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.login(), request.senha()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.login(), request.senha()));
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            auditoriaService.registrar("EQUIPE", request.login(), null, "Falha de login", "auth", null,
+                    "Credenciais inválidas ou usuário inativo", ipAtual());
+            throw e;
+        }
 
         Usuario usuario = usuarioRepository.findByLogin(request.login())
                 .orElseThrow();
 
         String token = jwtService.gerarToken(usuario, JwtService.TIPO_STAFF);
+        auditoriaService.registrar("EQUIPE", usuario.getLogin(), usuario.getPerfil().name(), "Login", "auth",
+                String.valueOf(usuario.getId()), null, ipAtual());
         return new LoginResponse(token, usuario.getNome(), usuario.getPerfil().name());
+    }
+
+    private String ipAtual() {
+        var attrs = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes sra) {
+            return com.aracabeach.config.AuditoriaInterceptor.ipDe(sra.getRequest());
+        }
+        return null;
     }
 }

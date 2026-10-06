@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -26,6 +26,8 @@ const menuBase = [
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
   { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },
   { to: '/regras', label: 'Regras de reserva', icon: SlidersHorizontal, soAdmin: true },
+  { to: '/gerencial', label: 'Painel gerencial', icon: LineChart, soAdmin: true },
+  { to: '/auditoria', label: 'Auditoria', icon: ShieldCheck, soAdmin: true },
   { to: '/usuarios', label: 'Usuários', icon: UserCog, soAdmin: true },
 ]
 

@@ -9,4 +9,5 @@ import java.util.List;
 public interface DespesaRepository extends JpaRepository<Despesa, Long> {
     List<Despesa> findByDataVencimentoBetweenOrderByDataVencimento(LocalDate inicio, LocalDate fim);
     List<Despesa> findByPagaFalseOrderByDataVencimento();
+    List<Despesa> findByPagaTrueAndDataPagamentoBetween(LocalDate inicio, LocalDate fim);
 }

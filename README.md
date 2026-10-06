@@ -166,6 +166,14 @@ quando for a hora.
   do site, usado nos links). Contas criadas antes desta versão continuam entrando normalmente. Se o e-mail não chegar,
   a recepção confirma manualmente em *Clientes → Confirmar e-mail*. Para desligar a exigência:
   `PORTAL_EXIGIR_CONFIRMACAO_EMAIL=false`.
+- **Painel gerencial** (menu *Painel gerencial*, só ADMIN): receita × despesas × resultado, ticket médio, horas reservadas,
+  cancelamentos/no-show/multas, clientes novos (cada indicador com variação vs. período anterior de mesmo tamanho),
+  ocupação por quadra (base: `araca-beach.portal.horario-abertura/fechamento`), mapa de calor de horários, receita por forma
+  de pagamento, despesas por categoria, melhores clientes e inadimplência.
+- **Auditoria** (menu *Auditoria*, só ADMIN): toda escrita (criar/alterar/cancelar/excluir) feita por equipe ou por clientes
+  do portal é registrada com usuário, ação, módulo, id, IP e detalhes (ex.: multa isentada, pagamento excluído, mudança de
+  regras, senha redefinida), além de logins e falhas de login. A tabela `auditoria` é criada automaticamente; registros
+  são expurgados após `AUDITORIA_RETENCAO_DIAS` (padrão 365). O IP vem de `X-Forwarded-For` (nginx).
 - Ao atualizar um banco existente, rode `backend/sql/03-migracao-regras-pacotes-comissao.sql` uma vez.
 
 ## Deploy em produção

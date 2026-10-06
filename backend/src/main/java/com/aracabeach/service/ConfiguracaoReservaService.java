@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConfiguracaoReservaService {
 
     private final ConfiguracaoReservaRepository repository;
+    private final AuditoriaService auditoria;
 
     /** Le a configuracao; se ainda nao foi salva, devolve os padroes (sem gravar - seguro em transacao readOnly). */
     @Transactional(readOnly = true)
@@ -24,12 +25,21 @@ public class ConfiguracaoReservaService {
     @Transactional
     public ConfiguracaoReserva atualizar(ConfiguracaoReservaRequest request) {
         ConfiguracaoReserva c = obter();
+        String antes = resumo(c);
         c.setHorasCancelamentoGratis(request.horasCancelamentoGratis());
         c.setPercentualMulta(request.percentualMulta());
         c.setPercentualMultaNoShow(request.percentualMultaNoShow());
         c.setDescontoMensalistaPercentual(request.descontoMensalistaPercentual());
         c.setListaEsperaAtiva(request.listaEsperaAtiva());
         c.setHorasAvisoFaltaAula(request.horasAvisoFaltaAula());
-        return repository.save(c);
+        ConfiguracaoReserva salva = repository.save(c);
+        auditoria.detalhe("Antes: " + antes + " | Depois: " + resumo(salva));
+        return salva;
+    }
+
+    private String resumo(ConfiguracaoReserva c) {
+        return "cancelamento grátis " + c.getHorasCancelamentoGratis() + "h, multa " + c.getPercentualMulta()
+                + "%, no-show " + c.getPercentualMultaNoShow() + "%, desc. mensalista "
+                + c.getDescontoMensalistaPercentual() + "%, espera " + c.isListaEsperaAtiva();
     }
 }

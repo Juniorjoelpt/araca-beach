@@ -23,6 +23,7 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final AuditoriaService auditoria;
     private final ReservaRepository reservaRepository;
     private final ComandaRepository comandaRepository;
 
@@ -72,7 +73,7 @@ public class ClienteService {
 
     @Transactional
     public void deletar(Long id) {
-        buscarPorId(id);
+        Cliente alvo = buscarPorId(id);
 
         boolean possuiReservas = !reservaRepository.findByClienteIdOrderByInicioDesc(id).isEmpty();
         boolean possuiComandas = !comandaRepository.findByClienteIdOrderByCriadoEmDesc(id).isEmpty();
@@ -82,6 +83,7 @@ public class ClienteService {
                     "Nao e possivel excluir este cliente: ele possui reservas ou comandas registradas no historico.");
         }
 
+        auditoria.detalhe("Cliente '" + alvo.getNome() + "' (#" + id + ")");
         clienteRepository.deleteById(id);
     }
 

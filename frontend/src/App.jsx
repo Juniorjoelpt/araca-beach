@@ -31,6 +31,8 @@ import PortalConta from './pages/portal/PortalConta.jsx'
 import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
 import Comissoes from './pages/Comissoes.jsx'
+import Gerencial from './pages/Gerencial.jsx'
+import Auditoria from './pages/Auditoria.jsx'
 
 export default function App() {
   return (
@@ -59,6 +61,8 @@ export default function App() {
         <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
         <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/gerencial" element={<AdminRoute><Gerencial /></AdminRoute>} />
+        <Route path="/auditoria" element={<AdminRoute><Auditoria /></AdminRoute>} />
         <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
       </Route>
 

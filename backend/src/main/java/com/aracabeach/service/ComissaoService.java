@@ -34,6 +34,7 @@ import java.util.List;
 public class ComissaoService {
 
     private final ComissaoLancamentoRepository repository;
+    private final AuditoriaService auditoria;
     private final ProfessorRepository professorRepository;
     private final DespesaRepository despesaRepository;
 
@@ -116,6 +117,8 @@ public class ComissaoService {
             c.setDataPagamento(hoje);
         });
         repository.saveAll(lancamentos);
+        auditoria.detalhe("Professor " + lancamentos.get(0).getProfessor().getNome() + ": " + lancamentos.size()
+                + " lançamento(s), total R$ " + soma(lancamentos) + (request.lancarDespesa() ? ", com despesa" : ", sem despesa"));
 
         if (request.lancarDespesa()) {
             Professor professor = lancamentos.get(0).getProfessor();

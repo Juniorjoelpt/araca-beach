@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public class PagamentoService {
 
     private final PagamentoRepository pagamentoRepository;
+    private final AuditoriaService auditoria;
     private final ReservaRepository reservaRepository;
     private final PagamentoMensalidadeRepository pagamentoMensalidadeRepository;
     private final PagamentoMatriculaClienteRepository pagamentoMatriculaClienteRepository;
@@ -54,6 +55,7 @@ public class PagamentoService {
                 .ehSinal(request.ehSinal())
                 .build();
 
+        auditoria.detalhe("Reserva #" + request.reservaId() + " - R$ " + request.valor() + " (" + request.formaPagamento() + ")");
         return pagamentoRepository.save(pagamento);
     }
 
@@ -216,6 +218,8 @@ public class PagamentoService {
     public void excluir(Long id) {
         Pagamento pagamento = pagamentoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento nao encontrado: " + id));
+        auditoria.detalhe("Pagamento #" + id + " de R$ " + pagamento.getValor() + " (" + pagamento.getFormaPagamento() + ")"
+                + (pagamento.getReserva() != null ? " da reserva #" + pagamento.getReserva().getId() : ""));
         pagamentoRepository.delete(pagamento);
     }
 }

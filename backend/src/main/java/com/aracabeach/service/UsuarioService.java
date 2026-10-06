@@ -18,6 +18,7 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final AuditoriaService auditoria;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -34,6 +35,7 @@ public class UsuarioService {
                 .ativo(true)
                 .build();
 
+        auditoria.detalhe("Novo usuário '" + request.login() + "' com perfil " + request.perfil());
         return paraResponse(usuarioRepository.save(usuario));
     }
 
@@ -46,6 +48,7 @@ public class UsuarioService {
     public UsuarioResponse alterarStatus(Long id, boolean ativo) {
         Usuario usuario = buscarPorId(id);
         usuario.setAtivo(ativo);
+        auditoria.detalhe("Usuário '" + usuario.getLogin() + "' " + (ativo ? "ativado" : "desativado"));
         return paraResponse(usuarioRepository.save(usuario));
     }
 
@@ -53,6 +56,7 @@ public class UsuarioService {
     public UsuarioResponse trocarSenha(Long id, TrocarSenhaRequest request) {
         Usuario usuario = buscarPorId(id);
         usuario.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+        auditoria.detalhe("Senha do usuário '" + usuario.getLogin() + "' redefinida");
         return paraResponse(usuarioRepository.save(usuario));
     }
 

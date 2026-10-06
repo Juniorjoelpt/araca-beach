@@ -18,6 +18,7 @@ import java.util.List;
 public class DespesaService {
 
     private final DespesaRepository despesaRepository;
+    private final AuditoriaService auditoria;
 
     @Transactional
     public Despesa criar(DespesaRequest request) {
@@ -47,6 +48,8 @@ public class DespesaService {
 
     @Transactional
     public void remover(Long id) {
+        despesaRepository.findById(id).ifPresent(d ->
+                auditoria.detalhe("Despesa '" + d.getDescricao() + "' de R$ " + d.getValor()));
         despesaRepository.deleteById(id);
     }
 

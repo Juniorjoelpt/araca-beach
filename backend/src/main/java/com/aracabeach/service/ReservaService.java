@@ -37,6 +37,7 @@ import java.util.List;
 public class ReservaService {
 
     private final ReservaRepository reservaRepository;
+    private final AuditoriaService auditoria;
     private final QuadraRepository quadraRepository;
     private final ClienteRepository clienteRepository;
     private final NotificacaoService notificacaoService;
@@ -128,6 +129,7 @@ public class ReservaService {
         exigirConfirmada(reserva, "cancelada");
 
         BigDecimal taxa = isentarMulta ? BigDecimal.ZERO : simularCancelamento(reserva).taxa();
+        auditoria.detalhe("Reserva #" + reservaId + " - multa R$ " + taxa + (isentarMulta ? " (isentada pela equipe)" : ""));
         aplicarEncerramento(reserva, StatusReserva.CANCELADA, taxa);
 
         Reserva reservaCancelada = reservaRepository.save(reserva);
@@ -150,6 +152,7 @@ public class ReservaService {
             ConfiguracaoReserva cfg = configuracaoService.obter();
             taxa = percentual(reserva.getValorTotal(), cfg.getPercentualMultaNoShow());
         }
+        auditoria.detalhe("Reserva #" + reservaId + " - multa de no-show R$ " + taxa + (isentarMulta ? " (isentada pela equipe)" : ""));
         aplicarEncerramento(reserva, StatusReserva.NAO_COMPARECEU, taxa);
         return reservaRepository.save(reserva);
     }
