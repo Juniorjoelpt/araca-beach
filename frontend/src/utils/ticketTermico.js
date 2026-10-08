@@ -97,3 +97,25 @@ export function imprimirConta(comanda) {
       <div class="c peq">Documento sem valor fiscal</div>
     </div>`)
 }
+
+/** Comprovante (nao fiscal) de uma comanda da Loja da arena. */
+export function imprimirComprovanteLoja(comanda) {
+  const itens = comanda.itens || []
+  const total = itens.reduce((soma, i) => soma + Number(i.precoUnitario) * i.quantidade, 0)
+  imprimirHtml(`
+    <div class="ticket">
+      <h1>ARAÇA BEACH</h1>
+      <h2>LOJA</h2>
+      <div class="c forte">${esc(comanda.cliente?.nome || '')}</div>
+      <div class="c peq">Comanda #${comanda.id} · ${new Date().toLocaleString('pt-BR')}</div>
+      <div class="linha"></div>
+      ${itens.map((i) => `
+        <div class="tot"><span>${i.quantidade}x ${esc(i.produto?.nome)}</span><span>${brl(Number(i.precoUnitario) * i.quantidade)}</span></div>
+        ${i.quantidade > 1 ? `<div class="peq" style="margin-left:10px">${brl(i.precoUnitario)} cada</div>` : ''}`).join('')}
+      <div class="linha"></div>
+      <div class="tot forte"><span>TOTAL</span><span>${brl(total)}</span></div>
+      <div class="linha"></div>
+      <div class="c peq">Obrigado pela preferência!</div>
+      <div class="c peq">Documento sem valor fiscal</div>
+    </div>`)
+}

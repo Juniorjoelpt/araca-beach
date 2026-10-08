@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { clienteService } from '../services/clienteService.js'
 import { produtoService } from '../services/produtoService.js'
 import { comandaService } from '../services/comandaService.js'
-import { ShoppingBag, Plus, Pencil, Trash2, X, Wine, UtensilsCrossed, Dumbbell, Package } from 'lucide-react'
+import { imprimirComprovanteLoja } from '../utils/ticketTermico.js'
+import { ShoppingBag, Plus, Pencil, Trash2, X, Wine, UtensilsCrossed, Dumbbell, Package, Printer } from 'lucide-react'
 
 const CATEGORIAS = [
   { value: 'BEBIDA', label: 'Bebida', icon: Wine },
@@ -141,6 +142,7 @@ export default function Loja() {
     if (!confirm('Fechar esta comanda?')) return
     try {
       await comandaService.fechar(comandaAtiva.id)
+      imprimirComprovanteLoja(comandaAtiva)
       setComandaAtiva(null)
       carregarBase()
     } catch {
@@ -326,6 +328,13 @@ export default function Loja() {
 
             <div className="flex items-center justify-between pt-4 mt-2">
               <span className="font-semibold text-araca-azul">Total: R$ {totalComanda.toFixed(2)}</span>
+              <button
+                onClick={() => imprimirComprovanteLoja(comandaAtiva)}
+                disabled={(comandaAtiva.itens || []).length === 0}
+                className="flex items-center gap-1 text-sm text-araca-azul border rounded-lg px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+              >
+                <Printer size={14} /> Imprimir comprovante
+              </button>
               {!comandaAtiva.fechada && (
                 <button onClick={handleFecharComanda} className="text-red-600 text-sm hover:underline">
                   Fechar comanda
