@@ -462,17 +462,22 @@ function NovaComandaModal({ onFechar, onCriada }) {
 
   async function abrir() {
     setErro('')
+    if (modo === 'RESERVA' && !mesa.trim() && !reservaSel?.mesa) {
+      setErro('Informe a mesa para atender esta reserva.')
+      return
+    }
     try {
       const dados = modo === 'RESERVA'
-        ? { reservaMesaId: Number(reservaId), mesa: mesa || null }
-        : { clienteId: Number(clienteId), mesa: mesa || null }
+        ? { reservaMesaId: Number(reservaId), mesa: mesa.trim() || null }
+        : { clienteId: Number(clienteId), mesa: mesa.trim() || null }
       onCriada(await restauranteService.abrirComanda(dados))
     } catch (err) {
       setErro(msg(err, 'Não foi possível abrir a comanda.'))
     }
   }
 
-  const podeAbrir = modo === 'RESERVA' ? !!reservaId && (!!mesa || !!reservaSel?.mesa) : !!clienteId
+  const podeAbrir = modo === 'RESERVA' ? !!reservaId : !!clienteId
+  const clienteSel = clientes.find((c) => String(c.id) === String(clienteId))
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -490,9 +495,16 @@ function NovaComandaModal({ onFechar, onCriada }) {
         {modo === 'CLIENTE' ? (
           <div className="space-y-2">
             <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente por nome ou telefone" className="border rounded-lg px-3 py-2 w-full text-sm" />
-            <select value={clienteId} onChange={(e) => setClienteId(e.target.value)} size={5} className="border rounded-lg w-full text-sm">
-              {filtrados.map((c) => <option key={c.id} value={c.id}>{c.nome}{c.telefone ? ` · ${c.telefone}` : ''}</option>)}
-            </select>
+            <div className="border rounded-lg max-h-44 overflow-y-auto divide-y">
+              {filtrados.length === 0 && <p className="text-sm text-gray-500 p-3">Nenhum cliente encontrado.</p>}
+              {filtrados.map((c) => (
+                <button type="button" key={c.id} onClick={() => setClienteId(String(c.id))}
+                  className={`w-full text-left px-3 py-2 text-sm ${String(c.id) === String(clienteId) ? 'bg-araca-azul text-white' : 'hover:bg-gray-50'}`}>
+                  {c.nome}{c.telefone ? ` · ${c.telefone}` : ''}
+                </button>
+              ))}
+            </div>
+            {clienteSel && <p className="text-xs text-gray-600">Selecionado: <b>{clienteSel.nome}</b></p>}
             {!mostrarNovo ? (
               <button onClick={() => setMostrarNovo(true)} className="text-xs underline text-gray-600">Cliente não cadastrado? Cadastrar agora</button>
             ) : (
@@ -507,13 +519,16 @@ function NovaComandaModal({ onFechar, onCriada }) {
         ) : (
           <div className="space-y-2">
             {reservas.length === 0 && <p className="text-sm text-gray-500">Nenhuma reserva de mesa confirmada hoje sem comanda.</p>}
-            <select value={reservaId} onChange={(e) => setReservaId(e.target.value)} size={5} className="border rounded-lg w-full text-sm">
+            <div className="border rounded-lg max-h-44 overflow-y-auto divide-y">
               {reservas.map((r) => (
-                <option key={r.id} value={r.id}>{format(new Date(r.dataHora), 'HH:mm')} · {r.clienteNome} · {r.pessoas} pessoa(s){r.mesa ? ` · Mesa ${r.mesa}` : ''}</option>
+                <button type="button" key={r.id} onClick={() => setReservaId(String(r.id))}
+                  className={`w-full text-left px-3 py-2 text-sm ${String(r.id) === String(reservaId) ? 'bg-araca-azul text-white' : 'hover:bg-gray-50'}`}>
+                  {format(new Date(r.dataHora), 'HH:mm')} · {r.clienteNome} · {r.pessoas} pessoa(s){r.mesa ? ` · Mesa ${r.mesa}` : ''}
+                </button>
               ))}
-            </select>
+            </div>
             {reservaSel && !reservaSel.mesa && (
-              <input value={mesa} onChange={(e) => setMesa(e.target.value)} placeholder="Mesa para esta reserva (obrigatório)" className="border rounded-lg px-3 py-2 w-full text-sm" />
+              <input value={mesa} onChange={(e) => setMesa(e.target.value)} placeholder="Mesa para esta reserva (obrigatório)" className="border border-araca-azul rounded-lg px-3 py-2 w-full text-sm" />
             )}
             {reservaSel?.mesa && <p className="text-xs text-gray-500">Mesa reservada: {reservaSel.mesa}</p>}
           </div>
