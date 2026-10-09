@@ -281,8 +281,8 @@ export default function Restaurante() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm truncate">{c.rotulo}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.vinculo === 'MESA' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {c.vinculo === 'MESA' ? 'Reserva' : 'Cliente'}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.vinculo === 'MESA' ? 'bg-blue-100 text-blue-700' : c.vinculo === 'AVULSA' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {c.vinculo === 'MESA' ? 'Reserva' : c.vinculo === 'AVULSA' ? 'Avulsa' : 'Cliente'}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-0.5">
@@ -478,7 +478,8 @@ export default function Restaurante() {
 }
 
 function NovaComandaModal({ onFechar, onCriada }) {
-  const [modo, setModo] = useState('CLIENTE') // CLIENTE | RESERVA
+  const [modo, setModo] = useState('AVULSA') // AVULSA | CLIENTE | RESERVA
+  const [nomeAvulso, setNomeAvulso] = useState('')
   const [clientes, setClientes] = useState([])
   const [reservas, setReservas] = useState([])
   const [busca, setBusca] = useState('')
@@ -525,16 +526,17 @@ function NovaComandaModal({ onFechar, onCriada }) {
       return
     }
     try {
-      const dados = modo === 'RESERVA'
-        ? { reservaMesaId: Number(reservaId), mesa: mesa.trim() || null }
-        : { clienteId: Number(clienteId), mesa: mesa.trim() || null }
+      let dados
+      if (modo === 'RESERVA') dados = { reservaMesaId: Number(reservaId), mesa: mesa.trim() || null }
+      else if (modo === 'AVULSA') dados = { avulsa: true, nome: nomeAvulso.trim() || null, mesa: mesa.trim() || null }
+      else dados = { clienteId: Number(clienteId), mesa: mesa.trim() || null }
       onCriada(await restauranteService.abrirComanda(dados))
     } catch (err) {
       setErro(msg(err, 'Não foi possível abrir a comanda.'))
     }
   }
 
-  const podeAbrir = modo === 'RESERVA' ? !!reservaId : !!clienteId
+  const podeAbrir = modo === 'AVULSA' ? true : modo === 'RESERVA' ? !!reservaId : !!clienteId
   const clienteSel = clientes.find((c) => String(c.id) === String(clienteId))
 
   return (
@@ -546,11 +548,18 @@ function NovaComandaModal({ onFechar, onCriada }) {
         </div>
 
         <div className="flex gap-2 mb-3 text-sm">
-          <button onClick={() => setModo('CLIENTE')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'CLIENTE' ? 'bg-araca-azul text-white' : ''}`}>Sem reserva (cliente)</button>
+          <button onClick={() => setModo('AVULSA')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'AVULSA' ? 'bg-araca-azul text-white' : ''}`}>Venda avulsa</button>
+          <button onClick={() => setModo('CLIENTE')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'CLIENTE' ? 'bg-araca-azul text-white' : ''}`}>Cliente</button>
           <button onClick={() => setModo('RESERVA')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'RESERVA' ? 'bg-araca-azul text-white' : ''}`}>Reserva de mesa</button>
         </div>
 
-        {modo === 'CLIENTE' ? (
+        {modo === 'AVULSA' ? (
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500">Sem cadastro de cliente. Os campos abaixo são opcionais e servem só para identificar a comanda.</p>
+            <input value={nomeAvulso} onChange={(e) => setNomeAvulso(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') abrir() }} autoFocus maxLength={80} placeholder="Nome ou apelido (ex.: Balcão, moto azul)" className="border rounded-lg px-3 py-2 w-full text-sm" />
+            <input value={mesa} onChange={(e) => setMesa(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') abrir() }} placeholder="Mesa (opcional)" className="border rounded-lg px-3 py-2 w-full text-sm" />
+          </div>
+        ) : modo === 'CLIENTE' ? (
           <div className="space-y-2">
             <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente por nome ou telefone" className="border rounded-lg px-3 py-2 w-full text-sm" />
             <div className="border rounded-lg max-h-44 overflow-y-auto divide-y">

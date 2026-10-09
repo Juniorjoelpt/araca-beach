@@ -78,6 +78,12 @@ public class ComandaRestauranteService {
                     .mesa(mesa)
                     .taxaServicoPercentual(taxaServicoPadrao)
                     .build();
+        } else if (Boolean.TRUE.equals(r.avulsa())) {
+            comanda = ComandaRestaurante.builder()
+                    .nomeAvulso(limpar(r.nome()))
+                    .mesa(limpar(r.mesa()))
+                    .taxaServicoPercentual(taxaServicoPadrao)
+                    .build();
         } else {
             if (r.clienteId() == null) {
                 throw new IllegalArgumentException("Informe o cliente (ou uma reserva de mesa) para abrir a comanda.");
@@ -299,7 +305,10 @@ public class ComandaRestauranteService {
         BigDecimal pago = totalPago(c);
 
         String rotulo;
-        if (c.getReservaMesa() != null) {
+        if (c.getCliente() == null) {
+            String base = c.getNomeAvulso() != null ? c.getNomeAvulso() : "Venda avulsa #" + c.getId();
+            rotulo = base + (c.getMesa() != null ? " · Mesa " + c.getMesa() : "");
+        } else if (c.getReservaMesa() != null) {
             rotulo = "Mesa " + c.getMesa() + " · " + c.getCliente().getNome();
         } else {
             rotulo = c.getCliente().getNome() + (c.getMesa() != null ? " · Mesa " + c.getMesa() : "");
@@ -314,9 +323,11 @@ public class ComandaRestauranteService {
         List<PagamentoRestResponse> pagamentos = c.getPagamentos().stream()
                 .map(p -> new PagamentoRestResponse(p.getId(), p.getValor(), p.getFormaPagamento(), p.getCriadoEm())).toList();
 
-        return new ComandaResponse(c.getId(), c.getStatus(), c.getCliente().getId(), c.getCliente().getNome(),
+        return new ComandaResponse(c.getId(), c.getStatus(),
+                c.getCliente() != null ? c.getCliente().getId() : null,
+                c.getCliente() != null ? c.getCliente().getNome() : (c.getNomeAvulso() != null ? c.getNomeAvulso() : "Venda avulsa"),
                 c.getReservaMesa() != null ? c.getReservaMesa().getId() : null, c.getMesa(),
-                c.getReservaMesa() != null ? "MESA" : "CLIENTE", rotulo, c.getAbertaEm(), c.getFechadaEm(),
+                c.getCliente() == null ? "AVULSA" : (c.getReservaMesa() != null ? "MESA" : "CLIENTE"), rotulo, c.getAbertaEm(), c.getFechadaEm(),
                 c.getTaxaServicoPercentual(), subtotal, taxa, c.getDescontoValor(), c.getDescontoMotivo(),
                 total, pago, total.subtract(pago), taxaServicoPadrao, pedidos, pagamentos);
     }

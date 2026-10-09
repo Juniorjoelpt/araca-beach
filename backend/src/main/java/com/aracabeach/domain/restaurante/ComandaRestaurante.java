@@ -31,9 +31,14 @@ public class ComandaRestaurante {
     @Version
     private Long versao;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "cliente_id", nullable = false)
+    /** Nulo em venda avulsa (balcao), que nao exige cliente cadastrado. */
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
     private Cliente cliente;
+
+    /** Nome/apelido livre da venda avulsa (ex.: "Balcao", "Moto azul"). Opcional. */
+    @Column(name = "nome_avulso", length = 80)
+    private String nomeAvulso;
 
     @ManyToOne
     @JoinColumn(name = "reserva_mesa_id")

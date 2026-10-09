@@ -57,7 +57,8 @@ public final class RestauranteDtos {
 
     public record MesaRequest(@Size(max = 40) String mesa) {}
 
-    public record ComandaAbrirRequest(Long reservaMesaId, Long clienteId, @Size(max = 40) String mesa) {}
+    public record ComandaAbrirRequest(Long reservaMesaId, Long clienteId, @Size(max = 40) String mesa,
+                                      Boolean avulsa, @Size(max = 80) String nome) {}
 
     public record PedidoItemRequest(@NotNull Long itemId, @Min(1) @Max(99) int quantidade, @Size(max = 200) String observacao) {}
 
