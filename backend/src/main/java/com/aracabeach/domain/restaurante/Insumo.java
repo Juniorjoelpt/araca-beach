@@ -2,6 +2,8 @@ package com.aracabeach.domain.restaurante;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 
@@ -22,7 +24,9 @@ public class Insumo {
     @Column(nullable = false, length = 120)
     private String nome;
 
+    /** VARCHAR (e nao ENUM nativo do MySQL) para novas unidades poderem ser acrescentadas sem alterar a coluna. */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 10)
     private UnidadeInsumo unidade;
 

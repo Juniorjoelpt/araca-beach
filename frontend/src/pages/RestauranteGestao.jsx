@@ -10,9 +10,9 @@ const msg = (err, padrao) => err.response?.data?.mensagem || padrao
 const DIAS = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 // Insumos em KG/L sao digitados em g/ml na ficha tecnica e nas movimentacoes.
-const FATOR = { UN: 1, KG: 1000, L: 1000 }
-const MENOR = { UN: 'un', KG: 'g', L: 'ml' }
-const BASE = { UN: 'un', KG: 'kg', L: 'L' }
+const FATOR = { UN: 1, KG: 1000, L: 1000, FARDO: 1, PACOTE: 1 }
+const MENOR = { UN: 'un', KG: 'g', L: 'ml', FARDO: 'fardo', PACOTE: 'pacote' }
+const BASE = { UN: 'un', KG: 'kg', L: 'L', FARDO: 'fardo', PACOTE: 'pacote' }
 
 export default function RestauranteGestao() {
   const [aba, setAba] = useState('cardapio')
@@ -306,7 +306,7 @@ function InsumoModal({ insumo, onFechar, onSalvo }) {
       <div className="space-y-2 text-sm">
         <input value={f.nome} onChange={(e) => set('nome', e.target.value)} placeholder="Nome (ex.: Picanha, Queijo coalho)" className="border rounded-lg px-3 py-2 w-full" />
         <select value={f.unidade} onChange={(e) => set('unidade', e.target.value)} className="border rounded-lg px-3 py-2 w-full">
-          <option value="KG">Quilo (kg)</option><option value="L">Litro (L)</option><option value="UN">Unidade</option>
+          <option value="KG">Quilo (kg)</option><option value="L">Litro (L)</option><option value="UN">Unidade</option><option value="FARDO">Fardo</option><option value="PACOTE">Pacote</option>
         </select>
         <div className="grid grid-cols-2 gap-2">
           <div><label className="text-xs text-gray-600">Estoque mínimo ({BASE[f.unidade]})</label><input value={f.estoqueMinimo} onChange={(e) => set('estoqueMinimo', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
