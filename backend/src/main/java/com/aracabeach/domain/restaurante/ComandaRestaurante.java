@@ -57,6 +57,19 @@ public class ComandaRestaurante {
     @Builder.Default
     private BigDecimal taxaServicoPercentual = BigDecimal.ZERO;
 
+    /** Cortesia: os itens sao lancados (e baixam estoque), mas nada e cobrado nem entra no caixa. */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean cortesia = false;
+
+    /** Motivo/autorizacao da cortesia (obrigatorio ao abrir). */
+    @Column(name = "cortesia_motivo", length = 200)
+    private String cortesiaMotivo;
+
+    /** Login de quem fechou a comanda. */
+    @Column(length = 120)
+    private String operador;
+
     @Column(name = "desconto_valor", nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal descontoValor = BigDecimal.ZERO;

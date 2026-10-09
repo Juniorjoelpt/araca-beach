@@ -78,6 +78,18 @@ public class ComandaRestauranteService {
                     .mesa(mesa)
                     .taxaServicoPercentual(taxaServicoPadrao)
                     .build();
+        } else if (Boolean.TRUE.equals(r.cortesia())) {
+            if (limpar(r.motivo()) == null) {
+                throw new IllegalArgumentException("Informe o motivo ou quem autorizou a cortesia.");
+            }
+            comanda = ComandaRestaurante.builder()
+                    .nomeAvulso(limpar(r.nome()))
+                    .mesa(limpar(r.mesa()))
+                    .cortesia(true)
+                    .cortesiaMotivo(limpar(r.motivo()))
+                    .taxaServicoPercentual(BigDecimal.ZERO)
+                    .build();
+            auditoria.detalhe("Cortesia aberta: " + limpar(r.motivo()));
         } else if (Boolean.TRUE.equals(r.avulsa())) {
             comanda = ComandaRestaurante.builder()
                     .nomeAvulso(limpar(r.nome()))
@@ -178,6 +190,9 @@ public class ComandaRestauranteService {
     @Transactional
     public ComandaResponse aplicarDesconto(Long id, DescontoRequest r) {
         ComandaRestaurante c = abertaOuErro(id);
+        if (c.isCortesia()) {
+            throw new IllegalArgumentException("Comanda de cortesia não aceita desconto.");
+        }
         BigDecimal subtotal = subtotal(c);
         if (r.valor().compareTo(subtotal.add(taxa(c, subtotal))) > 0) {
             throw new IllegalArgumentException("O desconto não pode ser maior que o total da conta.");
@@ -192,6 +207,9 @@ public class ComandaRestauranteService {
     @Transactional
     public ComandaResponse registrarPagamento(Long id, PagamentoRestRequest r) {
         ComandaRestaurante c = abertaOuErro(id);
+        if (c.isCortesia()) {
+            throw new IllegalArgumentException("Comanda de cortesia não recebe pagamento.");
+        }
         BigDecimal restante = total(c).subtract(totalPago(c));
         if (r.valor().compareTo(restante) > 0) {
             throw new IllegalArgumentException("O valor é maior que o restante da conta (R$ " + restante + ").");
@@ -240,8 +258,13 @@ public class ComandaRestauranteService {
                 .build()));
         c.setStatus(StatusComandaRestaurante.FECHADA);
         c.setFechadaEm(LocalDateTime.now());
+        c.setOperador(operador);
         if (c.getReservaMesa() != null) c.getReservaMesa().setStatus(StatusReservaMesa.CONCLUIDA);
-        auditoria.detalhe("Comanda #" + id + " fechada: R$ " + total + " (" + c.getPagamentos().size() + " pagamento(s))");
+        if (c.isCortesia()) {
+            auditoria.detalhe("Cortesia #" + id + " fechada (valor de referência R$ " + subtotal(c) + ") - " + c.getCortesiaMotivo());
+        } else {
+            auditoria.detalhe("Comanda #" + id + " fechada: R$ " + total + " (" + c.getPagamentos().size() + " pagamento(s))");
+        }
         return paraResponse(comandaRepository.save(c));
     }
 
@@ -276,10 +299,12 @@ public class ComandaRestauranteService {
     }
 
     public static BigDecimal taxa(ComandaRestaurante c, BigDecimal subtotal) {
+        if (c.isCortesia()) return BigDecimal.ZERO.setScale(2);
         return subtotal.multiply(c.getTaxaServicoPercentual()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     public static BigDecimal total(ComandaRestaurante c) {
+        if (c.isCortesia()) return BigDecimal.ZERO.setScale(2);
         BigDecimal sub = subtotal(c);
         return sub.add(taxa(c, sub)).subtract(c.getDescontoValor()).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
     }
@@ -314,7 +339,10 @@ public class ComandaRestauranteService {
         BigDecimal pago = totalPago(c);
 
         String rotulo;
-        if (c.getCliente() == null) {
+        if (c.isCortesia()) {
+            String base = c.getNomeAvulso() != null ? "Cortesia - " + c.getNomeAvulso() : "Cortesia #" + c.getId();
+            rotulo = base + (c.getMesa() != null ? " · Mesa " + c.getMesa() : "");
+        } else if (c.getCliente() == null) {
             String base = c.getNomeAvulso() != null ? c.getNomeAvulso() : "Venda avulsa #" + c.getId();
             rotulo = base + (c.getMesa() != null ? " · Mesa " + c.getMesa() : "");
         } else if (c.getReservaMesa() != null) {
@@ -336,8 +364,9 @@ public class ComandaRestauranteService {
                 c.getCliente() != null ? c.getCliente().getId() : null,
                 c.getCliente() != null ? c.getCliente().getNome() : (c.getNomeAvulso() != null ? c.getNomeAvulso() : "Venda avulsa"),
                 c.getReservaMesa() != null ? c.getReservaMesa().getId() : null, c.getMesa(),
-                c.getCliente() == null ? "AVULSA" : (c.getReservaMesa() != null ? "MESA" : "CLIENTE"), rotulo, c.getAbertaEm(), c.getFechadaEm(),
+                c.isCortesia() ? "CORTESIA" : (c.getCliente() == null ? "AVULSA" : (c.getReservaMesa() != null ? "MESA" : "CLIENTE")), rotulo, c.getAbertaEm(), c.getFechadaEm(),
                 c.getTaxaServicoPercentual(), subtotal, taxa, c.getDescontoValor(), c.getDescontoMotivo(),
-                total, pago, total.subtract(pago), taxaServicoPadrao, pedidos, pagamentos);
+                total, pago, total.subtract(pago), taxaServicoPadrao, pedidos, pagamentos,
+                c.isCortesia(), c.getCortesiaMotivo());
     }
 }

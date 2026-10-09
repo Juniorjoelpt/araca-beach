@@ -44,6 +44,7 @@ function imprimirHtml(corpo) {
 
 /** Um ticket por praca (cozinha, bar...) com os itens do pedido (ignora cancelados). */
 export function imprimirPedido(comanda, pedido) {
+  const marcaCortesia = comanda.cortesia ? '<div class="c forte">*** CORTESIA ***</div>' : ''
   const porPraca = {}
   pedido.itens.filter((i) => !i.cancelado).forEach((i) => {
     ;(porPraca[i.praca] ||= []).push(i)
@@ -53,6 +54,7 @@ export function imprimirPedido(comanda, pedido) {
     <div class="ticket">
       <h1>ARAÇA BEACH</h1>
       <h2>${esc(nomes[praca] || praca)}</h2>
+      ${marcaCortesia}
       <div class="c forte">${esc(comanda.rotulo)}</div>
       <div class="c peq">Comanda #${comanda.id} · Pedido ${pedido.numero} · ${esc(hora(pedido.criadoEm))}</div>
       <div class="linha"></div>
@@ -96,16 +98,20 @@ export function imprimirConta(comanda) {
   imprimirHtml(`
     <div class="ticket">
       <h1>ARAÇA BEACH</h1>
-      <h2>CONTA</h2>
+      <h2>${comanda.cortesia ? 'CORTESIA' : 'CONTA'}</h2>
       <div class="c forte">${esc(comanda.rotulo)}</div>
       <div class="c peq">Comanda #${comanda.id} · ${new Date().toLocaleString('pt-BR')}</div>
       <div class="linha"></div>
       ${itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.nome)}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
       <div class="linha"></div>
+      ${comanda.cortesia ? `
+      <div class="tot"><span>Valor de referência</span><span>${brl(comanda.subtotal)}</span></div>
+      <div class="tot forte"><span>A COBRAR</span><span>${brl(0)}</span></div>
+      ${comanda.cortesiaMotivo ? `<div class="peq">Motivo: ${esc(comanda.cortesiaMotivo)}</div>` : ''}` : `
       <div class="tot"><span>Subtotal</span><span>${brl(comanda.subtotal)}</span></div>
       ${Number(comanda.taxaServico) > 0 ? `<div class="tot"><span>Serviço (${Number(comanda.taxaServicoPercentual)}%)</span><span>${brl(comanda.taxaServico)}</span></div>` : ''}
       ${Number(comanda.desconto) > 0 ? `<div class="tot"><span>Desconto</span><span>-${brl(comanda.desconto)}</span></div>` : ''}
-      <div class="tot forte"><span>TOTAL</span><span>${brl(comanda.total)}</span></div>
+      <div class="tot forte"><span>TOTAL</span><span>${brl(comanda.total)}</span></div>`}
       <div class="linha"></div>
       <div class="c peq">Documento sem valor fiscal</div>
     </div>`)
@@ -159,6 +165,16 @@ export function imprimirHistoricoCaixa(dados, operadorNome) {
       <div class="tot peq"><span>${esc(FORMA_ROTULO[l.forma] || l.forma)} · ${esc(l.operadorNome || 'sem operador')}</span><strong>${brl(l.valor)}</strong></div>`
   }).join('')
 
+  const cortesias = (dados.cortesias || []).map((c) => {
+    const d = new Date(c.dataHora)
+    const quando = (multiDia ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' : '') +
+      d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    return `
+      <div style="margin:5px 0 0">${esc(quando)} ${esc(c.descricao)}</div>
+      <div class="peq">Motivo: ${esc(c.motivo || '-')}</div>
+      <div class="tot peq"><span>${esc(c.operadorNome || 'sem operador')}</span><strong>${brl(c.valorReferencia)}</strong></div>`
+  }).join('')
+
   imprimirHtml(`
     <div class="ticket">
       <h1>ARAÇA BEACH</h1>
@@ -173,6 +189,8 @@ export function imprimirHistoricoCaixa(dados, operadorNome) {
       ${totais('Por origem', dados.porOrigem, ORIGEM_ROTULO)}
       ${totais('Por operador', dados.porOperador)}
       ${dados.lancamentos.length ? `<div class="linha"></div><div class="forte">Recebimentos</div>${lancamentos}` : ''}
+      ${cortesias.length ? `<div class="linha"></div><div class="forte">Cortesias (fora do total)</div>${cortesias}
+        <div class="tot peq"><span>Valor de referência</span><strong>${brl(dados.totalCortesias)}</strong></div>` : ''}
       <div class="linha"></div>
       <div class="c peq">Documento de controle interno, sem valor fiscal</div>
     </div>`)

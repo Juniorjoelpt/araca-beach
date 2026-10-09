@@ -58,7 +58,8 @@ public final class RestauranteDtos {
     public record MesaRequest(@Size(max = 40) String mesa) {}
 
     public record ComandaAbrirRequest(Long reservaMesaId, Long clienteId, @Size(max = 40) String mesa,
-                                      Boolean avulsa, @Size(max = 80) String nome) {}
+                                      Boolean avulsa, @Size(max = 80) String nome,
+                                      Boolean cortesia, @Size(max = 200) String motivo) {}
 
     public record PedidoItemRequest(@NotNull Long itemId, @Min(1) @Max(99) int quantidade, @Size(max = 200) String observacao) {}
 
@@ -112,7 +113,8 @@ public final class RestauranteDtos {
                                   LocalDateTime abertaEm, LocalDateTime fechadaEm, BigDecimal taxaServicoPercentual,
                                   BigDecimal subtotal, BigDecimal taxaServico, BigDecimal desconto, String descontoMotivo,
                                   BigDecimal total, BigDecimal totalPago, BigDecimal restante,
-                                  BigDecimal taxaServicoPadrao, List<PedidoResponse> pedidos, List<PagamentoRestResponse> pagamentos) {}
+                                  BigDecimal taxaServicoPadrao, List<PedidoResponse> pedidos, List<PagamentoRestResponse> pagamentos,
+                                  boolean cortesia, String cortesiaMotivo) {}
 
     public record ItemVendidoResponse(Long itemId, String nome, long quantidade, BigDecimal receita,
                                       BigDecimal custoTotal, BigDecimal margem) {}
@@ -125,5 +127,6 @@ public final class RestauranteDtos {
                                                BigDecimal custoTotal, BigDecimal margemTotal, int itensSemFicha,
                                                List<ItemVendidoResponse> maisVendidos,
                                                List<FaixaResponse> porHora, List<FaixaResponse> porDiaSemana,
-                                               List<String> insumosAbaixoDoMinimo) {}
+                                               List<String> insumosAbaixoDoMinimo,
+                                               int cortesias, BigDecimal valorCortesias, BigDecimal custoCortesias) {}
 }

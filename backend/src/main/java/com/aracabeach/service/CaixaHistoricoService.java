@@ -6,6 +6,10 @@ import com.aracabeach.domain.financeiro.StatusPagamento;
 import com.aracabeach.domain.usuario.Usuario;
 import com.aracabeach.dto.CaixaHistoricoResponse;
 import com.aracabeach.dto.CaixaHistoricoResponse.Lancamento;
+import com.aracabeach.domain.restaurante.ComandaRestaurante;
+import com.aracabeach.domain.restaurante.StatusComandaRestaurante;
+import com.aracabeach.dto.CaixaHistoricoResponse.Cortesia;
+import com.aracabeach.repository.ComandaRestauranteRepository;
 import com.aracabeach.repository.PagamentoRepository;
 import com.aracabeach.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +40,7 @@ public class CaixaHistoricoService {
 
     private final PagamentoRepository pagamentoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ComandaRestauranteRepository comandaRestauranteRepository;
 
     @Transactional(readOnly = true)
     public CaixaHistoricoResponse consultar(LocalDate inicio, LocalDate fim, String operador, String origem, String forma) {
@@ -77,12 +82,27 @@ public class CaixaHistoricoService {
                 .filter(l -> frm == null || frm.equals(l.forma()))
                 .toList();
 
+        // Cortesias (restaurante) ficam fora do total: nao ha pagamento, so o registro. Forma de pagamento nao se aplica.
+        List<Cortesia> cortesias = List.of();
+        if (frm == null && (org == null || "RESTAURANTE".equals(org))) {
+            cortesias = comandaRestauranteRepository.findByCortesiaTrueAndStatusAndFechadaEmBetween(
+                            StatusComandaRestaurante.FECHADA, LocalDateTime.of(inicio, LocalTime.MIN), LocalDateTime.of(fim, LocalTime.MAX)).stream()
+                    .filter(c -> op == null || op.equalsIgnoreCase(c.getOperador() == null ? "" : c.getOperador()))
+                    .sorted(Comparator.comparing(ComandaRestaurante::getFechadaEm))
+                    .map(c -> new Cortesia(c.getId(), c.getFechadaEm(),
+                            "Restaurante - Cortesia #" + c.getId() + (c.getNomeAvulso() != null ? " - " + c.getNomeAvulso() : ""),
+                            c.getCortesiaMotivo(), ComandaRestauranteService.subtotal(c), c.getOperador(),
+                            c.getOperador() == null ? null : nomes.getOrDefault(c.getOperador(), c.getOperador())))
+                    .toList();
+        }
+        BigDecimal totalCortesias = cortesias.stream().map(Cortesia::valorReferencia).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         BigDecimal total = lancamentos.stream().map(Lancamento::valor).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new CaixaHistoricoResponse(inicio, fim, op, total, lancamentos.size(),
                 somar(lancamentos, Lancamento::forma),
                 somar(lancamentos, Lancamento::origem),
                 somar(lancamentos, l -> l.operador() == null ? SEM_OPERADOR : l.operadorNome()),
-                lancamentos);
+                lancamentos, totalCortesias, cortesias);
     }
 
     /** Logins disponiveis para o filtro do administrador. */

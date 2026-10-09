@@ -2,6 +2,7 @@ package com.aracabeach.relatorio;
 
 import com.aracabeach.config.OperadorAtual;
 import com.aracabeach.dto.CaixaHistoricoResponse;
+import com.aracabeach.dto.CaixaHistoricoResponse.Cortesia;
 import com.aracabeach.dto.CaixaHistoricoResponse.Lancamento;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -55,6 +56,14 @@ public class CaixaHistoricoPdfService {
             doc.add(new Paragraph("Nenhum recebimento no período e filtros selecionados.", fonte(10, Font.NORMAL, CINZA)));
         } else {
             doc.add(tabelaDetalhe(h));
+        }
+
+        if (!h.cortesias().isEmpty()) {
+            Paragraph tc = new Paragraph("Cortesias do período (não entram no total do caixa)", fonte(13, Font.BOLD, AZUL));
+            tc.setSpacingBefore(16);
+            tc.setSpacingAfter(6);
+            doc.add(tc);
+            doc.add(tabelaCortesias(h));
         }
 
         doc.close();
@@ -116,6 +125,11 @@ public class CaixaHistoricoPdfService {
         valor.setSpacingBefore(4);
         total.addElement(valor);
         total.addElement(new Paragraph(h.quantidade() + " recebimento(s)", fonte(8, Font.NORMAL, AZUL)));
+        if (!h.cortesias().isEmpty()) {
+            Paragraph cort = new Paragraph("+ " + h.cortesias().size() + " cortesia(s), fora do total", fonte(8, Font.ITALIC, AZUL));
+            cort.setSpacingBefore(2);
+            total.addElement(cort);
+        }
         t.addCell(total);
 
         t.addCell(blocoTotais("Por forma de pagamento", h.porForma(), true));
@@ -178,6 +192,44 @@ public class CaixaHistoricoPdfService {
         PdfPCell soma = new PdfPCell(new Phrase(moeda(h.total()), fonte(10, Font.BOLD, AZUL)));
         soma.setHorizontalAlignment(Element.ALIGN_RIGHT);
         soma.setBackgroundColor(VERDE);
+        soma.setBorder(Rectangle.NO_BORDER);
+        soma.setPadding(6);
+        t.addCell(soma);
+        return t;
+    }
+
+    private PdfPTable tabelaCortesias(CaixaHistoricoResponse h) throws DocumentException {
+        PdfPTable t = new PdfPTable(new float[]{1.35f, 3.2f, 3f, 1.6f, 1.4f});
+        t.setWidthPercentage(100);
+        t.setHeaderRows(1);
+        for (String col : new String[]{"Data/hora", "Descrição", "Motivo / autorização", "Operador", "Valor de referência"}) {
+            PdfPCell c = new PdfPCell(new Phrase(col, fonte(9, Font.BOLD, VERDE)));
+            c.setBackgroundColor(AZUL);
+            c.setBorder(Rectangle.NO_BORDER);
+            c.setPadding(6);
+            if (col.startsWith("Valor")) c.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            t.addCell(c);
+        }
+        boolean zebra = false;
+        for (Cortesia c : h.cortesias()) {
+            Color fundo = zebra ? AREIA : Color.WHITE;
+            t.addCell(celula(c.dataHora().format(DATA_HORA), fundo, Element.ALIGN_LEFT, false));
+            t.addCell(celula(c.descricao(), fundo, Element.ALIGN_LEFT, false));
+            t.addCell(celula(c.motivo(), fundo, Element.ALIGN_LEFT, false));
+            t.addCell(celula(c.operadorNome() != null ? c.operadorNome() : "—", fundo, Element.ALIGN_LEFT, false));
+            t.addCell(celula(moeda(c.valorReferencia()), fundo, Element.ALIGN_RIGHT, true));
+            zebra = !zebra;
+        }
+        PdfPCell rotulo = new PdfPCell(new Phrase("TOTAL EM CORTESIAS (valor de referência)", fonte(10, Font.BOLD, AZUL)));
+        rotulo.setColspan(4);
+        rotulo.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        rotulo.setBackgroundColor(AREIA);
+        rotulo.setBorder(Rectangle.NO_BORDER);
+        rotulo.setPadding(6);
+        t.addCell(rotulo);
+        PdfPCell soma = new PdfPCell(new Phrase(moeda(h.totalCortesias()), fonte(10, Font.BOLD, AZUL)));
+        soma.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        soma.setBackgroundColor(AREIA);
         soma.setBorder(Rectangle.NO_BORDER);
         soma.setPadding(6);
         t.addCell(soma);

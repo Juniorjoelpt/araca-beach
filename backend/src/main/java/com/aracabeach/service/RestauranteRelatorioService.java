@@ -53,6 +53,24 @@ public class RestauranteRelatorioService {
         Arrays.fill(recHora, BigDecimal.ZERO);
         Arrays.fill(recDia, BigDecimal.ZERO);
 
+        int cortesias = 0;
+        BigDecimal valorCortesias = BigDecimal.ZERO, custoCortesias = BigDecimal.ZERO;
+        List<ComandaRestaurante> vendas = new ArrayList<>();
+        for (ComandaRestaurante c : comandas) {
+            if (c.isCortesia()) {
+                // Cortesia nao e receita: so conta quantas foram, o valor de referencia e o custo dos itens.
+                cortesias++;
+                valorCortesias = valorCortesias.add(ComandaRestauranteService.subtotal(c));
+                for (ItemPedidoRestaurante i : ComandaRestauranteService.itensAtivos(c)) {
+                    custoCortesias = custoCortesias.add(custoUnitario.getOrDefault(i.getItem().getId(), BigDecimal.ZERO)
+                            .multiply(BigDecimal.valueOf(i.getQuantidade())));
+                }
+            } else {
+                vendas.add(c);
+            }
+        }
+        comandas = vendas;
+
         for (ComandaRestaurante c : comandas) {
             BigDecimal sub = ComandaRestauranteService.subtotal(c);
             receitaItens = receitaItens.add(sub);
@@ -107,6 +125,7 @@ public class RestauranteRelatorioService {
 
         return new RelatorioRestauranteResponse(inicio, fim, comandas.size(), receitaItens, taxas, descontos, receitaTotal,
                 ticket, custoTotal.setScale(2, RoundingMode.HALF_UP), receitaItens.subtract(custoTotal).setScale(2, RoundingMode.HALF_UP),
-                semFicha, maisVendidos, porHora, porDia, abaixo);
+                semFicha, maisVendidos, porHora, porDia, abaixo,
+                cortesias, valorCortesias, custoCortesias.setScale(2, RoundingMode.HALF_UP));
     }
 }

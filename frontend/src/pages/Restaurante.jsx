@@ -224,7 +224,7 @@ export default function Restaurante() {
   async function fechar() {
     if (fechando) return
     setFechando(true)
-    const nova = await executar(() => restauranteService.fechar(selecionada.id), 'Conta fechada e lançada no caixa.')
+    const nova = await executar(() => restauranteService.fechar(selecionada.id), selecionada.cortesia ? 'Cortesia registrada (não entra no caixa).' : 'Conta fechada e lançada no caixa.')
     setFechando(false)
     if (nova) {
       atualizarComanda(nova)
@@ -295,8 +295,8 @@ export default function Restaurante() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm truncate">{c.rotulo}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.vinculo === 'MESA' ? 'bg-blue-100 text-blue-700' : c.vinculo === 'AVULSA' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {c.vinculo === 'MESA' ? 'Reserva' : c.vinculo === 'AVULSA' ? 'Avulsa' : 'Cliente'}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.vinculo === 'MESA' ? 'bg-blue-100 text-blue-700' : c.vinculo === 'AVULSA' ? 'bg-amber-100 text-amber-700' : c.vinculo === 'CORTESIA' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {c.vinculo === 'MESA' ? 'Reserva' : c.vinculo === 'AVULSA' ? 'Avulsa' : c.vinculo === 'CORTESIA' ? 'Cortesia' : 'Cliente'}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-0.5">
@@ -436,6 +436,18 @@ export default function Restaurante() {
                 ))}
               </div>
 
+              {selecionada.cortesia && (
+                <div className="border-t pt-2 text-sm space-y-1">
+                  <div className="bg-purple-50 border border-purple-200 text-purple-800 rounded-lg px-3 py-2">
+                    <b>CORTESIA</b> — nada é cobrado.
+                    {selecionada.cortesiaMotivo && <span className="block text-xs">Motivo: {selecionada.cortesiaMotivo}</span>}
+                  </div>
+                  <div className="flex justify-between"><span>Valor de referência</span><span>{brl(selecionada.subtotal)}</span></div>
+                  <div className="flex justify-between font-bold text-base text-purple-800"><span>A cobrar</span><span>{brl(0)}</span></div>
+                </div>
+              )}
+
+              {!selecionada.cortesia && (
               <div className="border-t pt-2 text-sm space-y-1">
                 <div className="flex justify-between"><span>Subtotal</span><span>{brl(selecionada.subtotal)}</span></div>
                 <div className="flex justify-between items-center">
@@ -452,7 +464,9 @@ export default function Restaurante() {
                 {ehAdmin && <button onClick={aplicarDesconto} className="text-xs underline text-gray-500">aplicar desconto</button>}
                 <div className="flex justify-between font-bold text-base text-araca-azul"><span>Total</span><span>{brl(selecionada.total)}</span></div>
               </div>
+              )}
 
+              {!selecionada.cortesia && (
               <div className="border-t mt-3 pt-3">
                 <h4 className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1"><Users size={13} /> Pagamentos</h4>
                 {selecionada.pagamentos.map((p) => (
@@ -480,11 +494,12 @@ export default function Restaurante() {
                   </div>
                 )}
               </div>
+              )}
 
               <div className="mt-3 flex flex-col gap-2">
                 <button onClick={() => imprimirConta(selecionada)} className="border rounded-lg py-1.5 text-sm flex items-center justify-center gap-2"><Receipt size={15} /> Imprimir conta</button>
                 <button onClick={fechar} disabled={fechando || itensAtivosDaComanda.length === 0 || Number(selecionada.restante) !== 0}
-                  className="bg-araca-azul text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-40">Fechar conta</button>
+                  className={`text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-40 ${selecionada.cortesia ? 'bg-purple-700' : 'bg-araca-azul'}`}>{selecionada.cortesia ? 'Fechar cortesia' : 'Fechar conta'}</button>
                 <button onClick={cancelarComanda} className="text-red-600 text-xs flex items-center justify-center gap-1"><Ban size={13} /> Cancelar comanda</button>
               </div>
             </div>
@@ -503,8 +518,9 @@ export default function Restaurante() {
 }
 
 function NovaComandaModal({ onFechar, onCriada }) {
-  const [modo, setModo] = useState('AVULSA') // AVULSA | CLIENTE | RESERVA
+  const [modo, setModo] = useState('AVULSA') // AVULSA | CORTESIA | CLIENTE | RESERVA
   const [nomeAvulso, setNomeAvulso] = useState('')
+  const [motivoCortesia, setMotivoCortesia] = useState('')
   const [clientes, setClientes] = useState([])
   const [reservas, setReservas] = useState([])
   const [busca, setBusca] = useState('')
@@ -553,6 +569,7 @@ function NovaComandaModal({ onFechar, onCriada }) {
     try {
       let dados
       if (modo === 'RESERVA') dados = { reservaMesaId: Number(reservaId), mesa: mesa.trim() || null }
+      else if (modo === 'CORTESIA') dados = { cortesia: true, nome: nomeAvulso.trim() || null, motivo: motivoCortesia.trim(), mesa: mesa.trim() || null }
       else if (modo === 'AVULSA') dados = { avulsa: true, nome: nomeAvulso.trim() || null, mesa: mesa.trim() || null }
       else dados = { clienteId: Number(clienteId), mesa: mesa.trim() || null }
       onCriada(await restauranteService.abrirComanda(dados))
@@ -561,7 +578,7 @@ function NovaComandaModal({ onFechar, onCriada }) {
     }
   }
 
-  const podeAbrir = modo === 'AVULSA' ? true : modo === 'RESERVA' ? !!reservaId : !!clienteId
+  const podeAbrir = modo === 'AVULSA' ? true : modo === 'CORTESIA' ? !!motivoCortesia.trim() : modo === 'RESERVA' ? !!reservaId : !!clienteId
   const clienteSel = clientes.find((c) => String(c.id) === String(clienteId))
 
   return (
@@ -572,13 +589,24 @@ function NovaComandaModal({ onFechar, onCriada }) {
           <button onClick={onFechar}><X size={18} /></button>
         </div>
 
-        <div className="flex gap-2 mb-3 text-sm">
-          <button onClick={() => setModo('AVULSA')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'AVULSA' ? 'bg-araca-azul text-white' : ''}`}>Venda avulsa</button>
-          <button onClick={() => setModo('CLIENTE')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'CLIENTE' ? 'bg-araca-azul text-white' : ''}`}>Cliente</button>
-          <button onClick={() => setModo('RESERVA')} className={`flex-1 py-1.5 rounded-lg border ${modo === 'RESERVA' ? 'bg-araca-azul text-white' : ''}`}>Reserva de mesa</button>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-sm">
+          <button onClick={() => setModo('AVULSA')} className={`py-1.5 rounded-lg border ${modo === 'AVULSA' ? 'bg-araca-azul text-white' : ''}`}>Venda avulsa</button>
+          <button onClick={() => setModo('CORTESIA')} className={`py-1.5 rounded-lg border ${modo === 'CORTESIA' ? 'bg-purple-700 text-white border-purple-700' : ''}`}>Cortesia</button>
+          <button onClick={() => setModo('CLIENTE')} className={`py-1.5 rounded-lg border ${modo === 'CLIENTE' ? 'bg-araca-azul text-white' : ''}`}>Cliente</button>
+          <button onClick={() => setModo('RESERVA')} className={`py-1.5 rounded-lg border ${modo === 'RESERVA' ? 'bg-araca-azul text-white' : ''}`}>Reserva de mesa</button>
         </div>
 
-        {modo === 'AVULSA' ? (
+        {modo === 'CORTESIA' ? (
+          <div className="space-y-2">
+            <p className="text-xs text-purple-800 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+              Cortesia: os itens saem e baixam o estoque, mas <b>nada é cobrado</b> e o valor não entra no caixa. Fica registrada no histórico.
+            </p>
+            <input value={motivoCortesia} onChange={(e) => setMotivoCortesia(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && podeAbrir) abrir() }} autoFocus maxLength={200}
+              placeholder="Motivo / quem autorizou (obrigatório)" className="border border-purple-300 rounded-lg px-3 py-2 w-full text-sm" />
+            <input value={nomeAvulso} onChange={(e) => setNomeAvulso(e.target.value)} maxLength={80} placeholder="Para quem (opcional)" className="border rounded-lg px-3 py-2 w-full text-sm" />
+            <input value={mesa} onChange={(e) => setMesa(e.target.value)} placeholder="Mesa (opcional)" className="border rounded-lg px-3 py-2 w-full text-sm" />
+          </div>
+        ) : modo === 'AVULSA' ? (
           <div className="space-y-2">
             <p className="text-xs text-gray-500">Sem cadastro de cliente. Os campos abaixo são opcionais e servem só para identificar a comanda.</p>
             <input value={nomeAvulso} onChange={(e) => setNomeAvulso(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') abrir() }} autoFocus maxLength={80} placeholder="Nome ou apelido (ex.: Balcão, moto azul)" className="border rounded-lg px-3 py-2 w-full text-sm" />

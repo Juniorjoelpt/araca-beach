@@ -192,6 +192,36 @@ export default function HistoricoCaixa() {
               </tbody>
             </table>
           </div>
+          {dados.cortesias?.length > 0 && (
+            <div className="bg-white rounded-xl shadow overflow-x-auto mt-4">
+              <div className="px-3 py-2 border-b bg-purple-50 text-purple-800 text-sm font-semibold flex justify-between flex-wrap gap-2">
+                <span>Cortesias do período (não entram no total do caixa)</span>
+                <span>{dados.cortesias.length} · valor de referência {brl(dados.totalCortesias)}</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="text-left text-gray-600 bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2">Data/hora</th>
+                    <th className="px-3 py-2">Descrição</th>
+                    <th className="px-3 py-2">Motivo / autorização</th>
+                    <th className="px-3 py-2">Operador</th>
+                    <th className="px-3 py-2 text-right">Valor de referência</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dados.cortesias.map((c) => (
+                    <tr key={c.id} className="border-t">
+                      <td className="px-3 py-2 whitespace-nowrap">{format(new Date(c.dataHora), 'dd/MM/yyyy HH:mm')}</td>
+                      <td className="px-3 py-2">{c.descricao}</td>
+                      <td className="px-3 py-2">{c.motivo}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">{c.operadorNome || <span className="text-gray-400">—</span>}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">{brl(c.valorReferencia)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {admin && dados.lancamentos.some((l) => !l.operador) && (
             <p className="text-xs text-gray-500 mt-2">
               Recebimentos anteriores a esta função aparecem sem operador, pois o sistema ainda não registrava quem recebeu.

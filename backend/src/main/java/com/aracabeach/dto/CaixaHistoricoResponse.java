@@ -16,8 +16,21 @@ public record CaixaHistoricoResponse(
         Map<String, BigDecimal> porForma,
         Map<String, BigDecimal> porOrigem,
         Map<String, BigDecimal> porOperador,
-        List<Lancamento> lancamentos
+        List<Lancamento> lancamentos,
+        BigDecimal totalCortesias,
+        List<Cortesia> cortesias
 ) {
+    /** Venda cortesia (restaurante): nao entra no total do caixa, mas fica registrada. */
+    public record Cortesia(
+            Long id,
+            LocalDateTime dataHora,
+            String descricao,
+            String motivo,
+            BigDecimal valorReferencia,
+            String operador,
+            String operadorNome
+    ) {}
+
     public record Lancamento(
             Long id,
             LocalDateTime dataHora,

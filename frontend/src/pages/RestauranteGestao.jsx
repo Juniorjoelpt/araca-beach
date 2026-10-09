@@ -437,6 +437,11 @@ function AbaRelatorio() {
               <div key={l} className="bg-white rounded-xl shadow p-4"><p className="text-xs text-gray-500">{l}</p><p className="text-xl font-bold text-araca-azul">{v}</p></div>
             ))}
           </div>
+          {r.cortesias > 0 && (
+            <p className="text-xs text-purple-800 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 mb-3">
+              {r.cortesias} cortesia(s) no período (fora da receita): valor de referência {brl(r.valorCortesias)}, custo estimado {brl(r.custoCortesias)}.
+            </p>
+          )}
           {r.itensSemFicha > 0 && <p className="text-xs text-amber-700 mb-3">{r.itensSemFicha} item(ns) vendido(s) sem ficha técnica: o custo e a margem acima ficam superestimados até cadastrar as fichas.</p>}
           {r.insumosAbaixoDoMinimo.length > 0 && <p className="text-xs text-red-700 mb-3">Estoque baixo: {r.insumosAbaixoDoMinimo.join(', ')}.</p>}
 
