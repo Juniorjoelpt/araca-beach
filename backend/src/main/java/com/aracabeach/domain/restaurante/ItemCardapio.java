@@ -56,4 +56,8 @@ public class ItemCardapio {
     @Column(nullable = false)
     @Builder.Default
     private int ordem = 0;
+
+    /** Codigo de barras (EAN/UPC) de produtos industrializados, lido pelo leitor no caixa. Unico por item. */
+    @Column(name = "codigo_barras", length = 30, unique = true)
+    private String codigoBarras;
 }

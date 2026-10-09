@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ChefHat, Plus, X, Pause, Play, Pencil, FlaskConical } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
@@ -39,6 +40,8 @@ function AbaCardapio() {
   const [erro, setErro] = useState('')
   const [editando, setEditando] = useState(null) // item | {} (novo)
   const [fichaDe, setFichaDe] = useState(null)
+  const location = useLocation()
+  const abriuPorCodigo = useRef(false)
 
   const carregar = useCallback(async () => {
     try {
@@ -47,6 +50,15 @@ function AbaCardapio() {
     } catch (err) { setErro(msg(err, 'Não foi possível carregar o cardápio.')) }
   }, [])
   useEffect(() => { carregar() }, [carregar])
+
+  // Vindo do caixa (codigo lido que nao existe): abre o cadastro ja com o codigo preenchido.
+  useEffect(() => {
+    const codigo = location.state?.codigoBarras
+    if (codigo && categorias.length > 0 && !abriuPorCodigo.current) {
+      abriuPorCodigo.current = true
+      setEditando({ codigoBarras: codigo })
+    }
+  }, [location.state, categorias])
 
   async function pausar(item) {
     try { await restauranteService.pausarItem(item.id, !item.pausado); carregar() } catch (err) { setErro(msg(err, 'Falha ao alterar o item.')) }
@@ -87,6 +99,7 @@ function AbaCardapio() {
                   <td className="px-4 py-2">
                     <div className="font-medium">{i.nome}{i.pausado && <span className="ml-2 text-xs text-red-600">pausado</span>}{!i.ativo && <span className="ml-2 text-xs text-gray-500">inativo</span>}</div>
                     {i.porcao && <div className="text-xs text-araca-verde-escuro">{i.porcao}</div>}
+                    {i.codigoBarras && <div className="text-xs text-gray-400">cód. {i.codigoBarras}</div>}
                   </td>
                   <td className="px-2 py-2 text-xs text-gray-500">{i.praca === 'BAR' ? 'Bar' : 'Cozinha'}</td>
                   <td className="px-2 py-2 text-right whitespace-nowrap">{brl(i.preco)}</td>
@@ -130,6 +143,7 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
     nome: item.nome || '', descricao: item.descricao || '', porcao: item.porcao || '',
     preco: item.preco ?? '', praca: item.praca || 'COZINHA', ativo: item.ativo ?? true,
     tempoPreparoMin: item.tempoPreparoMin ?? '', ordem: item.ordem ?? 0,
+    codigoBarras: item.codigoBarras || '',
   })
   const [erro, setErro] = useState('')
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
@@ -154,6 +168,9 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
           {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
         </select>
         <input value={f.nome} onChange={(e) => set('nome', e.target.value)} placeholder="Nome" className="border rounded-lg px-3 py-2 w-full" />
+        <input value={f.codigoBarras} onChange={(e) => set('codigoBarras', e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+          placeholder="Código de barras (clique aqui e leia com o leitor)" inputMode="numeric" className="border rounded-lg px-3 py-2 w-full" />
         <textarea value={f.descricao} onChange={(e) => set('descricao', e.target.value)} placeholder="Descrição / ingredientes" rows={2} className="border rounded-lg px-3 py-2 w-full" />
         <div className="grid grid-cols-2 gap-2">
           <input value={f.preco} onChange={(e) => set('preco', e.target.value)} placeholder="Preço (R$)" inputMode="decimal" className="border rounded-lg px-3 py-2" />

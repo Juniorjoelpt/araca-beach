@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { format, formatDistanceToNowStrict } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search, Ban } from 'lucide-react'
+import { UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search, Ban, ScanBarcode } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
 import { clienteService } from '../services/clienteService.js'
 import { imprimirPedido, imprimirConta, imprimirCancelamento } from '../utils/ticketTermico.js'
@@ -24,6 +24,7 @@ function usuarioAtual() {
 export default function Restaurante() {
   const ehAdmin = usuarioAtual()?.perfil === 'ADMIN'
   const location = useLocation()
+  const navigate = useNavigate()
   const [comandas, setComandas] = useState([])
   const [cardapio, setCardapio] = useState([])
   const [selecionadaId, setSelecionadaId] = useState(null)
@@ -32,6 +33,8 @@ export default function Restaurante() {
   const [carrinho, setCarrinho] = useState([]) // { itemId, nome, preco, quantidade, observacao }
   const [categoriaAtiva, setCategoriaAtiva] = useState(null)
   const [busca, setBusca] = useState('')
+  const [scan, setScan] = useState('')
+  const [naoCadastrado, setNaoCadastrado] = useState('')
   const [modalNova, setModalNova] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [fechando, setFechando] = useState(false)
@@ -94,6 +97,47 @@ export default function Restaurante() {
       return null
     }
   }
+
+  // ----- leitor de codigo de barras -----
+  // O leitor USB funciona como um teclado: "digita" o codigo bem rapido e termina com Enter.
+  // Funciona em dois modos: com o campo do leitor em foco, ou com o foco solto na tela.
+
+  function lerCodigo(bruto) {
+    const codigo = String(bruto || '').replace(/[\s-]/g, '')
+    if (!codigo) return
+    setErro(''); setAviso('')
+    const item = cardapio.flatMap((c) => c.itens).find((i) => i.codigoBarras === codigo)
+    if (!item) { setNaoCadastrado(codigo); return }
+    setNaoCadastrado('')
+    if (item.pausado) { setErro(`${item.nome} está indisponível (acabou).`); return }
+    if (!selecionada) { setErro('Abra ou selecione uma comanda antes de ler o produto.'); return }
+    adicionarAoCarrinho(item)
+    setAviso(`Lido: ${item.nome}`)
+  }
+
+  const lerCodigoRef = useRef(lerCodigo)
+  lerCodigoRef.current = lerCodigo
+
+  useEffect(() => {
+    let buffer = ''
+    let ultimo = 0
+    function aoTeclar(e) {
+      const alvo = e.target
+      if (modalNova || e.ctrlKey || e.altKey || e.metaKey) return
+      if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.tagName === 'SELECT' || alvo.isContentEditable)) return
+      const agora = Date.now()
+      if (agora - ultimo > 100) buffer = ''
+      ultimo = agora
+      if (e.key === 'Enter') {
+        if (buffer.length >= 6) { e.preventDefault(); lerCodigoRef.current(buffer) }
+        buffer = ''
+      } else if (e.key.length === 1) {
+        buffer += e.key
+      }
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [modalNova])
 
   // ----- carrinho -----
 
@@ -260,6 +304,20 @@ export default function Restaurante() {
                 <h3 className="font-semibold text-araca-azul">{selecionada.rotulo}</h3>
                 <button onClick={trocarMesa} className="text-xs underline text-gray-500">trocar mesa</button>
               </div>
+              <div className="relative mb-2">
+                <ScanBarcode size={16} className="absolute left-3 top-2.5 text-gray-400" />
+                <input value={scan} onChange={(e) => setScan(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); lerCodigo(scan); setScan('') } }}
+                  placeholder="Leitor de código de barras: clique aqui e leia o produto" className="border rounded-lg pl-9 pr-3 py-2 w-full" />
+              </div>
+              {naoCadastrado && (
+                <div className="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+                  <span>Código <b>{naoCadastrado}</b> não cadastrado no cardápio.</span>
+                  {ehAdmin
+                    ? <button onClick={() => navigate('/restaurante/gestao', { state: { codigoBarras: naoCadastrado } })} className="underline whitespace-nowrap">Cadastrar produto</button>
+                    : <span className="text-xs">Peça ao administrador para cadastrar.</span>}
+                </div>
+              )}
               <div className="relative mb-3">
                 <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
                 <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar no cardápio…" className="border rounded-lg pl-9 pr-3 py-2 w-full" />

@@ -28,7 +28,8 @@ public final class RestauranteDtos {
             Boolean ativo,
             Boolean pausado,
             Integer tempoPreparoMin,
-            Integer ordem) {}
+            Integer ordem,
+            @Size(max = 30) @Pattern(regexp = "^[0-9A-Za-z\\-\\s]*$", message = "Código de barras inválido") String codigoBarras) {}
 
     public record PausaRequest(@NotNull Boolean pausado) {}
 
@@ -71,7 +72,8 @@ public final class RestauranteDtos {
     // ---------------- responses ----------------
 
     public record CardapioItemResponse(Long id, String nome, String descricao, String porcao, BigDecimal preco,
-                                       Praca praca, boolean pausado, Integer tempoPreparoMin) {}
+                                       Praca praca, boolean pausado, Integer tempoPreparoMin,
+                                       String codigoBarras) {}
 
     public record CardapioCategoriaResponse(Long id, String nome, int ordem, List<CardapioItemResponse> itens) {}
 
@@ -83,7 +85,8 @@ public final class RestauranteDtos {
     public record ItemGestaoResponse(Long id, Long categoriaId, String categoriaNome, String nome, String descricao,
                                      String porcao, BigDecimal preco, Praca praca, boolean ativo, boolean pausado,
                                      Integer tempoPreparoMin, int ordem, BigDecimal custo, BigDecimal margem,
-                                     BigDecimal margemPercentual, boolean temFicha, List<FichaLinhaResponse> ficha) {}
+                                     BigDecimal margemPercentual, boolean temFicha, List<FichaLinhaResponse> ficha,
+                                     String codigoBarras) {}
 
     public record InsumoResponse(Long id, String nome, UnidadeInsumo unidade, BigDecimal estoqueAtual,
                                  BigDecimal estoqueMinimo, BigDecimal custoUnitario, boolean ativo, boolean abaixoDoMinimo) {}

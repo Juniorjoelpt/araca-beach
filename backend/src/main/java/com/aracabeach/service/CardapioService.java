@@ -38,7 +38,8 @@ public class CardapioService {
                         porCategoria.getOrDefault(c.getId(), List.of()).stream()
                                 .sorted(Comparator.comparingInt(ItemCardapio::getOrdem).thenComparing(ItemCardapio::getNome))
                                 .map(i -> new CardapioItemResponse(i.getId(), i.getNome(), i.getDescricao(), i.getPorcao(),
-                                        i.getPreco(), i.getPraca(), i.isPausado(), i.getTempoPreparoMin()))
+                                        i.getPreco(), i.getPraca(), i.isPausado(), i.getTempoPreparoMin(),
+                                        i.getCodigoBarras()))
                                 .toList()))
                 .filter(c -> !c.itens().isEmpty())
                 .toList();
@@ -144,6 +145,15 @@ public class CardapioService {
     // ---------- internos ----------
 
     private void aplicar(ItemCardapio i, ItemCardapioRequest r) {
+        String codigo = normalizarCodigo(r.codigoBarras());
+        if (codigo != null) {
+            itemRepository.findByCodigoBarras(codigo)
+                    .filter(outro -> !Objects.equals(outro.getId(), i.getId()))
+                    .ifPresent(outro -> {
+                        throw new IllegalArgumentException("O código de barras " + codigo + " já está cadastrado no item '" + outro.getNome() + "'.");
+                    });
+        }
+        i.setCodigoBarras(codigo);
         i.setCategoria(buscarCategoria(r.categoriaId()));
         i.setNome(r.nome().trim());
         i.setDescricao(r.descricao() == null || r.descricao().isBlank() ? null : r.descricao().trim());
@@ -154,6 +164,13 @@ public class CardapioService {
         if (r.pausado() != null) i.setPausado(r.pausado());
         i.setTempoPreparoMin(r.tempoPreparoMin());
         if (r.ordem() != null) i.setOrdem(r.ordem());
+    }
+
+    /** Remove espacos e hifens; vazio vira null (varios itens podem ficar sem codigo). */
+    private static String normalizarCodigo(String codigo) {
+        if (codigo == null) return null;
+        String limpo = codigo.replaceAll("[\\s-]", "");
+        return limpo.isEmpty() ? null : limpo;
     }
 
     private CategoriaCardapio buscarCategoria(Long id) {
@@ -180,6 +197,6 @@ public class CardapioService {
                 f.getQuantidade().multiply(f.getInsumo().getCustoUnitario()).setScale(2, RoundingMode.HALF_UP))).toList();
         return new ItemGestaoResponse(i.getId(), i.getCategoria().getId(), i.getCategoria().getNome(), i.getNome(),
                 i.getDescricao(), i.getPorcao(), i.getPreco(), i.getPraca(), i.isAtivo(), i.isPausado(),
-                i.getTempoPreparoMin(), i.getOrdem(), custo, margem, margemPct, !ficha.isEmpty(), linhas);
+                i.getTempoPreparoMin(), i.getOrdem(), custo, margem, margemPct, !ficha.isEmpty(), linhas, i.getCodigoBarras());
     }
 }
