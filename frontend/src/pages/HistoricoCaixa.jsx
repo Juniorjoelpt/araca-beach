@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { History, FileDown } from 'lucide-react'
+import { History, FileDown, Printer } from 'lucide-react'
 import { caixaService } from '../services/caixaService.js'
+import { imprimirHistoricoCaixa } from '../utils/ticketTermico.js'
 
 const brl = (v) => `R$ ${Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const iso = (d) => format(d, 'yyyy-MM-dd')
@@ -82,6 +83,17 @@ export default function HistoricoCaixa() {
     }
   }
 
+  function imprimirTermica() {
+    if (!dados) return
+    let nome = null
+    if (dados.operadorFiltro) {
+      nome = admin
+        ? operadores.find((o) => o.login === dados.operadorFiltro)?.nome || dados.operadorFiltro
+        : usuario?.nome
+    }
+    imprimirHistoricoCaixa(dados, nome)
+  }
+
   const input = 'border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-araca-verde'
 
   return (
@@ -129,6 +141,9 @@ export default function HistoricoCaixa() {
           </button>
           <button onClick={exportarPdf} disabled={baixando} className="flex items-center gap-2 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50">
             <FileDown size={16} /> {baixando ? 'Gerando...' : 'Exportar PDF'}
+          </button>
+          <button onClick={imprimirTermica} disabled={!dados} className="flex items-center gap-2 border border-araca-azul text-araca-azul font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-40">
+            <Printer size={16} /> Imprimir (térmica)
           </button>
         </div>
       </div>

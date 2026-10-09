@@ -132,3 +132,48 @@ export function imprimirComprovanteLoja(comanda) {
       <div class="c peq">Documento sem valor fiscal</div>
     </div>`)
 }
+
+const FORMA_ROTULO = { PIX: 'Pix', CARTAO_CREDITO: 'Cartão créd.', CARTAO_DEBITO: 'Cartão déb.', DINHEIRO: 'Dinheiro' }
+const ORIGEM_ROTULO = {
+  RESERVA: 'Quadras', RESTAURANTE: 'Restaurante', LOJA: 'Loja', MENSALIDADE: 'Mensalidade',
+  MATRICULA: 'Aulas', PACOTE: 'Pacote de aulas', OUTROS: 'Outros',
+}
+const dataBr = (iso) => iso.split('-').reverse().join('/')
+
+/** Historico de caixa (resumo + cada recebimento) em ticket 80mm. `dados` e a resposta de /caixa/historico. */
+export function imprimirHistoricoCaixa(dados, operadorNome) {
+  const periodo = dados.inicio === dados.fim ? dataBr(dados.inicio) : `${dataBr(dados.inicio)} a ${dataBr(dados.fim)}`
+  const multiDia = dados.inicio !== dados.fim
+  const totais = (titulo, mapa, rotulos) => {
+    const linhas = Object.entries(mapa || {})
+    if (!linhas.length) return ''
+    return `<div class="linha"></div><div class="forte">${esc(titulo)}</div>` +
+      linhas.map(([k, v]) => `<div class="tot"><span>${esc(rotulos ? rotulos[k] || k : k)}</span><span>${brl(v)}</span></div>`).join('')
+  }
+  const lancamentos = dados.lancamentos.map((l) => {
+    const d = new Date(l.dataHora)
+    const quando = (multiDia ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' : '') +
+      d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    return `
+      <div style="margin:5px 0 0">${esc(quando)} ${esc(l.descricao)}</div>
+      <div class="tot peq"><span>${esc(FORMA_ROTULO[l.forma] || l.forma)} · ${esc(l.operadorNome || 'sem operador')}</span><strong>${brl(l.valor)}</strong></div>`
+  }).join('')
+
+  imprimirHtml(`
+    <div class="ticket">
+      <h1>ARAÇA BEACH</h1>
+      <h2>HISTÓRICO DE CAIXA</h2>
+      <div class="c">${esc(periodo)}</div>
+      <div class="c peq">Operador: ${esc(operadorNome || 'Todos')}</div>
+      <div class="c peq">Emitido em ${new Date().toLocaleString('pt-BR')}</div>
+      <div class="linha"></div>
+      <div class="tot forte"><span>TOTAL</span><span>${brl(dados.total)}</span></div>
+      <div class="c peq">${dados.quantidade} recebimento(s)</div>
+      ${totais('Por forma de pagamento', dados.porForma, FORMA_ROTULO)}
+      ${totais('Por origem', dados.porOrigem, ORIGEM_ROTULO)}
+      ${totais('Por operador', dados.porOperador)}
+      ${dados.lancamentos.length ? `<div class="linha"></div><div class="forte">Recebimentos</div>${lancamentos}` : ''}
+      <div class="linha"></div>
+      <div class="c peq">Documento de controle interno, sem valor fiscal</div>
+    </div>`)
+}
