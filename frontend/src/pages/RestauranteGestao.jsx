@@ -109,7 +109,7 @@ function AbaCardapio() {
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
       <div className="flex gap-3 mb-4">
         <button onClick={() => setEditando({})} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2"><Plus size={16} /> Novo item</button>
-        <button onClick={novaCategoria} className="border px-4 py-2 rounded-lg text-sm">Nova categoria</button>
+        <button onClick={novaCategoria} className="bg-white text-araca-azul border px-4 py-2 rounded-lg text-sm font-medium hover:bg-araca-areia">Nova categoria</button>
       </div>
 
       <CampoBusca valor={busca} onChange={setBusca} placeholder="Buscar produto por nome, categoria ou código de barras…" resultados={totalEncontrados} />
