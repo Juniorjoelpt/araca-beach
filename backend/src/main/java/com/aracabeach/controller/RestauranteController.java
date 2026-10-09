@@ -83,8 +83,8 @@ public class RestauranteController {
     }
 
     @PatchMapping("/comandas/{id}/cancelar")
-    public ComandaResponse cancelar(@PathVariable Long id) {
-        return comandaService.cancelar(id);
+    public ComandaResponse cancelar(@PathVariable Long id, @RequestParam(required = false) String motivo) {
+        return comandaService.cancelar(id, motivo);
     }
 
     // ---------- reservas de mesa ----------

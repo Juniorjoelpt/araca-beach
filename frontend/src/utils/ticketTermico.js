@@ -77,6 +77,19 @@ export function imprimirCancelamento(comanda, item) {
     </div>`)
 }
 
+/** Um unico ticket avisando cozinha/bar que a comanda inteira foi cancelada. */
+export function imprimirCancelamentoComanda(comanda, itens, motivo) {
+  imprimirHtml(`
+    <div class="ticket">
+      <h1>*** COMANDA CANCELADA ***</h1>
+      <div class="c forte">${esc(comanda.rotulo)}</div>
+      <div class="linha"></div>
+      ${itens.map((i) => `<div class="item">${i.quantidade}x ${esc(i.nome)}</div>`).join('')}
+      ${motivo ? `<div class="obs">${esc(motivo)}</div>` : ''}
+      <div class="linha"></div>
+    </div>`)
+}
+
 /** Pre-conta (nao fiscal) para conferencia do cliente. */
 export function imprimirConta(comanda) {
   const itens = comanda.pedidos.flatMap((p) => p.itens).filter((i) => !i.cancelado)

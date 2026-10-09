@@ -241,18 +241,22 @@ public class ComandaRestauranteService {
     }
 
     @Transactional
-    public ComandaResponse cancelar(Long id) {
+    public ComandaResponse cancelar(Long id, String motivo) {
         ComandaRestaurante c = abertaOuErro(id);
-        if (!itensAtivos(c).isEmpty()) {
-            throw new IllegalArgumentException("Cancele os itens da comanda antes de cancelá-la.");
-        }
         if (!c.getPagamentos().isEmpty()) {
-            throw new IllegalArgumentException("Remova os pagamentos antes de cancelar a comanda.");
+            throw new IllegalArgumentException("Esta comanda já tem pagamento registrado. Remova os pagamentos antes de cancelá-la.");
+        }
+        // Cancela todos os itens ainda ativos (devolvendo os insumos ao estoque), como no cancelamento item a item.
+        String motivoItem = "Comanda cancelada" + (limpar(motivo) != null ? ": " + limpar(motivo) : "");
+        for (ItemPedidoRestaurante item : itensAtivos(c)) {
+            item.setCancelado(true);
+            item.setMotivoCancelamento(motivoItem);
+            insumoService.estornar(item.getItem(), item.getQuantidade(), id);
         }
         c.setStatus(StatusComandaRestaurante.CANCELADA);
         c.setFechadaEm(LocalDateTime.now());
         if (c.getReservaMesa() != null) c.getReservaMesa().setStatus(StatusReservaMesa.CONFIRMADA);
-        auditoria.detalhe("Comanda #" + id + " cancelada");
+        auditoria.detalhe("Comanda #" + id + " cancelada" + (limpar(motivo) != null ? " - " + limpar(motivo) : ""));
         return paraResponse(comandaRepository.save(c));
     }
 

@@ -17,7 +17,8 @@ export const restauranteService = {
   pagar: (id, valor, forma) => api.post(`${base}/comandas/${id}/pagamentos`, { valor, forma }).then((r) => r.data),
   removerPagamento: (id, pagamentoId) => api.delete(`${base}/comandas/${id}/pagamentos/${pagamentoId}`).then((r) => r.data),
   fechar: (id) => api.patch(`${base}/comandas/${id}/fechar`).then((r) => r.data),
-  cancelarComanda: (id) => api.patch(`${base}/comandas/${id}/cancelar`).then((r) => r.data),
+  cancelarComanda: (id, motivo) =>
+    api.patch(`${base}/comandas/${id}/cancelar`, null, { params: motivo ? { motivo } : {} }).then((r) => r.data),
 
   // reservas de mesa
   reservasMesa: (data) => api.get(`${base}/reservas-mesa`, { params: data ? { data } : {} }).then((r) => r.data),

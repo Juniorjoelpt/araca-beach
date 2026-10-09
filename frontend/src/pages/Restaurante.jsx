@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale'
 import { UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search, Ban, ScanBarcode } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
 import { clienteService } from '../services/clienteService.js'
-import { imprimirPedido, imprimirConta, imprimirCancelamento } from '../utils/ticketTermico.js'
+import { imprimirPedido, imprimirConta, imprimirCancelamento, imprimirCancelamentoComanda } from '../utils/ticketTermico.js'
 
 const FORMAS = [
   { value: 'PIX', label: 'Pix' },
@@ -234,9 +234,16 @@ export default function Restaurante() {
   }
 
   async function cancelarComanda() {
-    if (!window.confirm('Cancelar esta comanda?')) return
-    const nova = await executar(() => restauranteService.cancelarComanda(selecionada.id), 'Comanda cancelada.')
+    const ativos = itensAtivosDaComanda
+    const aviso = ativos.length > 0
+      ? `Cancelar a comanda inteira "${selecionada.rotulo}"? Os ${ativos.length} item(ns) serão cancelados e o estoque devolvido.\n\nMotivo (opcional):`
+      : `Cancelar a comanda "${selecionada.rotulo}"?\n\nMotivo (opcional):`
+    const motivo = window.prompt(aviso)
+    if (motivo === null) return
+    const nova = await executar(() => restauranteService.cancelarComanda(selecionada.id, motivo), 'Comanda cancelada.')
     if (nova) {
+      // avisa a cozinha/bar dos itens que ja tinham sido enviados
+      if (ativos.length > 0) imprimirCancelamentoComanda(nova, ativos, motivo)
       atualizarComanda(nova)
       setSelecionadaId(null)
       setCarrinho([])
@@ -458,9 +465,7 @@ export default function Restaurante() {
                 <button onClick={() => imprimirConta(selecionada)} className="border rounded-lg py-1.5 text-sm flex items-center justify-center gap-2"><Receipt size={15} /> Imprimir conta</button>
                 <button onClick={fechar} disabled={fechando || itensAtivosDaComanda.length === 0 || Number(selecionada.restante) !== 0}
                   className="bg-araca-azul text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-40">Fechar conta</button>
-                {itensAtivosDaComanda.length === 0 && (
-                  <button onClick={cancelarComanda} className="text-red-600 text-xs flex items-center justify-center gap-1"><Ban size={13} /> Cancelar comanda</button>
-                )}
+                <button onClick={cancelarComanda} className="text-red-600 text-xs flex items-center justify-center gap-1"><Ban size={13} /> Cancelar comanda</button>
               </div>
             </div>
           )}
