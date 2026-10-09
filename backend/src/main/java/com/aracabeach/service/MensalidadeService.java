@@ -134,6 +134,10 @@ public class MensalidadeService {
                 .formaPagamento(pagamento.getFormaPagamento())
                 .status(StatusPagamento.PAGO)
                 .ehSinal(false)
+                .origem("MENSALIDADE")
+                .descricao("Mensalidade " + pagamento.getReferenciaMes() + " - "
+                        + pagamento.getMensalidade().getReservaRecorrente().getCliente().getNome())
+                .operador(com.aracabeach.config.OperadorAtual.login())
                 .build();
         pagamentoRepository.save(pagamentoCaixa);
 

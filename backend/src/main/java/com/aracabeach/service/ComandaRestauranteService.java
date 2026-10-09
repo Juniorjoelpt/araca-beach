@@ -226,12 +226,17 @@ public class ComandaRestauranteService {
             throw new IllegalArgumentException("Os pagamentos (R$ " + pago + ") excedem o total (R$ " + total + "). Ajuste os pagamentos.");
         }
         // Cada pagamento entra no caixa do dia (sem reserva de quadra), como mensalidades e pacotes.
+        String descricaoCaixa = "Restaurante - Comanda #" + id + " - " + paraResponse(c).rotulo();
+        String operador = com.aracabeach.config.OperadorAtual.login();
         c.getPagamentos().forEach(p -> pagamentoRepository.save(Pagamento.builder()
                 .reserva(null)
                 .valor(p.getValor())
                 .formaPagamento(p.getFormaPagamento())
                 .status(StatusPagamento.PAGO)
                 .ehSinal(false)
+                .origem("RESTAURANTE")
+                .descricao(descricaoCaixa)
+                .operador(operador)
                 .build()));
         c.setStatus(StatusComandaRestaurante.FECHADA);
         c.setFechadaEm(LocalDateTime.now());

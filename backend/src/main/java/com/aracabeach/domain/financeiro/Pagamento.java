@@ -47,4 +47,16 @@ public class Pagamento {
     @Column(name = "criado_em")
     @Builder.Default
     private LocalDateTime criadoEm = LocalDateTime.now();
+
+    /** De onde veio o recebimento: RESERVA, RESTAURANTE, LOJA, MENSALIDADE, MATRICULA, PACOTE. Nulo em registros antigos. */
+    @Column(length = 30)
+    private String origem;
+
+    /** Texto para o extrato do caixa (ex.: "Comanda #12 - Balcao"). Nulo em registros antigos. */
+    @Column(length = 200)
+    private String descricao;
+
+    /** Login de quem registrou o recebimento. Nulo em registros anteriores ao historico de caixa. */
+    @Column(length = 120)
+    private String operador;
 }

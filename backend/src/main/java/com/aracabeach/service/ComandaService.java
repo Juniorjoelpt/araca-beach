@@ -9,13 +9,20 @@ import com.aracabeach.dto.ComandaRequest;
 import com.aracabeach.dto.ItemComandaRequest;
 import com.aracabeach.exception.RecursoNaoEncontradoException;
 import com.aracabeach.repository.ClienteRepository;
+import com.aracabeach.config.OperadorAtual;
+import com.aracabeach.domain.financeiro.FormaPagamento;
+import com.aracabeach.domain.financeiro.Pagamento;
+import com.aracabeach.domain.financeiro.StatusPagamento;
 import com.aracabeach.repository.ComandaRepository;
+import com.aracabeach.repository.PagamentoRepository;
 import com.aracabeach.repository.ProdutoRepository;
 import com.aracabeach.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,6 +34,7 @@ public class ComandaService {
     private final ReservaRepository reservaRepository;
     private final ProdutoRepository produtoRepository;
     private final EstoqueService estoqueService;
+    private final PagamentoRepository pagamentoRepository;
 
     @Transactional
     public Comanda abrir(ComandaRequest request) {
@@ -74,9 +82,33 @@ public class ComandaService {
     }
 
     @Transactional
-    public Comanda fechar(Long comandaId) {
+    public Comanda fechar(Long comandaId, FormaPagamento forma) {
         Comanda comanda = buscarPorId(comandaId);
+        if (comanda.isFechada()) {
+            throw new IllegalArgumentException("Esta comanda ja foi fechada.");
+        }
+        BigDecimal total = comanda.getTotal();
+        if (total.signum() > 0 && forma == null) {
+            throw new IllegalArgumentException("Informe a forma de pagamento para fechar a comanda.");
+        }
+        String operador = OperadorAtual.login();
         comanda.setFechada(true);
+        comanda.setFechadaEm(LocalDateTime.now());
+        comanda.setOperador(operador);
+        comanda.setFormaPagamento(total.signum() > 0 ? forma : null);
+        // A venda da loja entra no caixa como os demais recebimentos.
+        if (total.signum() > 0) {
+            pagamentoRepository.save(Pagamento.builder()
+                    .reserva(null)
+                    .valor(total)
+                    .formaPagamento(forma)
+                    .status(StatusPagamento.PAGO)
+                    .ehSinal(false)
+                    .origem("LOJA")
+                    .descricao("Loja - Comanda #" + comandaId + " - " + comanda.getCliente().getNome())
+                    .operador(operador)
+                    .build());
+        }
         return comandaRepository.save(comanda);
     }
 

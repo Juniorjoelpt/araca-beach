@@ -54,6 +54,10 @@ public class PagamentoService {
                 .formaPagamento(request.formaPagamento())
                 .status(StatusPagamento.PAGO)
                 .ehSinal(request.ehSinal())
+                .origem("RESERVA")
+                .descricao("Reserva #" + reserva.getId() + " - " + reserva.getQuadra().getNome() + " - "
+                        + reserva.getCliente().getNome() + (request.ehSinal() ? " (sinal)" : ""))
+                .operador(com.aracabeach.config.OperadorAtual.login())
                 .build();
 
         auditoria.detalhe("Reserva #" + request.reservaId() + " - R$ " + request.valor() + " (" + request.formaPagamento() + ")");

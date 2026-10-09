@@ -146,6 +146,9 @@ public class PacoteService {
                 .formaPagamento(forma)
                 .status(StatusPagamento.PAGO)
                 .ehSinal(false)
+                .origem("PACOTE")
+                .descricao("Pacote " + pacote.getPlano().getNome() + " - " + pacote.getCliente().getNome())
+                .operador(com.aracabeach.config.OperadorAtual.login())
                 .build());
     }
 

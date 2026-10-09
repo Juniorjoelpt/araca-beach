@@ -269,6 +269,10 @@ public class MatriculaClienteService {
                 .formaPagamento(pagamento.getFormaPagamento())
                 .status(StatusPagamento.PAGO)
                 .ehSinal(false)
+                .origem("MATRICULA")
+                .descricao("Matricula " + pagamento.getReferenciaMes() + " - "
+                        + pagamento.getMatriculaCliente().getCliente().getNome())
+                .operador(com.aracabeach.config.OperadorAtual.login())
                 .build();
         pagamentoCaixaRepository.save(pagamentoCaixa);
 

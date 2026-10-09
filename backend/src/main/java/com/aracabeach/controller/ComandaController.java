@@ -40,7 +40,8 @@ public class ComandaController {
     }
 
     @PatchMapping("/{id}/fechar")
-    public Comanda fechar(@PathVariable Long id) {
-        return comandaService.fechar(id);
+    public Comanda fechar(@PathVariable Long id,
+                          @RequestParam(required = false) com.aracabeach.domain.financeiro.FormaPagamento forma) {
+        return comandaService.fechar(id, forma);
     }
 }

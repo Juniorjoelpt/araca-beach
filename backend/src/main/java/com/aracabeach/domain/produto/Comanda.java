@@ -47,6 +47,17 @@ public class Comanda {
     @Builder.Default
     private LocalDateTime criadoEm = LocalDateTime.now();
 
+    /** Preenchidos ao fechar a comanda (venda da loja entra no caixa). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "forma_pagamento", length = 20)
+    private com.aracabeach.domain.financeiro.FormaPagamento formaPagamento;
+
+    @Column(name = "fechada_em")
+    private LocalDateTime fechadaEm;
+
+    @Column(length = 120)
+    private String operador;
+
     @Transient
     public BigDecimal getTotal() {
         return itens.stream()

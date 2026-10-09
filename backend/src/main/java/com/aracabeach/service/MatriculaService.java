@@ -151,6 +151,10 @@ public class MatriculaService {
                 .formaPagamento(pagamento.getFormaPagamento())
                 .status(StatusPagamento.PAGO)
                 .ehSinal(false)
+                .origem("MATRICULA")
+                .descricao("Aula em turma " + pagamento.getMatricula().getTurma().getNome() + " " + pagamento.getReferenciaMes()
+                        + " - " + pagamento.getMatricula().getCliente().getNome())
+                .operador(com.aracabeach.config.OperadorAtual.login())
                 .build();
         pagamentoRepository.save(pagamentoCaixa);
 

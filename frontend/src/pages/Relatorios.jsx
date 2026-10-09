@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
-import { FileDown, FileSpreadsheet, FileText, Wallet, Users, CalendarRange, Percent } from 'lucide-react'
+import { FileDown, FileSpreadsheet, FileText, Wallet, Users, CalendarRange, Percent, History } from 'lucide-react'
 import { relatorioService } from '../services/relatorioService.js'
+import { caixaService } from '../services/caixaService.js'
 
 function CardRelatorio({ icon: Icon, titulo, descricao, formato, children, onExportar, carregando }) {
   return (
@@ -39,6 +40,10 @@ export default function Relatorios() {
   const [periodoReservas, setPeriodoReservas] = useState({
     inicio: format(startOfMonth(hoje), 'yyyy-MM-dd'),
     fim: format(endOfMonth(hoje), 'yyyy-MM-dd'),
+  })
+  const [periodoHistorico, setPeriodoHistorico] = useState({
+    inicio: format(hoje, 'yyyy-MM-dd'),
+    fim: format(hoje, 'yyyy-MM-dd'),
   })
   const [carregando, setCarregando] = useState('')
   const [erro, setErro] = useState('')
@@ -100,6 +105,37 @@ export default function Relatorios() {
             value={dataCaixa}
             onChange={(e) => setDataCaixa(e.target.value)}
           />
+        </CardRelatorio>
+
+        <CardRelatorio
+          icon={History}
+          titulo="Histórico de caixa"
+          descricao="Todos os recebimentos do período, com forma de pagamento e operador"
+          formato="PDF"
+          carregando={carregando === 'historico'}
+          onExportar={() => executar('historico', () => caixaService.baixarPdf(periodoHistorico))}
+        >
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">De</label>
+              <input
+                type="date"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                value={periodoHistorico.inicio}
+                onChange={(e) => setPeriodoHistorico({ ...periodoHistorico, inicio: e.target.value })}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Até</label>
+              <input
+                type="date"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                value={periodoHistorico.fim}
+                onChange={(e) => setPeriodoHistorico({ ...periodoHistorico, fim: e.target.value })}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Com filtros por operador, origem e forma: abra “Histórico de caixa” no menu.</p>
         </CardRelatorio>
 
         <CardRelatorio

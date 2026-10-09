@@ -24,6 +24,7 @@ export default function Loja() {
   const [comandasAbertas, setComandasAbertas] = useState([])
   const [comandaAtiva, setComandaAtiva] = useState(null)
   const [erro, setErro] = useState('')
+  const [formaLoja, setFormaLoja] = useState('PIX')
 
   const [modalProdutoAberto, setModalProdutoAberto] = useState(false)
   const [produtoEditando, setProdutoEditando] = useState(null) // null = novo produto
@@ -139,14 +140,14 @@ export default function Loja() {
   }
 
   async function handleFecharComanda() {
-    if (!confirm('Fechar esta comanda?')) return
+    if (!confirm(`Fechar esta comanda e registrar R$ ${totalComanda.toFixed(2)} no caixa (${formaLoja.replace('_', ' ').toLowerCase()})?`)) return
     try {
-      await comandaService.fechar(comandaAtiva.id)
+      await comandaService.fechar(comandaAtiva.id, formaLoja)
       imprimirComprovanteLoja(comandaAtiva)
       setComandaAtiva(null)
       carregarBase()
-    } catch {
-      setErro('Não foi possível fechar a comanda.')
+    } catch (err) {
+      setErro(err?.response?.data?.mensagem || 'Não foi possível fechar a comanda.')
     }
   }
 
@@ -336,9 +337,17 @@ export default function Loja() {
                 <Printer size={14} /> Imprimir comprovante
               </button>
               {!comandaAtiva.fechada && (
-                <button onClick={handleFecharComanda} className="text-red-600 text-sm hover:underline">
-                  Fechar comanda
-                </button>
+                <div className="flex items-center gap-2">
+                  <select value={formaLoja} onChange={(e) => setFormaLoja(e.target.value)} className="border rounded-lg px-2 py-1 text-sm">
+                    <option value="PIX">Pix</option>
+                    <option value="DINHEIRO">Dinheiro</option>
+                    <option value="CARTAO_DEBITO">Cartão de débito</option>
+                    <option value="CARTAO_CREDITO">Cartão de crédito</option>
+                  </select>
+                  <button onClick={handleFecharComanda} className="text-red-600 text-sm hover:underline">
+                    Fechar comanda
+                  </button>
+                </div>
               )}
             </div>
           </div>

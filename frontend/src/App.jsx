@@ -17,6 +17,7 @@ import Usuarios from './pages/Usuarios.jsx'
 import Despesas from './pages/Despesas.jsx'
 import Mensalidades from './pages/Mensalidades.jsx'
 import Relatorios from './pages/Relatorios.jsx'
+import HistoricoCaixa from './pages/HistoricoCaixa.jsx'
 import Estoque from './pages/Estoque.jsx'
 import PortalCadastro from './pages/portal/PortalCadastro.jsx'
 import PortalLogin from './pages/portal/PortalLogin.jsx'
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
         <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/caixa" element={<HistoricoCaixa />} />
         <Route path="/restaurante" element={<Restaurante />} />
         <Route path="/restaurante/reservas" element={<RestauranteReservas />} />
         <Route path="/restaurante/gestao" element={<AdminRoute><RestauranteGestao /></AdminRoute>} />
