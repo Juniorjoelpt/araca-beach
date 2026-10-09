@@ -1,12 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
-import { ChefHat, Plus, X, Pause, Play, Pencil, FlaskConical } from 'lucide-react'
+import { ChefHat, Plus, X, Pause, Play, Pencil, FlaskConical, Search } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
 
 const brl = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`
 const num = (v, casas = 3) => Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: casas })
 const msg = (err, padrao) => err.response?.data?.mensagem || padrao
+// Busca sem acento/maiusculas; varias palavras precisam aparecer todas.
+const norm = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+const casa = (texto, busca) => norm(busca).split(/\s+/).filter(Boolean).every((t) => norm(texto).includes(t))
+
+function CampoBusca({ valor, onChange, placeholder, resultados }) {
+  return (
+    <div className="mb-4">
+      <div className="relative max-w-md">
+        <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+        <input value={valor} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') onChange('') }}
+          placeholder={placeholder} className="border rounded-lg pl-9 pr-9 py-2 w-full text-sm bg-white" />
+        {valor && <button onClick={() => onChange('')} title="Limpar busca" className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"><X size={18} /></button>}
+      </div>
+      {valor.trim() && <p className="text-xs text-gray-500 mt-1">{resultados} resultado(s)</p>}
+    </div>
+  )
+}
+
 const DIAS = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 // Insumos em KG/L sao digitados em g/ml na ficha tecnica e nas movimentacoes.
@@ -40,6 +58,7 @@ function AbaCardapio() {
   const [erro, setErro] = useState('')
   const [editando, setEditando] = useState(null) // item | {} (novo)
   const [fichaDe, setFichaDe] = useState(null)
+  const [busca, setBusca] = useState('')
   const location = useLocation()
   const abriuPorCodigo = useRef(false)
 
@@ -76,6 +95,15 @@ function AbaCardapio() {
     return [...mapa.values()]
   }, [itens, categorias])
 
+  // Com busca: so itens que casam (nome, descricao, porcao, codigo de barras ou categoria); categorias vazias somem.
+  const categoriasVisiveis = useMemo(() => {
+    if (!busca.trim()) return porCategoria
+    return porCategoria
+      .map((c) => ({ ...c, itens: c.itens.filter((i) => casa(`${i.nome} ${i.descricao || ''} ${i.porcao || ''} ${i.codigoBarras || ''} ${c.nome}`, busca)) }))
+      .filter((c) => c.itens.length > 0)
+  }, [porCategoria, busca])
+  const totalEncontrados = categoriasVisiveis.reduce((n, c) => n + c.itens.length, 0)
+
   return (
     <div>
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
@@ -84,7 +112,10 @@ function AbaCardapio() {
         <button onClick={novaCategoria} className="border px-4 py-2 rounded-lg text-sm">Nova categoria</button>
       </div>
 
-      {porCategoria.map((c) => (
+      <CampoBusca valor={busca} onChange={setBusca} placeholder="Buscar produto por nome, categoria ou código de barras…" resultados={totalEncontrados} />
+      {busca.trim() && totalEncontrados === 0 && <p className="text-gray-400 text-sm mb-4">Nenhum produto encontrado.</p>}
+
+      {categoriasVisiveis.map((c) => (
         <div key={c.id} className="bg-white rounded-xl shadow mb-4 overflow-x-auto">
           <div className="px-4 py-2 border-b font-semibold text-araca-azul flex items-center justify-between">
             <span>{c.nome}{!c.ativa && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}</span>
@@ -255,21 +286,25 @@ function AbaInsumos() {
   const [erro, setErro] = useState('')
   const [editando, setEditando] = useState(null)
   const [movendo, setMovendo] = useState(null)
+  const [busca, setBusca] = useState('')
 
   const carregar = useCallback(async () => {
     try { setInsumos(await restauranteService.insumos()); setErro('') } catch (err) { setErro(msg(err, 'Não foi possível carregar os insumos.')) }
   }, [])
   useEffect(() => { carregar() }, [carregar])
 
+  const visiveis = useMemo(() => (busca.trim() ? insumos.filter((i) => casa(i.nome, busca)) : insumos), [insumos, busca])
+
   return (
     <div>
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
       <button onClick={() => setEditando({})} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2 mb-4"><Plus size={16} /> Novo insumo</button>
+      <CampoBusca valor={busca} onChange={setBusca} placeholder="Buscar insumo por nome…" resultados={visiveis.length} />
       <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-600"><tr><th className="px-3 py-2">Insumo</th><th className="px-3 py-2 text-right">Estoque</th><th className="px-3 py-2 text-right">Mínimo</th><th className="px-3 py-2 text-right">Custo</th><th className="px-3 py-2" /></tr></thead>
           <tbody>
-            {insumos.map((i) => (
+            {visiveis.map((i) => (
               <tr key={i.id} className={`border-t ${!i.ativo ? 'opacity-50' : ''}`}>
                 <td className="px-3 py-2">{i.nome}{i.abaixoDoMinimo && <span className="ml-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">estoque baixo</span>}</td>
                 <td className={`px-3 py-2 text-right ${Number(i.estoqueAtual) < 0 ? 'text-red-600 font-semibold' : ''}`}>{num(i.estoqueAtual)} {BASE[i.unidade]}</td>
@@ -281,7 +316,7 @@ function AbaInsumos() {
                 </td>
               </tr>
             ))}
-            {insumos.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">Nenhum insumo cadastrado.</td></tr>}
+            {visiveis.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{insumos.length === 0 ? 'Nenhum insumo cadastrado.' : 'Nenhum insumo encontrado.'}</td></tr>}
           </tbody>
         </table>
       </div>
