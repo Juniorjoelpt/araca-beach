@@ -253,9 +253,16 @@ export default function Restaurante() {
   // ----- cardápio filtrado -----
 
   const itensVisiveis = useMemo(() => {
-    const termo = busca.trim().toLowerCase()
-    if (termo) {
-      return cardapio.flatMap((c) => c.itens).filter((i) => i.nome.toLowerCase().includes(termo) || (i.descricao || '').toLowerCase().includes(termo))
+    // Busca sem acento e sem diferenciar maiusculas; varias palavras precisam aparecer todas
+    // (ex.: "heineken long" acha "Heineken long neck"). Procura em nome, descricao, categoria e codigo de barras.
+    const norm = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    const termos = norm(busca).split(/\s+/).filter(Boolean)
+    if (termos.length) {
+      return cardapio.flatMap((c) => c.itens.map((i) => ({ ...i, _categoria: c.nome })))
+        .filter((i) => {
+          const texto = norm(`${i.nome} ${i.descricao || ''} ${i._categoria} ${i.codigoBarras || ''}`)
+          return termos.every((t) => texto.includes(t))
+        })
     }
     return cardapio.find((c) => c.id === categoriaAtiva)?.itens || []
   }, [cardapio, categoriaAtiva, busca])
@@ -327,8 +334,20 @@ export default function Restaurante() {
               )}
               <div className="relative mb-3">
                 <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar no cardápio…" className="border rounded-lg pl-9 pr-3 py-2 w-full" />
+                <input value={busca} onChange={(e) => setBusca(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setBusca('')
+                    // Enter com um unico resultado lanca o item (agiliza o balcao)
+                    if (e.key === 'Enter' && busca.trim() && itensVisiveis.length === 1 && !itensVisiveis[0].pausado) {
+                      e.preventDefault(); adicionarAoCarrinho(itensVisiveis[0]); setBusca('')
+                    }
+                  }}
+                  placeholder="Buscar produto por nome ou categoria…" className="border rounded-lg pl-9 pr-9 py-2 w-full" />
+                {busca && (
+                  <button onClick={() => setBusca('')} title="Limpar busca" className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                )}
               </div>
+              {busca.trim() && <p className="text-xs text-gray-500 -mt-2 mb-2">{itensVisiveis.length} resultado(s)</p>}
               {!busca && (
                 <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
                   {cardapio.map((c) => (
@@ -347,6 +366,7 @@ export default function Restaurante() {
                       <span className="font-medium text-sm">{i.nome}</span>
                       <span className="font-semibold text-araca-azul text-sm whitespace-nowrap">{brl(i.preco)}</span>
                     </div>
+                    {busca.trim() && i._categoria && <div className="text-[11px] text-gray-400">{i._categoria}</div>}
                     {i.porcao && <div className="text-xs text-araca-verde-escuro">{i.porcao}</div>}
                     {i.descricao && <div className="text-xs text-gray-500 line-clamp-2 mt-0.5">{i.descricao}</div>}
                     {i.pausado && <div className="text-xs text-red-600 mt-1">Indisponível (acabou)</div>}
