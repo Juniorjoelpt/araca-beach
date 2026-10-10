@@ -23,6 +23,11 @@ public final class OperadorAtual {
         return null;
     }
 
+    public static boolean garcom() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getPrincipal() instanceof Usuario u && u.getPerfil().name().equals("GARCOM");
+    }
+
     public static boolean admin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth != null && auth.getPrincipal() instanceof Usuario u && u.getPerfil().name().equals("ADMIN");

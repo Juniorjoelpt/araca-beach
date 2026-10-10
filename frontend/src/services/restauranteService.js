@@ -7,6 +7,8 @@ export const restauranteService = {
   // operacao (caixa)
   cardapio: () => api.get(`${base}/cardapio`).then((r) => r.data),
   comandasAbertas: () => api.get(`${base}/comandas/abertas`).then((r) => r.data),
+  pedidosPendentesImpressao: () => api.get(`${base}/pedidos/impressao-pendente`).then((r) => r.data),
+  reivindicarImpressao: (pedidoId) => api.patch(`${base}/pedidos/${pedidoId}/impressao`).then((r) => r.data),
   comanda: (id) => api.get(`${base}/comandas/${id}`).then((r) => r.data),
   abrirComanda: (dados) => api.post(`${base}/comandas`, dados).then((r) => r.data),
   lancarPedido: (id, itens) => api.post(`${base}/comandas/${id}/pedidos`, { itens }).then((r) => r.data),

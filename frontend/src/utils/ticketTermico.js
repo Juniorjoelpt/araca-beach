@@ -57,6 +57,7 @@ export function imprimirPedido(comanda, pedido) {
       ${marcaCortesia}
       <div class="c forte">${esc(comanda.rotulo)}</div>
       <div class="c peq">Comanda #${comanda.id} · Pedido ${pedido.numero} · ${esc(hora(pedido.criadoEm))}</div>
+      ${pedido.lancadoPor ? `<div class="c peq">Garçom: ${esc(pedido.lancadoPor)}</div>` : ''}
       <div class="linha"></div>
       ${itens.map((i) => `
         <div class="item">${i.quantidade}x ${esc(i.nome)}</div>

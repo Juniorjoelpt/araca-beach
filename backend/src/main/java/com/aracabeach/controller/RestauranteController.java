@@ -57,6 +57,18 @@ public class RestauranteController {
         return comandaService.cancelarItem(id, itemId, motivo);
     }
 
+    /** Pedidos feitos por garcons ainda nao impressos (o computador do caixa consulta e imprime). */
+    @GetMapping("/pedidos/impressao-pendente")
+    public List<PedidoParaImprimir> impressaoPendente() {
+        return comandaService.pedidosPendentesDeImpressao();
+    }
+
+    /** Quem chamar primeiro leva a impressao ({"imprimir": true}); os demais recebem false. */
+    @PatchMapping("/pedidos/{id}/impressao")
+    public java.util.Map<String, Boolean> reivindicarImpressao(@PathVariable Long id) {
+        return java.util.Map.of("imprimir", comandaService.reivindicarImpressao(id));
+    }
+
     @PatchMapping("/comandas/{id}/mesa")
     public ComandaResponse transferirMesa(@PathVariable Long id, @Valid @RequestBody MesaRequest request) {
         return comandaService.transferirMesa(id, request.mesa());

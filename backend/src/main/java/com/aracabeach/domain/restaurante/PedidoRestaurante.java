@@ -33,6 +33,10 @@ public class PedidoRestaurante {
     @Column(name = "lancado_por", length = 80)
     private String lancadoPor;
 
+    /** Pedido feito por garcom aguardando impressao automatica no computador do caixa. Nulo/false = nada a imprimir. */
+    @Column(name = "impressao_pendente")
+    private Boolean impressaoPendente;
+
     @Column(name = "criado_em", nullable = false)
     @Builder.Default
     private LocalDateTime criadoEm = LocalDateTime.now();

@@ -35,6 +35,7 @@ public class ComandaRestauranteService {
     private final ReservaMesaService reservaMesaService;
     private final ItemCardapioRepository itemRepository;
     private final InsumoService insumoService;
+    private final com.aracabeach.repository.PedidoRestauranteRepository pedidoRepository;
     private final PagamentoRepository pagamentoRepository;
     private final AuditoriaService auditoria;
 
@@ -132,7 +133,8 @@ public class ComandaRestauranteService {
     public ComandaResponse lancarPedido(Long id, PedidoRequest request) {
         ComandaRestaurante c = abertaOuErro(id);
         int numero = c.getPedidos().stream().mapToInt(PedidoRestaurante::getNumero).max().orElse(0) + 1;
-        PedidoRestaurante pedido = PedidoRestaurante.builder().comanda(c).numero(numero).lancadoPor(OperadorAtual.nome()).build();
+        PedidoRestaurante pedido = PedidoRestaurante.builder().comanda(c).numero(numero).lancadoPor(OperadorAtual.nome())
+                .impressaoPendente(OperadorAtual.garcom() ? Boolean.TRUE : null).build();
 
         for (PedidoItemRequest linha : request.itens()) {
             ItemCardapio item = itemRepository.findById(linha.itemId())
@@ -159,6 +161,23 @@ public class ComandaRestauranteService {
         // baixa de insumos (ids ja existem: a comanda foi persistida antes)
         pedido.getItens().forEach(i -> insumoService.consumir(i.getItem(), i.getQuantidade(), c.getId()));
         return paraResponse(c);
+    }
+
+    /** Pedidos feitos por garcons (ultimas 12h) que ainda nao foram impressos no caixa. */
+    @Transactional(readOnly = true)
+    public List<PedidoParaImprimir> pedidosPendentesDeImpressao() {
+        return pedidoRepository.findByImpressaoPendenteTrueAndCriadoEmAfterOrderByCriadoEmAsc(LocalDateTime.now().minusHours(12))
+                .stream().map(p -> {
+                    ComandaResponse c = paraResponse(p.getComanda());
+                    PedidoResponse pr = c.pedidos().stream().filter(x -> x.id().equals(p.getId())).findFirst().orElse(null);
+                    return new PedidoParaImprimir(c, pr);
+                }).filter(x -> x.pedido() != null).toList();
+    }
+
+    /** Reivindica a impressao do pedido: true so para quem chegou primeiro. */
+    @Transactional
+    public boolean reivindicarImpressao(Long pedidoId) {
+        return pedidoRepository.reivindicarImpressao(pedidoId) > 0;
     }
 
     @Transactional

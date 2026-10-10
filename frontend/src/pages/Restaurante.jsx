@@ -72,6 +72,41 @@ export default function Restaurante() {
     return () => clearInterval(t)
   }, [])
 
+  // Impressao automatica dos pedidos feitos pelos garcons (neste computador). Fica ligada por padrao;
+  // desligue nos outros computadores para nao imprimir em dois lugares.
+  const [autoImprimir, setAutoImprimir] = useState(() => {
+    try { return localStorage.getItem('araca_auto_imprimir_garcom') !== '0' } catch { return true }
+  })
+  const imprimindoRef = useRef(false)
+  const mudarAutoImprimir = (v) => {
+    setAutoImprimir(v)
+    try { localStorage.setItem('araca_auto_imprimir_garcom', v ? '1' : '0') } catch { /* ignora */ }
+  }
+  useEffect(() => {
+    if (!autoImprimir) return undefined
+    async function verificar() {
+      if (imprimindoRef.current) return
+      imprimindoRef.current = true
+      try {
+        const pendentes = await restauranteService.pedidosPendentesImpressao()
+        for (const { comanda, pedido } of pendentes) {
+          const { imprimir } = await restauranteService.reivindicarImpressao(pedido.id)
+          if (imprimir) {
+            imprimirPedido(comanda, pedido)
+            setAviso(`Pedido ${pedido.numero} de ${comanda.rotulo} (garçom ${pedido.lancadoPor || ''}) impresso.`)
+            await new Promise((r) => setTimeout(r, 2000))
+          }
+        }
+        if (pendentes.length > 0) restauranteService.comandasAbertas().then(setComandas).catch(() => {})
+      } catch { /* tenta de novo no proximo ciclo */ } finally {
+        imprimindoRef.current = false
+      }
+    }
+    verificar()
+    const t = setInterval(verificar, 8000)
+    return () => clearInterval(t)
+  }, [autoImprimir])
+
   // Sugere o restante da conta no campo de pagamento ao trocar de comanda/total.
   useEffect(() => {
     if (selecionada) setValorPag(Number(selecionada.restante) > 0 ? Number(selecionada.restante).toFixed(2) : '')
@@ -273,6 +308,10 @@ export default function Restaurante() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-title text-2xl text-araca-verde flex items-center gap-2"><UtensilsCrossed size={24} /> Restaurante</h2>
+        <label className="text-xs text-gray-600 flex items-center gap-1.5 ml-auto mr-4 cursor-pointer" title="Imprime na impressora térmica deste computador cada pedido feito pelos garçons no celular">
+          <input type="checkbox" checked={autoImprimir} onChange={(e) => mudarAutoImprimir(e.target.checked)} />
+          Imprimir pedidos dos garçons automaticamente
+        </label>
         <button onClick={() => setModalNova(true)} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
           <Plus size={18} /> Nova comanda
         </button>
