@@ -44,5 +44,6 @@ export const restauranteService = {
   movimentos: (id) => api.get(`${gestao}/insumos/${id}/movimentos`).then((r) => r.data),
   movimentarInsumo: (id, d) => api.post(`${gestao}/insumos/${id}/movimentos`, d).then((r) => r.data),
   desconto: (id, valor, motivo) => api.patch(`${gestao}/comandas/${id}/desconto`, { valor, motivo }).then((r) => r.data),
+  historicoPedidos: (params) => api.get(`${gestao}/historico-pedidos`, { params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null)) }).then((r) => r.data),
   relatorio: (inicio, fim) => api.get(`${gestao}/relatorio`, { params: { inicio, fim } }).then((r) => r.data),
 }

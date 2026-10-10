@@ -106,6 +106,16 @@ public class RestauranteGestaoController {
         return comandaService.aplicarDesconto(id, request);
     }
 
+    @GetMapping("/historico-pedidos")
+    public HistoricoPedidosResponse historicoPedidos(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate fim,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String abertaPor,
+            @RequestParam(required = false) String busca) {
+        return comandaService.historico(inicio, fim, status, abertaPor, busca);
+    }
+
     @GetMapping("/relatorio")
     public RelatorioRestauranteResponse relatorio(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,

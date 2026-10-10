@@ -163,6 +163,40 @@ public class ComandaRestauranteService {
         return paraResponse(c);
     }
 
+    private static final int HISTORICO_MAX = 300;
+
+    /** Historico de comandas/pedidos por periodo de abertura, com filtros opcionais (status, quem abriu, texto). */
+    @Transactional(readOnly = true)
+    public HistoricoPedidosResponse historico(java.time.LocalDate inicio, java.time.LocalDate fim, String status,
+                                              String abertaPor, String busca) {
+        if (fim.isBefore(inicio)) throw new IllegalArgumentException("A data final deve ser igual ou posterior à inicial.");
+        if (inicio.plusDays(366).isBefore(fim)) throw new IllegalArgumentException("O período máximo é de 366 dias.");
+        StatusComandaRestaurante st = null;
+        if (status != null && !status.isBlank() && !status.equalsIgnoreCase("TODAS")) {
+            st = StatusComandaRestaurante.valueOf(status.trim().toUpperCase());
+        }
+        final StatusComandaRestaurante filtroStatus = st;
+        String termo = busca == null ? "" : java.text.Normalizer.normalize(busca, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase().trim();
+        List<ComandaResponse> todas = comandaRepository.findByAbertaEmBetweenOrderByAbertaEmDesc(
+                        inicio.atStartOfDay(), fim.atTime(java.time.LocalTime.MAX)).stream()
+                .filter(c -> filtroStatus == null || c.getStatus() == filtroStatus)
+                .filter(c -> abertaPor == null || abertaPor.isBlank() || abertaPor.equalsIgnoreCase(c.getAbertaPor()))
+                .map(this::paraResponse)
+                .filter(r -> {
+                    if (termo.isEmpty()) return true;
+                    String alvo = ("#" + r.id() + " " + r.rotulo() + " " + (r.mesa() == null ? "" : r.mesa()) + " "
+                            + r.pedidos().stream().flatMap(p -> p.itens().stream()).map(ItemPedidoResponse::nome)
+                            .collect(java.util.stream.Collectors.joining(" ")));
+                    String n = java.text.Normalizer.normalize(alvo, java.text.Normalizer.Form.NFD)
+                            .replaceAll("\\p{M}", "").toLowerCase();
+                    return java.util.Arrays.stream(termo.split("\\s+")).allMatch(n::contains);
+                })
+                .toList();
+        boolean truncado = todas.size() > HISTORICO_MAX;
+        return new HistoricoPedidosResponse(truncado ? todas.subList(0, HISTORICO_MAX) : todas, todas.size(), truncado);
+    }
+
     /** Pedidos feitos por garcons (ultimas 12h) que ainda nao foram impressos no caixa. */
     @Transactional(readOnly = true)
     public List<PedidoParaImprimir> pedidosPendentesDeImpressao() {

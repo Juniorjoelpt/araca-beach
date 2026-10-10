@@ -112,6 +112,8 @@ public final class RestauranteDtos {
 
     public record PedidoResponse(Long id, int numero, LocalDateTime criadoEm, List<ItemPedidoResponse> itens, String lancadoPor) {}
 
+    public record HistoricoPedidosResponse(List<ComandaResponse> comandas, int totalEncontrado, boolean truncado) {}
+
     public record PedidoParaImprimir(ComandaResponse comanda, PedidoResponse pedido) {}
 
     public record PagamentoRestResponse(Long id, BigDecimal valor, FormaPagamento forma, LocalDateTime criadoEm) {}

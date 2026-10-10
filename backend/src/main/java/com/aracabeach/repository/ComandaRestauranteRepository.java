@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ComandaRestauranteRepository extends JpaRepository<ComandaRestaurante, Long> {
+    List<ComandaRestaurante> findByAbertaEmBetweenOrderByAbertaEmDesc(LocalDateTime inicio, LocalDateTime fim);
     List<ComandaRestaurante> findByStatusOrderByAbertaEmAsc(StatusComandaRestaurante status);
     List<ComandaRestaurante> findByStatusAndFechadaEmBetween(StatusComandaRestaurante status, LocalDateTime inicio, LocalDateTime fim);
     List<ComandaRestaurante> findByCortesiaTrueAndStatusAndFechadaEmBetween(StatusComandaRestaurante status, LocalDateTime inicio, LocalDateTime fim);

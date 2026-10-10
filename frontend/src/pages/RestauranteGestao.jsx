@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ChefHat, Plus, X, Pause, Play, Pencil, FlaskConical, Search } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
+import HistoricoPedidos from '../components/HistoricoPedidos.jsx'
 
 const brl = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`
 const num = (v, casas = 3) => Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: casas })
@@ -40,12 +41,13 @@ export default function RestauranteGestao() {
     <div>
       <h2 className="font-title text-2xl text-araca-verde mb-4 flex items-center gap-2"><ChefHat size={24} /> Gestão do restaurante</h2>
       <div className="flex gap-2 mb-5">
-        {[['cardapio', 'Cardápio e fichas'], ['insumos', 'Insumos (estoque)'], ['relatorio', 'Relatório']].map(([k, l]) => (
+        {[['cardapio', 'Cardápio e fichas'], ['insumos', 'Insumos (estoque)'], ['pedidos', 'Histórico de pedidos'], ['relatorio', 'Relatório']].map(([k, l]) => (
           <button key={k} onClick={() => setAba(k)} className={`px-4 py-2 rounded-lg text-sm border ${aba === k ? 'bg-araca-azul text-white border-araca-azul' : 'bg-white text-gray-600'}`}>{l}</button>
         ))}
       </div>
       {aba === 'cardapio' && <AbaCardapio />}
       {aba === 'insumos' && <AbaInsumos />}
+      {aba === 'pedidos' && <HistoricoPedidos />}
       {aba === 'relatorio' && <AbaRelatorio />}
     </div>
   )
