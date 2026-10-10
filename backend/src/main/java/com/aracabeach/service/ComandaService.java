@@ -71,6 +71,7 @@ public class ComandaService {
                 .produto(produto)
                 .quantidade(request.quantidade())
                 .precoUnitario(produto.getPreco())
+                .custoUnitario(produto.getCusto())
                 .build();
 
         // Debita o estoque e registra a movimentacao automaticamente - antes

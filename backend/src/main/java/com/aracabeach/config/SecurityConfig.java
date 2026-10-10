@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/regras/**").hasRole("ADMIN")
                         .requestMatchers("/api/pacotes/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/comissoes/**").hasRole("ADMIN")
+                        .requestMatchers("/api/lucro/**").hasRole("ADMIN")
                         .requestMatchers("/api/garcom/**").hasAnyRole("ADMIN", "RECEPCAO", "GARCOM")
                         .requestMatchers("/api/restaurante/gestao/**").hasRole("ADMIN")
                         .requestMatchers("/api/restaurante/**").hasAnyRole("ADMIN", "RECEPCAO")

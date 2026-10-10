@@ -33,6 +33,7 @@ import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
 import Comissoes from './pages/Comissoes.jsx'
 import Gerencial from './pages/Gerencial.jsx'
+import Lucro from './pages/Lucro.jsx'
 import Garcom from './pages/Garcom.jsx'
 import Restaurante from './pages/Restaurante.jsx'
 import RestauranteReservas from './pages/RestauranteReservas.jsx'
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
         <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/lucro" element={<AdminRoute><Lucro /></AdminRoute>} />
         <Route path="/caixa" element={<HistoricoCaixa />} />
         <Route path="/restaurante" element={<Restaurante />} />
         <Route path="/restaurante/reservas" element={<RestauranteReservas />} />

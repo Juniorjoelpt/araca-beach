@@ -16,7 +16,7 @@ function categoriaInfo(value) {
   return CATEGORIAS.find((c) => c.value === value) || CATEGORIAS[3]
 }
 
-const produtoVazio = { nome: '', categoria: 'BEBIDA', preco: '', estoque: '', ehAluguel: false }
+const produtoVazio = { nome: '', categoria: 'BEBIDA', preco: '', custo: '', estoque: '', ehAluguel: false }
 
 export default function Loja() {
   const [produtos, setProdutos] = useState([])
@@ -62,6 +62,7 @@ export default function Loja() {
       nome: produto.nome,
       categoria: produto.categoria,
       preco: String(produto.preco),
+      custo: produto.custo != null ? String(produto.custo) : '',
       estoque: String(produto.estoque),
       ehAluguel: produto.ehAluguel,
     })
@@ -74,6 +75,7 @@ export default function Loja() {
     const payload = {
       ...formProduto,
       preco: Number(formProduto.preco),
+      custo: formProduto.custo !== '' ? Number(formProduto.custo) : null,
       estoque: formProduto.estoque ? Number(formProduto.estoque) : 0,
     }
     try {
@@ -396,6 +398,16 @@ export default function Loja() {
                     value={formProduto.preco}
                     onChange={(e) => setFormProduto({ ...formProduto, preco: e.target.value })}
                     required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Custo (R$)</label>
+                  <input
+                    type="number" step="0.01" min="0"
+                    className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                    value={formProduto.custo}
+                    onChange={(e) => setFormProduto({ ...formProduto, custo: e.target.value })}
+                    placeholder="p/ lucro"
                   />
                 </div>
                 <div className="flex-1">

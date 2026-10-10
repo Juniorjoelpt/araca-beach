@@ -38,6 +38,10 @@ public class ItemComanda {
     @Column(name = "preco_unitario", nullable = false, precision = 10, scale = 2)
     private BigDecimal precoUnitario;
 
+    /** Custo de 1 unidade no momento da venda (copiado do produto). Nulo = custo desconhecido. */
+    @Column(name = "custo_unitario", precision = 10, scale = 2)
+    private BigDecimal custoUnitario;
+
     @Transient
     public BigDecimal getSubtotal() {
         return precoUnitario.multiply(BigDecimal.valueOf(quantidade));

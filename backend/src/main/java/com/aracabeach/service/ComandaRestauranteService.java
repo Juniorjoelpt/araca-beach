@@ -150,6 +150,7 @@ public class ComandaRestauranteService {
                     .precoUnitario(item.getPreco())
                     .quantidade(linha.quantidade())
                     .observacao(limpar(linha.observacao()))
+                    .custoUnitario(insumoService.custoUnitarioDoItem(item).orElse(null))
                     .praca(item.getPraca())
                     .build());
         }

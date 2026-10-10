@@ -36,16 +36,32 @@ public class RestauranteRelatorioService {
         List<ComandaRestaurante> comandas = comandaRepository.findByStatusAndFechadaEmBetween(
                 StatusComandaRestaurante.FECHADA, LocalDateTime.of(inicio, LocalTime.MIN), LocalDateTime.of(fim, LocalTime.MAX));
 
-        Map<Long, BigDecimal> custoUnitario = new HashMap<>();
+        // Custo "de hoje" (ficha; sem ficha, insumo de mesmo nome) - so usado quando a venda e antiga e nao gravou o custo.
+        Map<Long, BigDecimal> custoAtual = new HashMap<>();
         fichaRepository.findAll().stream()
                 .collect(Collectors.groupingBy(f -> f.getItem().getId()))
-                .forEach((id, ficha) -> custoUnitario.put(id, CardapioService.custoDaFicha(ficha)));
+                .forEach((id, ficha) -> custoAtual.put(id, CardapioService.custoDaFicha(ficha)));
+        Map<String, BigDecimal> custoPorNome = new HashMap<>();
+        insumoRepository.findAll().forEach(i -> custoPorNome.put(i.getNome().trim().toLowerCase(), i.getCustoUnitario()));
+        Map<Long, String> semCusto = new LinkedHashMap<>();
+        java.util.function.Function<ItemPedidoRestaurante, BigDecimal> custoDe = i -> {
+            if (i.getCustoUnitario() != null) return i.getCustoUnitario();
+            Long itemId = i.getItem().getId();
+            BigDecimal c = custoAtual.get(itemId);
+            if (c == null || c.signum() <= 0) c = custoPorNome.get(i.getNome().trim().toLowerCase());
+            if (c == null || c.signum() <= 0) {
+                semCusto.put(itemId, i.getNome());
+                return BigDecimal.ZERO;
+            }
+            return c;
+        };
 
         BigDecimal receitaItens = BigDecimal.ZERO, taxas = BigDecimal.ZERO, descontos = BigDecimal.ZERO, receitaTotal = BigDecimal.ZERO;
         BigDecimal custoTotal = BigDecimal.ZERO;
         Map<Long, long[]> qtdPorItem = new HashMap<>();
         Map<Long, BigDecimal> receitaPorItem = new HashMap<>();
         Map<Long, String> nomePorItem = new HashMap<>();
+        Map<Long, BigDecimal> custoPorItem = new HashMap<>();
         long[] qtdHora = new long[24];
         BigDecimal[] recHora = new BigDecimal[24];
         long[] qtdDia = new long[8];
@@ -62,8 +78,7 @@ public class RestauranteRelatorioService {
                 cortesias++;
                 valorCortesias = valorCortesias.add(ComandaRestauranteService.subtotal(c));
                 for (ItemPedidoRestaurante i : ComandaRestauranteService.itensAtivos(c)) {
-                    custoCortesias = custoCortesias.add(custoUnitario.getOrDefault(i.getItem().getId(), BigDecimal.ZERO)
-                            .multiply(BigDecimal.valueOf(i.getQuantidade())));
+                    custoCortesias = custoCortesias.add(custoDe.apply(i).multiply(BigDecimal.valueOf(i.getQuantidade())));
                 }
             } else {
                 vendas.add(c);
@@ -85,8 +100,9 @@ public class RestauranteRelatorioService {
                     nomePorItem.put(itemId, i.getNome());
                     qtdPorItem.computeIfAbsent(itemId, k -> new long[1])[0] += i.getQuantidade();
                     receitaPorItem.merge(itemId, i.getSubtotal(), BigDecimal::add);
-                    custoTotal = custoTotal.add(custoUnitario.getOrDefault(itemId, BigDecimal.ZERO)
-                            .multiply(BigDecimal.valueOf(i.getQuantidade())));
+                    BigDecimal custoLinha = custoDe.apply(i).multiply(BigDecimal.valueOf(i.getQuantidade()));
+                    custoTotal = custoTotal.add(custoLinha);
+                    custoPorItem.merge(itemId, custoLinha, BigDecimal::add);
                     int h = p.getCriadoEm().getHour();
                     int d = p.getCriadoEm().getDayOfWeek().getValue();
                     qtdHora[h] += i.getQuantidade();
@@ -97,13 +113,12 @@ public class RestauranteRelatorioService {
             }
         }
 
-        int semFicha = (int) qtdPorItem.keySet().stream().filter(id -> !custoUnitario.containsKey(id)).count();
+        BigDecimal lucro = receitaItens.subtract(descontos).subtract(custoTotal);
 
         List<ItemVendidoResponse> maisVendidos = qtdPorItem.entrySet().stream()
                 .map(e -> {
                     BigDecimal receita = receitaPorItem.get(e.getKey());
-                    BigDecimal custo = custoUnitario.getOrDefault(e.getKey(), BigDecimal.ZERO)
-                            .multiply(BigDecimal.valueOf(e.getValue()[0])).setScale(2, RoundingMode.HALF_UP);
+                    BigDecimal custo = custoPorItem.getOrDefault(e.getKey(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
                     return new ItemVendidoResponse(e.getKey(), nomePorItem.get(e.getKey()), e.getValue()[0], receita,
                             custo, receita.subtract(custo));
                 })
@@ -124,8 +139,9 @@ public class RestauranteRelatorioService {
                 .map(Insumo::getNome).toList();
 
         return new RelatorioRestauranteResponse(inicio, fim, comandas.size(), receitaItens, taxas, descontos, receitaTotal,
-                ticket, custoTotal.setScale(2, RoundingMode.HALF_UP), receitaItens.subtract(custoTotal).setScale(2, RoundingMode.HALF_UP),
-                semFicha, maisVendidos, porHora, porDia, abaixo,
-                cortesias, valorCortesias, custoCortesias.setScale(2, RoundingMode.HALF_UP));
+                ticket, custoTotal.setScale(2, RoundingMode.HALF_UP), lucro.setScale(2, RoundingMode.HALF_UP),
+                semCusto.size(), maisVendidos, porHora, porDia, abaixo,
+                cortesias, valorCortesias, custoCortesias.setScale(2, RoundingMode.HALF_UP),
+                new ArrayList<>(semCusto.values()), lucro.subtract(custoCortesias).setScale(2, RoundingMode.HALF_UP));
     }
 }

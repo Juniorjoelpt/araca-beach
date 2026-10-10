@@ -39,6 +39,10 @@ public class ItemPedidoRestaurante {
     @Column(length = 200)
     private String observacao;
 
+    /** Custo de 1 unidade no momento da venda (ficha tecnica ou insumo de mesmo nome). Nulo = custo desconhecido. */
+    @Column(name = "custo_unitario", precision = 12, scale = 4)
+    private BigDecimal custoUnitario;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Praca praca;

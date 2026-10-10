@@ -29,6 +29,7 @@ public class ProdutoController {
                 .categoria(request.categoria())
                 .preco(request.preco())
                 .estoque(request.estoque() != null ? request.estoque() : 0)
+                .custo(request.custo())
                 .ehAluguel(request.ehAluguel())
                 .build();
         return produtoRepository.save(produto);
@@ -42,6 +43,7 @@ public class ProdutoController {
         produto.setCategoria(request.categoria());
         produto.setPreco(request.preco());
         produto.setEstoque(request.estoque() != null ? request.estoque() : 0);
+        produto.setCusto(request.custo());
         produto.setEhAluguel(request.ehAluguel());
         return produtoRepository.save(produto);
     }

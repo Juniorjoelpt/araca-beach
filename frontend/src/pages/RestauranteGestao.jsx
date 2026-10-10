@@ -433,16 +433,16 @@ function AbaRelatorio() {
         <>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
             {[['Receita total', brl(r.receitaTotal)], ['Comandas fechadas', r.comandas], ['Ticket médio', brl(r.ticketMedio)], ['Taxa de serviço', brl(r.taxaServico)],
-              ['Receita de itens', brl(r.receitaItens)], ['Descontos', brl(r.descontos)], ['Custo (fichas)', brl(r.custoTotal)], ['Margem (itens − custo)', brl(r.margemTotal)]].map(([l, v]) => (
+              ['Receita de itens', brl(r.receitaItens)], ['Descontos', brl(r.descontos)], ['Custo (gravado na venda)', brl(r.custoTotal)], ['Lucro (itens − desconto − custo)', brl(r.margemTotal)]].map(([l, v]) => (
               <div key={l} className="bg-white rounded-xl shadow p-4"><p className="text-xs text-gray-500">{l}</p><p className="text-xl font-bold text-araca-azul">{v}</p></div>
             ))}
           </div>
           {r.cortesias > 0 && (
             <p className="text-xs text-purple-800 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 mb-3">
-              {r.cortesias} cortesia(s) no período (fora da receita): valor de referência {brl(r.valorCortesias)}, custo estimado {brl(r.custoCortesias)}.
+              {r.cortesias} cortesia(s) no período (fora da receita): valor de referência {brl(r.valorCortesias)}, custo {brl(r.custoCortesias)} (perda). Lucro após cortesias: <strong>{brl(r.lucroAposCortesias)}</strong>.
             </p>
           )}
-          {r.itensSemFicha > 0 && <p className="text-xs text-amber-700 mb-3">{r.itensSemFicha} item(ns) vendido(s) sem ficha técnica: o custo e a margem acima ficam superestimados até cadastrar as fichas.</p>}
+          {r.itensSemFicha > 0 && <p className="text-xs text-amber-700 mb-3">{r.itensSemFicha} item(ns) sem custo conhecido ({(r.itensSemCusto || []).join(', ')}): o lucro acima fica superestimado. Cadastre a ficha técnica ou um insumo com o mesmo nome.</p>}
           {r.insumosAbaixoDoMinimo.length > 0 && <p className="text-xs text-red-700 mb-3">Estoque baixo: {r.insumosAbaixoDoMinimo.join(', ')}.</p>}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -93,6 +93,21 @@ public class InsumoService {
         return paraResponse(i);
     }
 
+    /**
+     * Custo de producao de 1 unidade do item no momento da venda: ficha tecnica; sem ficha, o insumo de mesmo
+     * nome (bebida revendida). Vazio quando nao ha como saber (custo zero ou inexistente).
+     */
+    @Transactional(readOnly = true)
+    public java.util.Optional<BigDecimal> custoUnitarioDoItem(ItemCardapio item) {
+        List<FichaTecnicaItem> ficha = fichaRepository.findByItemId(item.getId());
+        BigDecimal custo = CardapioService.custoDaFicha(ficha);
+        if (ficha.isEmpty() && item.getNome() != null) {
+            custo = insumoRepository.findFirstByNomeIgnoreCase(item.getNome().trim())
+                    .map(Insumo::getCustoUnitario).orElse(BigDecimal.ZERO);
+        }
+        return custo.signum() > 0 ? java.util.Optional.of(custo) : java.util.Optional.empty();
+    }
+
     /** Baixa de estoque pela ficha tecnica de um item vendido. Itens sem ficha nao movimentam estoque. */
     @Transactional
     public void consumir(ItemCardapio item, int quantidade, Long comandaId) {

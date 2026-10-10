@@ -36,6 +36,10 @@ public class Produto {
     @Builder.Default
     private Integer estoque = 0;
 
+    /** Custo de compra por unidade (para o calculo de lucro). Nulo = nao informado. */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal custo;
+
     /** Para equipamentos (ex.: aluguel de raquete), indica se e item de aluguel e nao de venda. */
     @Column(name = "eh_aluguel")
     @Builder.Default

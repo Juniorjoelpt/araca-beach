@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -20,6 +20,7 @@ const menuBase = [
   { to: '/mensalidades', label: 'Mensalidades', icon: CalendarCheck2 },
   { to: '/pacotes', label: 'Pacotes de aulas', icon: Package },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
+  { to: '/lucro', label: 'Lucro das vendas', icon: TrendingUp, soAdmin: true },
   { to: '/caixa', label: 'Histórico de caixa', icon: History },
   { to: '/aulas', label: 'Aulas', icon: GraduationCap },
   { to: '/torneios', label: 'Torneios', icon: Trophy },

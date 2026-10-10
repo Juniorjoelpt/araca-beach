@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ComandaRepository extends JpaRepository<Comanda, Long> {
     List<Comanda> findByFechadaFalse();
+    List<Comanda> findByFechadaTrueAndFechadaEmBetween(LocalDateTime inicio, LocalDateTime fim);
     List<Comanda> findByFechadaTrueAndCriadoEmBetween(LocalDateTime inicio, LocalDateTime fim);
     List<Comanda> findByClienteIdOrderByCriadoEmDesc(Long clienteId);
 }

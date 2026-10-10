@@ -128,5 +128,6 @@ public final class RestauranteDtos {
                                                List<ItemVendidoResponse> maisVendidos,
                                                List<FaixaResponse> porHora, List<FaixaResponse> porDiaSemana,
                                                List<String> insumosAbaixoDoMinimo,
-                                               int cortesias, BigDecimal valorCortesias, BigDecimal custoCortesias) {}
+                                               int cortesias, BigDecimal valorCortesias, BigDecimal custoCortesias,
+                                               List<String> itensSemCusto, BigDecimal lucroAposCortesias) {}
 }

@@ -12,6 +12,7 @@ public record ProdutoRequest(
         @NotNull CategoriaProduto categoria,
         @NotNull @DecimalMin(value = "0.00") BigDecimal preco,
         Integer estoque,
+        @DecimalMin(value = "0.00") BigDecimal custo,
         boolean ehAluguel
 ) {
 }
