@@ -114,8 +114,11 @@ public class CardapioService {
 
     /** Substitui a ficha tecnica do item (lista vazia remove a ficha). */
     @Transactional
-    public ItemGestaoResponse definirFicha(Long id, List<FichaLinhaRequest> linhas) {
+    public ItemGestaoResponse definirFicha(Long id, FichaRequest request) {
         ItemCardapio item = buscarItem(id);
+        List<FichaLinhaRequest> linhas = request.linhas();
+        item.setCustoProducao(request.custoProducao() != null && request.custoProducao().signum() > 0 ? request.custoProducao() : null);
+        itemRepository.save(item);
         Set<Long> vistos = new HashSet<>();
         List<FichaTecnicaItem> novas = new ArrayList<>();
         for (FichaLinhaRequest l : linhas) {
@@ -188,7 +191,8 @@ public class CardapioService {
     }
 
     private ItemGestaoResponse paraGestao(ItemCardapio i, List<FichaTecnicaItem> ficha) {
-        BigDecimal custo = custoDaFicha(ficha);
+        BigDecimal extra = i.getCustoProducao() != null ? i.getCustoProducao() : BigDecimal.ZERO;
+        BigDecimal custo = custoDaFicha(ficha).add(extra);
         BigDecimal margem = i.getPreco().subtract(custo);
         BigDecimal margemPct = i.getPreco().signum() == 0 ? BigDecimal.ZERO
                 : margem.multiply(BigDecimal.valueOf(100)).divide(i.getPreco(), 1, RoundingMode.HALF_UP);
@@ -197,6 +201,6 @@ public class CardapioService {
                 f.getQuantidade().multiply(f.getInsumo().custoDeUso()).setScale(2, RoundingMode.HALF_UP))).toList();
         return new ItemGestaoResponse(i.getId(), i.getCategoria().getId(), i.getCategoria().getNome(), i.getNome(),
                 i.getDescricao(), i.getPorcao(), i.getPreco(), i.getPraca(), i.isAtivo(), i.isPausado(),
-                i.getTempoPreparoMin(), i.getOrdem(), custo, margem, margemPct, !ficha.isEmpty(), linhas, i.getCodigoBarras());
+                i.getTempoPreparoMin(), i.getOrdem(), custo, margem, margemPct, !ficha.isEmpty() || extra.signum() > 0, linhas, i.getCodigoBarras(), i.getCustoProducao());
     }
 }

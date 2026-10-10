@@ -49,7 +49,10 @@ public class RestauranteRelatorioService {
             Long itemId = i.getItem().getId();
             BigDecimal c = custoAtual.get(itemId);
             if (c == null || c.signum() <= 0) c = custoPorNome.get(i.getNome().trim().toLowerCase());
-            if (c == null || c.signum() <= 0) {
+            if (c == null) c = BigDecimal.ZERO;
+            BigDecimal extra = i.getItem().getCustoProducao();
+            if (extra != null) c = c.add(extra);
+            if (c.signum() <= 0) {
                 semCusto.put(itemId, i.getNome());
                 return BigDecimal.ZERO;
             }

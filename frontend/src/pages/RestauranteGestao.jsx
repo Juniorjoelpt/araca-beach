@@ -233,10 +233,12 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
 function FichaModal({ item, insumos, onFechar, onSalvo }) {
   // linhas: { insumoId, valor } onde valor esta na unidade menor (g/ml/un)
   const [linhas, setLinhas] = useState(item.ficha.map((l) => ({ insumoId: String(l.insumoId), valor: String(Math.round(Number(l.quantidade) * FATOR[l.unidade] * 10000) / 10000) })))
+  const [extra, setExtra] = useState(item.custoProducao != null ? String(item.custoProducao).replace('.', ',') : '')
   const [erro, setErro] = useState('')
   const porId = useMemo(() => Object.fromEntries(insumos.map((i) => [String(i.id), i])), [insumos])
 
-  const custo = linhas.reduce((s, l) => {
+  const extraNum = Number(String(extra).replace(',', '.')) || 0
+  const custo = extraNum + linhas.reduce((s, l) => {
     const ins = porId[l.insumoId]
     return ins ? s + (Number(String(l.valor).replace(',', '.')) / FATOR[ins.unidade]) * (Number(ins.custoUnitario) / porEmb(ins)) : s
   }, 0)
@@ -249,7 +251,7 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
         insumoId: Number(l.insumoId),
         quantidade: Number(String(l.valor).replace(',', '.')) / FATOR[porId[l.insumoId].unidade],
       }))
-      await restauranteService.definirFicha(item.id, payload)
+      await restauranteService.definirFicha(item.id, payload, extraNum > 0 ? extraNum : null)
       onSalvo()
     } catch (err) { setErro(msg(err, 'Não foi possível salvar a ficha.')) }
   }
@@ -274,6 +276,11 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
         })}
       </div>
       <button onClick={() => setLinhas((x) => [...x, { insumoId: '', valor: '' }])} className="text-sm underline text-araca-azul mt-2">+ adicionar insumo</button>
+      <div className="mt-4 border-t pt-3">
+        <label className="text-sm font-medium text-araca-azul">Custo de produção extra (R$ por unidade)</label>
+        <input value={extra} onChange={(e) => setExtra(e.target.value)} inputMode="decimal" placeholder="ex.: 2,50" className="border rounded-lg px-3 py-2 w-full text-sm mt-1" />
+        <p className="text-[11px] text-gray-500 mt-1">Para comida feita na casa: mão de obra, gás, embalagem etc. Soma ao custo dos insumos acima. Pode usar sozinho, sem insumos, quando você só sabe o custo final do prato.</p>
+      </div>
       {insumos.length === 0 && <p className="text-xs text-amber-700 mt-2">Cadastre os insumos na aba "Insumos (estoque)" primeiro.</p>}
       <div className="mt-4 text-sm flex justify-between border-t pt-3">
         <span>Custo: <strong>{brl(custo)}</strong></span>

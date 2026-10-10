@@ -60,4 +60,8 @@ public class ItemCardapio {
     /** Codigo de barras (EAN/UPC) de produtos industrializados, lido pelo leitor no caixa. Unico por item. */
     @Column(name = "codigo_barras", length = 30, unique = true)
     private String codigoBarras;
+
+    /** Custo adicional de producao por unidade (mao de obra, gas, embalagem...), somado ao custo dos insumos da ficha. */
+    @Column(name = "custo_producao", precision = 10, scale = 2)
+    private java.math.BigDecimal custoProducao;
 }

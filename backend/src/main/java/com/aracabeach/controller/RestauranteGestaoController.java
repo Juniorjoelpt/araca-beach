@@ -67,8 +67,8 @@ public class RestauranteGestaoController {
     }
 
     @PutMapping("/itens/{id}/ficha")
-    public ItemGestaoResponse ficha(@PathVariable Long id, @Valid @RequestBody List<@Valid FichaLinhaRequest> linhas) {
-        return cardapioService.definirFicha(id, linhas);
+    public ItemGestaoResponse ficha(@PathVariable Long id, @Valid @RequestBody FichaRequest request) {
+        return cardapioService.definirFicha(id, request);
     }
 
     // ---------- insumos ----------

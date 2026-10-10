@@ -107,6 +107,7 @@ public class InsumoService {
             custo = insumoRepository.findFirstByNomeIgnoreCase(item.getNome().trim())
                     .map(Insumo::custoDeUso).orElse(BigDecimal.ZERO);
         }
+        if (item.getCustoProducao() != null) custo = custo.add(item.getCustoProducao());
         return custo.signum() > 0 ? java.util.Optional.of(custo) : java.util.Optional.empty();
     }
 

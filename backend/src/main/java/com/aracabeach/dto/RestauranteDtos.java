@@ -35,6 +35,10 @@ public final class RestauranteDtos {
 
     public record FichaLinhaRequest(@NotNull Long insumoId, @NotNull @DecimalMin(value = "0.0001") BigDecimal quantidade) {}
 
+    /** Ficha tecnica: insumos por unidade vendida + custo adicional de producao (opcional). */
+    public record FichaRequest(@NotNull @Valid List<FichaLinhaRequest> linhas,
+                               @DecimalMin("0.0") @Digits(integer = 8, fraction = 2) BigDecimal custoProducao) {}
+
     public record InsumoRequest(
             @NotBlank @Size(max = 120) String nome,
             @NotNull UnidadeInsumo unidade,
@@ -76,7 +80,7 @@ public final class RestauranteDtos {
 
     public record CardapioItemResponse(Long id, String nome, String descricao, String porcao, BigDecimal preco,
                                        Praca praca, boolean pausado, Integer tempoPreparoMin,
-                                       String codigoBarras) {}
+                                       String codigoBarras, BigDecimal custoProducao) {}
 
     public record CardapioCategoriaResponse(Long id, String nome, int ordem, List<CardapioItemResponse> itens) {}
 
