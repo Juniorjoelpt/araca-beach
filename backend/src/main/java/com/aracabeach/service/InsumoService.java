@@ -106,11 +106,19 @@ public class InsumoService {
     }
 
     private void aplicar(ItemCardapio item, int quantidade, Long comandaId, boolean consumo) {
-        for (FichaTecnicaItem linha : fichaRepository.findByItemId(item.getId())) {
-            BigDecimal qtd = linha.getQuantidade().multiply(BigDecimal.valueOf(quantidade)).setScale(3, RoundingMode.HALF_UP);
+        List<FichaTecnicaItem> ficha = fichaRepository.findByItemId(item.getId());
+        List<Object[]> linhas = new java.util.ArrayList<>();
+        for (FichaTecnicaItem l : ficha) linhas.add(new Object[]{l.getInsumo(), l.getQuantidade()});
+        if (linhas.isEmpty() && item.getNome() != null) {
+            // Sem ficha tecnica: se existir insumo com o mesmo nome (ex.: bebida revendida), baixa 1 por unidade vendida.
+            insumoRepository.findFirstByNomeIgnoreCase(item.getNome().trim())
+                    .ifPresent(i -> linhas.add(new Object[]{i, BigDecimal.ONE}));
+        }
+        for (Object[] linha : linhas) {
+            BigDecimal qtd = ((BigDecimal) linha[1]).multiply(BigDecimal.valueOf(quantidade)).setScale(3, RoundingMode.HALF_UP);
             if (qtd.signum() == 0) continue;
             BigDecimal delta = consumo ? qtd.negate() : qtd;
-            Insumo insumo = linha.getInsumo();
+            Insumo insumo = (Insumo) linha[0];
             insumo.setEstoqueAtual(insumo.getEstoqueAtual().add(delta));
             insumoRepository.save(insumo);
             movimentoRepository.save(MovimentoInsumo.builder()

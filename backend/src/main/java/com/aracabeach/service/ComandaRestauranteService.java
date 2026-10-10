@@ -76,7 +76,7 @@ public class ComandaRestauranteService {
                     .cliente(reserva.getCliente())
                     .reservaMesa(reserva)
                     .mesa(mesa)
-                    .taxaServicoPercentual(taxaServicoPadrao)
+                    .taxaServicoPercentual(BigDecimal.ZERO)
                     .build();
         } else if (Boolean.TRUE.equals(r.cortesia())) {
             if (limpar(r.motivo()) == null) {
@@ -94,7 +94,7 @@ public class ComandaRestauranteService {
             comanda = ComandaRestaurante.builder()
                     .nomeAvulso(limpar(r.nome()))
                     .mesa(limpar(r.mesa()))
-                    .taxaServicoPercentual(taxaServicoPadrao)
+                    .taxaServicoPercentual(BigDecimal.ZERO)
                     .build();
         } else {
             if (r.clienteId() == null) {
@@ -105,7 +105,7 @@ public class ComandaRestauranteService {
             comanda = ComandaRestaurante.builder()
                     .cliente(cliente)
                     .mesa(limpar(r.mesa()))
-                    .taxaServicoPercentual(taxaServicoPadrao)
+                    .taxaServicoPercentual(BigDecimal.ZERO)
                     .build();
         }
         return paraResponse(comandaRepository.save(comanda));
