@@ -15,6 +15,7 @@ const limpar = (p) => Object.fromEntries(Object.entries(p).filter(([, v]) => v !
 
 export const caixaService = {
   historico: (params) => api.get('/caixa/historico', { params: limpar(params) }).then((r) => r.data),
+  comandasAbertas: () => api.get('/caixa/comandas-abertas').then((r) => r.data),
   operadores: () => api.get('/caixa/operadores').then((r) => r.data),
   async baixarPdf(params) {
     const resposta = await api.get('/caixa/historico/pdf', { params: limpar(params), responseType: 'blob' })

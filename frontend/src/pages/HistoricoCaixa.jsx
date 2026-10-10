@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import AvisoComandasAbertas from '../components/AvisoComandasAbertas.jsx'
 import { format } from 'date-fns'
 import { History, FileDown, Printer } from 'lucide-react'
 import { caixaService } from '../services/caixaService.js'
@@ -148,6 +149,7 @@ export default function HistoricoCaixa() {
         </div>
       </div>
 
+      <AvisoComandasAbertas />
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
 
       {dados && (

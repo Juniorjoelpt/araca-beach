@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AvisoComandasAbertas from '../components/AvisoComandasAbertas.jsx'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { FileDown, FileSpreadsheet, FileText, Wallet, Users, CalendarRange, Percent, History } from 'lucide-react'
 import { relatorioService } from '../services/relatorioService.js'
@@ -88,6 +89,7 @@ export default function Relatorios() {
       </h2>
 
       {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}
+      <AvisoComandasAbertas />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <CardRelatorio

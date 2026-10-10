@@ -16,4 +16,6 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Horario de Brasilia (Fortaleza, UTC-3): datas/horas do caixa, relatorios e agendadores dependem disso.
+ENV TZ=America/Fortaleza
+ENTRYPOINT ["java", "-Duser.timezone=America/Fortaleza", "-jar", "app.jar"]
