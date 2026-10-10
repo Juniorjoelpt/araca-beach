@@ -80,7 +80,7 @@ public final class RestauranteDtos {
 
     public record CardapioItemResponse(Long id, String nome, String descricao, String porcao, BigDecimal preco,
                                        Praca praca, boolean pausado, Integer tempoPreparoMin,
-                                       String codigoBarras, BigDecimal custoProducao) {}
+                                       String codigoBarras) {}
 
     public record CardapioCategoriaResponse(Long id, String nome, int ordem, List<CardapioItemResponse> itens) {}
 
@@ -93,7 +93,7 @@ public final class RestauranteDtos {
                                      String porcao, BigDecimal preco, Praca praca, boolean ativo, boolean pausado,
                                      Integer tempoPreparoMin, int ordem, BigDecimal custo, BigDecimal margem,
                                      BigDecimal margemPercentual, boolean temFicha, List<FichaLinhaResponse> ficha,
-                                     String codigoBarras) {}
+                                     String codigoBarras, BigDecimal custoProducao) {}
 
     public record InsumoResponse(Long id, String nome, UnidadeInsumo unidade, BigDecimal estoqueAtual,
                                  BigDecimal estoqueMinimo, BigDecimal custoUnitario, boolean ativo, boolean abaixoDoMinimo,
