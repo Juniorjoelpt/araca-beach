@@ -62,10 +62,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/regras/**").hasRole("ADMIN")
                         .requestMatchers("/api/pacotes/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/comissoes/**").hasRole("ADMIN")
+                        .requestMatchers("/api/garcom/**").hasAnyRole("ADMIN", "RECEPCAO", "GARCOM")
                         .requestMatchers("/api/restaurante/gestao/**").hasRole("ADMIN")
                         .requestMatchers("/api/restaurante/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/auditoria/**", "/api/dashboard/gerencial").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+                        // Garcom so acessa /api/garcom/**: qualquer outra rota exige ADMIN ou RECEPCAO.
+                        .anyRequest().hasAnyRole("ADMIN", "RECEPCAO"))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

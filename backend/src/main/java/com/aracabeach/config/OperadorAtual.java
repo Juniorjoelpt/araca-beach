@@ -16,6 +16,13 @@ public final class OperadorAtual {
         return null;
     }
 
+    /** Nome (para exibicao) do usuario da equipe logado, ou null. */
+    public static String nome() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof Usuario u) return u.getNome();
+        return null;
+    }
+
     public static boolean admin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth != null && auth.getPrincipal() instanceof Usuario u && u.getPerfil().name().equals("ADMIN");

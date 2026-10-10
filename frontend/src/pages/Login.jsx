@@ -14,8 +14,8 @@ export default function Login() {
     e.preventDefault()
     setErro('')
     try {
-      await authService.login(login, senha)
-      navigate('/')
+      const dados = await authService.login(login, senha)
+      navigate(dados.perfil === 'GARCOM' ? '/garcom' : '/')
     } catch {
       setErro('Login ou senha inválidos.')
     }

@@ -29,6 +29,10 @@ public class PedidoRestaurante {
     @Column(nullable = false)
     private int numero;
 
+    /** Quem lancou o pedido (garcom ou operador). */
+    @Column(name = "lancado_por", length = 80)
+    private String lancadoPor;
+
     @Column(name = "criado_em", nullable = false)
     @Builder.Default
     private LocalDateTime criadoEm = LocalDateTime.now();

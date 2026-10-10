@@ -64,11 +64,11 @@ export default function Restaurante() {
 
   useEffect(() => { carregar() }, [carregar])
 
-  // Comandas de outros caixas/celulares: atualiza a lista a cada 30s.
+  // Comandas de outros caixas/celulares: atualiza a lista a cada 15s (inclui as abertas pelos garçons).
   useEffect(() => {
     const t = setInterval(() => {
       restauranteService.comandasAbertas().then(setComandas).catch(() => {})
-    }, 30000)
+    }, 15000)
     return () => clearInterval(t)
   }, [])
 
@@ -300,7 +300,7 @@ export default function Restaurante() {
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                  <span>{formatDistanceToNowStrict(new Date(c.abertaEm), { locale: ptBR })}</span>
+                  <span>{formatDistanceToNowStrict(new Date(c.abertaEm), { locale: ptBR })}{c.abertaPor ? ` · ${c.abertaPor}` : ''}</span>
                   <strong className="text-araca-azul">{brl(c.total)}</strong>
                 </div>
               </button>

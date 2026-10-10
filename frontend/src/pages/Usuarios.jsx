@@ -5,6 +5,7 @@ import { UserCog } from 'lucide-react'
 const PERFIS = [
   { value: 'ADMIN', label: 'Administrador' },
   { value: 'RECEPCAO', label: 'Operador' },
+  { value: 'GARCOM', label: 'Garçom (só pedidos pelo celular)' },
 ]
 
 const vazio = { nome: '', login: '', senha: '', perfil: 'RECEPCAO' }

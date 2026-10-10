@@ -104,7 +104,7 @@ public final class RestauranteDtos {
                                      BigDecimal subtotal, String observacao, Praca praca, boolean cancelado,
                                      String motivoCancelamento) {}
 
-    public record PedidoResponse(Long id, int numero, LocalDateTime criadoEm, List<ItemPedidoResponse> itens) {}
+    public record PedidoResponse(Long id, int numero, LocalDateTime criadoEm, List<ItemPedidoResponse> itens, String lancadoPor) {}
 
     public record PagamentoRestResponse(Long id, BigDecimal valor, FormaPagamento forma, LocalDateTime criadoEm) {}
 
@@ -114,7 +114,7 @@ public final class RestauranteDtos {
                                   BigDecimal subtotal, BigDecimal taxaServico, BigDecimal desconto, String descontoMotivo,
                                   BigDecimal total, BigDecimal totalPago, BigDecimal restante,
                                   BigDecimal taxaServicoPadrao, List<PedidoResponse> pedidos, List<PagamentoRestResponse> pagamentos,
-                                  boolean cortesia, String cortesiaMotivo) {}
+                                  boolean cortesia, String cortesiaMotivo, String abertaPor) {}
 
     public record ItemVendidoResponse(Long itemId, String nome, long quantidade, BigDecimal receita,
                                       BigDecimal custoTotal, BigDecimal margem) {}

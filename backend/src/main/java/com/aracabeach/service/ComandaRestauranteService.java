@@ -1,5 +1,6 @@
 package com.aracabeach.service;
 
+import com.aracabeach.config.OperadorAtual;
 import com.aracabeach.domain.cliente.Cliente;
 import com.aracabeach.domain.financeiro.Pagamento;
 import com.aracabeach.domain.financeiro.StatusPagamento;
@@ -108,6 +109,7 @@ public class ComandaRestauranteService {
                     .taxaServicoPercentual(BigDecimal.ZERO)
                     .build();
         }
+        comanda.setAbertaPor(OperadorAtual.nome());
         return paraResponse(comandaRepository.save(comanda));
     }
 
@@ -130,7 +132,7 @@ public class ComandaRestauranteService {
     public ComandaResponse lancarPedido(Long id, PedidoRequest request) {
         ComandaRestaurante c = abertaOuErro(id);
         int numero = c.getPedidos().stream().mapToInt(PedidoRestaurante::getNumero).max().orElse(0) + 1;
-        PedidoRestaurante pedido = PedidoRestaurante.builder().comanda(c).numero(numero).build();
+        PedidoRestaurante pedido = PedidoRestaurante.builder().comanda(c).numero(numero).lancadoPor(OperadorAtual.nome()).build();
 
         for (PedidoItemRequest linha : request.itens()) {
             ItemCardapio item = itemRepository.findById(linha.itemId())
@@ -355,7 +357,8 @@ public class ComandaRestauranteService {
                 p.getId(), p.getNumero(), p.getCriadoEm(),
                 p.getItens().stream().map(i -> new ItemPedidoResponse(i.getId(), i.getItem().getId(), i.getNome(),
                         i.getQuantidade(), i.getPrecoUnitario(), i.getSubtotal(), i.getObservacao(), i.getPraca(),
-                        i.isCancelado(), i.getMotivoCancelamento())).toList())).toList();
+                        i.isCancelado(), i.getMotivoCancelamento())).toList(),
+                p.getLancadoPor())).toList();
 
         List<PagamentoRestResponse> pagamentos = c.getPagamentos().stream()
                 .map(p -> new PagamentoRestResponse(p.getId(), p.getValor(), p.getFormaPagamento(), p.getCriadoEm())).toList();
@@ -367,6 +370,6 @@ public class ComandaRestauranteService {
                 c.isCortesia() ? "CORTESIA" : (c.getCliente() == null ? "AVULSA" : (c.getReservaMesa() != null ? "MESA" : "CLIENTE")), rotulo, c.getAbertaEm(), c.getFechadaEm(),
                 c.getTaxaServicoPercentual(), subtotal, taxa, c.getDescontoValor(), c.getDescontoMotivo(),
                 total, pago, total.subtract(pago), taxaServicoPadrao, pedidos, pagamentos,
-                c.isCortesia(), c.getCortesiaMotivo());
+                c.isCortesia(), c.getCortesiaMotivo(), c.getAbertaPor());
     }
 }

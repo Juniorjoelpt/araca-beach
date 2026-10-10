@@ -70,6 +70,10 @@ public class ComandaRestaurante {
     @Column(length = 120)
     private String operador;
 
+    /** Nome de quem abriu a comanda (garcom ou operador). */
+    @Column(name = "aberta_por", length = 80)
+    private String abertaPor;
+
     @Column(name = "desconto_valor", nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal descontoValor = BigDecimal.ZERO;

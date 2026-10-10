@@ -33,6 +33,7 @@ import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
 import Comissoes from './pages/Comissoes.jsx'
 import Gerencial from './pages/Gerencial.jsx'
+import Garcom from './pages/Garcom.jsx'
 import Restaurante from './pages/Restaurante.jsx'
 import RestauranteReservas from './pages/RestauranteReservas.jsx'
 import RestauranteGestao from './pages/RestauranteGestao.jsx'
@@ -43,6 +44,7 @@ export default function App() {
     <Routes>
       {/* Painel interno da equipe */}
       <Route path="/login" element={<Login />} />
+      <Route path="/garcom" element={<ProtectedRoute><Garcom /></ProtectedRoute>} />
       <Route
         element={
           <ProtectedRoute>

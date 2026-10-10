@@ -8,7 +8,7 @@ import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
 import logoMarcaDagua from '../assets/logos/logo-transparente.png'
 
-const PERFIL_LABEL = { ADMIN: 'Administrador', RECEPCAO: 'Operador' }
+const PERFIL_LABEL = { ADMIN: 'Administrador', RECEPCAO: 'Operador', GARCOM: 'Garçom' }
 
 const menuBase = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
