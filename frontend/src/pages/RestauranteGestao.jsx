@@ -211,14 +211,7 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
           <select value={f.praca} onChange={(e) => set('praca', e.target.value)} className="border rounded-lg px-3 py-2"><option value="COZINHA">Cozinha</option><option value="BAR">Bar</option></select>
           <input value={f.tempoPreparoMin} onChange={(e) => set('tempoPreparoMin', e.target.value)} placeholder="Preparo (min)" inputMode="numeric" className="border rounded-lg px-3 py-2" />
           <input value={f.ordem} onChange={(e) => set('ordem', e.target.value)} placeholder="Ordem" inputMode="numeric" className="border rounded-lg px-3 py-2" />
-          {(f.unidade === 'FARDO' || f.unidade === 'PACOTE') && (
-          <div>
-            <label className="text-xs text-gray-600">Unidades por {BASE[f.unidade]} (ex.: 12 latas)</label>
-            <input value={f.unidadesPorEmbalagem} onChange={(e) => set('unidadesPorEmbalagem', e.target.value)} inputMode="decimal" placeholder="opcional" className="border rounded-lg px-3 py-2 w-full" />
-            <p className="text-[11px] text-gray-500 mt-1">Com isso, a ficha técnica usa unidades (1 lata) e a venda baixa 1/{f.unidadesPorEmbalagem || 'N'} do {BASE[f.unidade]} e custa o custo do {BASE[f.unidade]} dividido por {f.unidadesPorEmbalagem || 'N'}. Revise as fichas que já usam este insumo.</p>
-          </div>
-        )}
-        <label className="flex items-center gap-2"><input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} /> Ativo no cardápio</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} /> Ativo no cardápio</label>
         </div>
         {erro && <p className="text-red-600">{erro}</p>}
         <div className="flex justify-end gap-2 pt-2">
@@ -363,6 +356,13 @@ function InsumoModal({ insumo, onFechar, onSalvo }) {
           <div><label className="text-xs text-gray-600">Estoque mínimo ({BASE[f.unidade]})</label><input value={f.estoqueMinimo} onChange={(e) => set('estoqueMinimo', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
           <div><label className="text-xs text-gray-600">Custo (R$ por {BASE[f.unidade]})</label><input value={f.custoUnitario} onChange={(e) => set('custoUnitario', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
         </div>
+        {(f.unidade === 'FARDO' || f.unidade === 'PACOTE') && (
+          <div>
+            <label className="text-xs text-gray-600">Unidades por {BASE[f.unidade]} (ex.: 12 latas)</label>
+            <input value={f.unidadesPorEmbalagem} onChange={(e) => set('unidadesPorEmbalagem', e.target.value)} inputMode="decimal" placeholder="opcional" className="border rounded-lg px-3 py-2 w-full" />
+            <p className="text-[11px] text-gray-500 mt-1">Com isso, a ficha técnica usa unidades (1 lata) e a venda baixa 1/{f.unidadesPorEmbalagem || 'N'} do {BASE[f.unidade]} e custa o custo do {BASE[f.unidade]} dividido por {f.unidadesPorEmbalagem || 'N'}. Revise as fichas que já usam este insumo.</p>
+          </div>
+        )}
         <label className="flex items-center gap-2"><input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} /> Ativo</label>
         {erro && <p className="text-red-600">{erro}</p>}
         <div className="flex justify-end gap-2"><button onClick={onFechar} className="px-4 py-2">Cancelar</button><button onClick={salvar} disabled={!f.nome} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg disabled:opacity-40">Salvar</button></div>
