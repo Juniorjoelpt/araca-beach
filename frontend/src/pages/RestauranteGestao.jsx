@@ -30,6 +30,8 @@ const DIAS = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 // Insumos em KG/L sao digitados em g/ml na ficha tecnica e nas movimentacoes.
 const FATOR = { UN: 1, KG: 1000, L: 1000, FARDO: 1, PACOTE: 1 }
 const MENOR = { UN: 'un', KG: 'g', L: 'ml', FARDO: 'fardo', PACOTE: 'pacote' }
+// FARDO/PACOTE com 'unidades por embalagem' informadas: ficha e venda falam em unidades (ex.: 1 lata).
+const porEmb = (ins) => (ins && (ins.unidade === 'FARDO' || ins.unidade === 'PACOTE') && Number(ins.unidadesPorEmbalagem) > 1 ? Number(ins.unidadesPorEmbalagem) : 1)
 const BASE = { UN: 'un', KG: 'kg', L: 'L', FARDO: 'fardo', PACOTE: 'pacote' }
 
 export default function RestauranteGestao() {
@@ -209,7 +211,14 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
           <select value={f.praca} onChange={(e) => set('praca', e.target.value)} className="border rounded-lg px-3 py-2"><option value="COZINHA">Cozinha</option><option value="BAR">Bar</option></select>
           <input value={f.tempoPreparoMin} onChange={(e) => set('tempoPreparoMin', e.target.value)} placeholder="Preparo (min)" inputMode="numeric" className="border rounded-lg px-3 py-2" />
           <input value={f.ordem} onChange={(e) => set('ordem', e.target.value)} placeholder="Ordem" inputMode="numeric" className="border rounded-lg px-3 py-2" />
-          <label className="flex items-center gap-2"><input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} /> Ativo no cardápio</label>
+          {(f.unidade === 'FARDO' || f.unidade === 'PACOTE') && (
+          <div>
+            <label className="text-xs text-gray-600">Unidades por {BASE[f.unidade]} (ex.: 12 latas)</label>
+            <input value={f.unidadesPorEmbalagem} onChange={(e) => set('unidadesPorEmbalagem', e.target.value)} inputMode="decimal" placeholder="opcional" className="border rounded-lg px-3 py-2 w-full" />
+            <p className="text-[11px] text-gray-500 mt-1">Com isso, a ficha técnica usa unidades (1 lata) e a venda baixa 1/{f.unidadesPorEmbalagem || 'N'} do {BASE[f.unidade]} e custa o custo do {BASE[f.unidade]} dividido por {f.unidadesPorEmbalagem || 'N'}. Revise as fichas que já usam este insumo.</p>
+          </div>
+        )}
+        <label className="flex items-center gap-2"><input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} /> Ativo no cardápio</label>
         </div>
         {erro && <p className="text-red-600">{erro}</p>}
         <div className="flex justify-end gap-2 pt-2">
@@ -229,7 +238,7 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
 
   const custo = linhas.reduce((s, l) => {
     const ins = porId[l.insumoId]
-    return ins ? s + (Number(String(l.valor).replace(',', '.')) / FATOR[ins.unidade]) * Number(ins.custoUnitario) : s
+    return ins ? s + (Number(String(l.valor).replace(',', '.')) / FATOR[ins.unidade]) * (Number(ins.custoUnitario) / porEmb(ins)) : s
   }, 0)
   const preco = Number(item.preco)
 
@@ -255,10 +264,10 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
             <div key={idx} className="flex gap-2 items-center">
               <select value={l.insumoId} onChange={(e) => setLinhas((x) => x.map((y, i) => (i === idx ? { ...y, insumoId: e.target.value } : y)))} className="border rounded-lg px-2 py-1.5 flex-1 text-sm">
                 <option value="">Escolha o insumo</option>
-                {insumos.filter((i) => i.ativo).map((i) => <option key={i.id} value={i.id}>{i.nome} ({BASE[i.unidade]})</option>)}
+                {insumos.filter((i) => i.ativo).map((i) => <option key={i.id} value={i.id}>{i.nome} ({porEmb(i) > 1 ? `un de ${BASE[i.unidade]} c/ ${porEmb(i)}` : BASE[i.unidade]})</option>)}
               </select>
               <input value={l.valor} onChange={(e) => setLinhas((x) => x.map((y, i) => (i === idx ? { ...y, valor: e.target.value } : y)))} inputMode="decimal" className="border rounded-lg px-2 py-1.5 w-24 text-sm" placeholder="qtd" />
-              <span className="text-xs text-gray-500 w-8">{ins ? MENOR[ins.unidade] : ''}</span>
+              <span className="text-xs text-gray-500 w-12">{ins ? (porEmb(ins) > 1 ? 'un' : MENOR[ins.unidade]) : ''}</span>
               <button onClick={() => setLinhas((x) => x.filter((_, i) => i !== idx))} className="text-red-500"><X size={16} /></button>
             </div>
           )
@@ -309,7 +318,7 @@ function AbaInsumos() {
                 <td className="px-3 py-2">{i.nome}{i.abaixoDoMinimo && <span className="ml-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">estoque baixo</span>}</td>
                 <td className={`px-3 py-2 text-right ${Number(i.estoqueAtual) < 0 ? 'text-red-600 font-semibold' : ''}`}>{num(i.estoqueAtual)} {BASE[i.unidade]}</td>
                 <td className="px-3 py-2 text-right">{num(i.estoqueMinimo)} {BASE[i.unidade]}</td>
-                <td className="px-3 py-2 text-right">{brl(i.custoUnitario)}/{BASE[i.unidade]}</td>
+                <td className="px-3 py-2 text-right">{brl(i.custoUnitario)}/{BASE[i.unidade]}{porEmb(i) > 1 ? ` (${porEmb(i)} un)` : ''}</td>
                 <td className="px-3 py-2 text-right space-x-3 whitespace-nowrap">
                   <button onClick={() => setMovendo(i)} className="underline text-araca-azul">Movimentar</button>
                   <button onClick={() => setEditando(i)} className="underline text-gray-600">Editar</button>
@@ -328,12 +337,12 @@ function AbaInsumos() {
 
 function InsumoModal({ insumo, onFechar, onSalvo }) {
   const novo = !insumo.id
-  const [f, setF] = useState({ nome: insumo.nome || '', unidade: insumo.unidade || 'KG', estoqueMinimo: insumo.estoqueMinimo ?? 0, custoUnitario: insumo.custoUnitario ?? 0, ativo: insumo.ativo ?? true })
+  const [f, setF] = useState({ nome: insumo.nome || '', unidade: insumo.unidade || 'KG', estoqueMinimo: insumo.estoqueMinimo ?? 0, custoUnitario: insumo.custoUnitario ?? 0, unidadesPorEmbalagem: insumo.unidadesPorEmbalagem ?? '', ativo: insumo.ativo ?? true })
   const [erro, setErro] = useState('')
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
   async function salvar() {
     setErro('')
-    const dados = { ...f, estoqueMinimo: Number(String(f.estoqueMinimo).replace(',', '.')) || 0, custoUnitario: Number(String(f.custoUnitario).replace(',', '.')) || 0 }
+    const dados = { ...f, estoqueMinimo: Number(String(f.estoqueMinimo).replace(',', '.')) || 0, custoUnitario: Number(String(f.custoUnitario).replace(',', '.')) || 0, unidadesPorEmbalagem: (f.unidade === 'FARDO' || f.unidade === 'PACOTE') && f.unidadesPorEmbalagem !== '' ? Number(String(f.unidadesPorEmbalagem).replace(',', '.')) || null : null }
     try { novo ? await restauranteService.criarInsumo(dados) : await restauranteService.atualizarInsumo(insumo.id, dados); onSalvo() } catch (err) { setErro(msg(err, 'Não foi possível salvar o insumo.')) }
   }
   return (

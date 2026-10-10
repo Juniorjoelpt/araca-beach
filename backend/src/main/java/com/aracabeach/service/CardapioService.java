@@ -137,7 +137,7 @@ public class CardapioService {
     /** Custo de producao de 1 unidade do item, a partir da ficha tecnica (zero se nao ha ficha). */
     public static BigDecimal custoDaFicha(List<FichaTecnicaItem> ficha) {
         return ficha.stream()
-                .map(f -> f.getQuantidade().multiply(f.getInsumo().getCustoUnitario()))
+                .map(f -> f.getQuantidade().multiply(f.getInsumo().custoDeUso()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
     }
@@ -194,7 +194,7 @@ public class CardapioService {
                 : margem.multiply(BigDecimal.valueOf(100)).divide(i.getPreco(), 1, RoundingMode.HALF_UP);
         List<FichaLinhaResponse> linhas = ficha.stream().map(f -> new FichaLinhaResponse(
                 f.getInsumo().getId(), f.getInsumo().getNome(), f.getInsumo().getUnidade(), f.getQuantidade(),
-                f.getQuantidade().multiply(f.getInsumo().getCustoUnitario()).setScale(2, RoundingMode.HALF_UP))).toList();
+                f.getQuantidade().multiply(f.getInsumo().custoDeUso()).setScale(2, RoundingMode.HALF_UP))).toList();
         return new ItemGestaoResponse(i.getId(), i.getCategoria().getId(), i.getCategoria().getNome(), i.getNome(),
                 i.getDescricao(), i.getPorcao(), i.getPreco(), i.getPraca(), i.isAtivo(), i.isPausado(),
                 i.getTempoPreparoMin(), i.getOrdem(), custo, margem, margemPct, !ficha.isEmpty(), linhas, i.getCodigoBarras());

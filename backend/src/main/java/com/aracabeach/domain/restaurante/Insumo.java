@@ -30,11 +30,11 @@ public class Insumo {
     @Column(nullable = false, length = 10)
     private UnidadeInsumo unidade;
 
-    @Column(name = "estoque_atual", nullable = false, precision = 14, scale = 3)
+    @Column(name = "estoque_atual", nullable = false, precision = 14, scale = 6)
     @Builder.Default
     private BigDecimal estoqueAtual = BigDecimal.ZERO;
 
-    @Column(name = "estoque_minimo", nullable = false, precision = 14, scale = 3)
+    @Column(name = "estoque_minimo", nullable = false, precision = 14, scale = 6)
     @Builder.Default
     private BigDecimal estoqueMinimo = BigDecimal.ZERO;
 
@@ -43,7 +43,26 @@ public class Insumo {
     @Builder.Default
     private BigDecimal custoUnitario = BigDecimal.ZERO;
 
+    /**
+     * So para FARDO/PACOTE: quantas unidades (latas, garrafas...) vem em 1 embalagem. Com isso, a ficha tecnica e a
+     * venda falam em unidades (1 lata) e o sistema converte: baixa 1/N da embalagem e custa custo/N. Nulo ou 1 = sem conversao.
+     */
+    @Column(name = "unidades_por_embalagem", precision = 10, scale = 3)
+    private BigDecimal unidadesPorEmbalagem;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean ativo = true;
+
+    /** Divisor aplicado a uma quantidade de uso (ficha/venda) para chegar na unidade de estoque. */
+    public BigDecimal fatorUso() {
+        boolean embalagem = unidade == UnidadeInsumo.FARDO || unidade == UnidadeInsumo.PACOTE;
+        return embalagem && unidadesPorEmbalagem != null && unidadesPorEmbalagem.compareTo(BigDecimal.ONE) > 0
+                ? unidadesPorEmbalagem : BigDecimal.ONE;
+    }
+
+    /** Custo de 1 unidade de uso (ex.: 1 lata), a partir do custo da embalagem. */
+    public BigDecimal custoDeUso() {
+        return custoUnitario.divide(fatorUso(), 6, java.math.RoundingMode.HALF_UP);
+    }
 }

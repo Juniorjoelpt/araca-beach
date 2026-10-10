@@ -40,6 +40,7 @@ public final class RestauranteDtos {
             @NotNull UnidadeInsumo unidade,
             @DecimalMin("0.0") BigDecimal estoqueMinimo,
             @DecimalMin("0.0") BigDecimal custoUnitario,
+            @DecimalMin("0.0") BigDecimal unidadesPorEmbalagem,
             Boolean ativo) {}
 
     public record MovimentoInsumoRequest(
@@ -91,7 +92,8 @@ public final class RestauranteDtos {
                                      String codigoBarras) {}
 
     public record InsumoResponse(Long id, String nome, UnidadeInsumo unidade, BigDecimal estoqueAtual,
-                                 BigDecimal estoqueMinimo, BigDecimal custoUnitario, boolean ativo, boolean abaixoDoMinimo) {}
+                                 BigDecimal estoqueMinimo, BigDecimal custoUnitario, boolean ativo, boolean abaixoDoMinimo,
+                                 BigDecimal unidadesPorEmbalagem) {}
 
     public record MovimentoInsumoResponse(Long id, TipoMovimentoInsumo tipo, BigDecimal quantidade, String observacao,
                                           Long comandaId, LocalDateTime criadoEm) {}

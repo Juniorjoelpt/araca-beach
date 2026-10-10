@@ -28,7 +28,7 @@ public class MovimentoInsumo {
     private TipoMovimentoInsumo tipo;
 
     /** Variacao assinada do estoque (negativa para consumo/perda). */
-    @Column(nullable = false, precision = 14, scale = 3)
+    @Column(nullable = false, precision = 14, scale = 6)
     private BigDecimal quantidade;
 
     @Column(length = 200)

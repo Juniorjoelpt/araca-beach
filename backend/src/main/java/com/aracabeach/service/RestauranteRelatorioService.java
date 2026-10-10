@@ -42,7 +42,7 @@ public class RestauranteRelatorioService {
                 .collect(Collectors.groupingBy(f -> f.getItem().getId()))
                 .forEach((id, ficha) -> custoAtual.put(id, CardapioService.custoDaFicha(ficha)));
         Map<String, BigDecimal> custoPorNome = new HashMap<>();
-        insumoRepository.findAll().forEach(i -> custoPorNome.put(i.getNome().trim().toLowerCase(), i.getCustoUnitario()));
+        insumoRepository.findAll().forEach(i -> custoPorNome.put(i.getNome().trim().toLowerCase(), i.custoDeUso()));
         Map<Long, String> semCusto = new LinkedHashMap<>();
         java.util.function.Function<ItemPedidoRestaurante, BigDecimal> custoDe = i -> {
             if (i.getCustoUnitario() != null) return i.getCustoUnitario();

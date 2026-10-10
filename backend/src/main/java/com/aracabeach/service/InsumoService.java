@@ -36,6 +36,7 @@ public class InsumoService {
                 .unidade(r.unidade())
                 .estoqueMinimo(valor(r.estoqueMinimo()))
                 .custoUnitario(valor(r.custoUnitario()))
+                .unidadesPorEmbalagem(r.unidadesPorEmbalagem())
                 .ativo(r.ativo() == null || r.ativo())
                 .build();
         return paraResponse(insumoRepository.save(i));
@@ -51,6 +52,7 @@ public class InsumoService {
         i.setUnidade(r.unidade());
         i.setEstoqueMinimo(valor(r.estoqueMinimo()));
         i.setCustoUnitario(valor(r.custoUnitario()));
+        i.setUnidadesPorEmbalagem(r.unidadesPorEmbalagem());
         if (r.ativo() != null) i.setAtivo(r.ativo());
         return paraResponse(insumoRepository.save(i));
     }
@@ -103,7 +105,7 @@ public class InsumoService {
         BigDecimal custo = CardapioService.custoDaFicha(ficha);
         if (ficha.isEmpty() && item.getNome() != null) {
             custo = insumoRepository.findFirstByNomeIgnoreCase(item.getNome().trim())
-                    .map(Insumo::getCustoUnitario).orElse(BigDecimal.ZERO);
+                    .map(Insumo::custoDeUso).orElse(BigDecimal.ZERO);
         }
         return custo.signum() > 0 ? java.util.Optional.of(custo) : java.util.Optional.empty();
     }
@@ -122,7 +124,7 @@ public class InsumoService {
 
     private void aplicar(ItemCardapio item, int quantidade, Long comandaId, boolean consumo) {
         List<FichaTecnicaItem> ficha = fichaRepository.findByItemId(item.getId());
-        List<Object[]> linhas = new java.util.ArrayList<>();
+        List<Object[]> linhas = new java.util.ArrayList<>(); // {insumo, quantidade de uso por unidade vendida}
         for (FichaTecnicaItem l : ficha) linhas.add(new Object[]{l.getInsumo(), l.getQuantidade()});
         if (linhas.isEmpty() && item.getNome() != null) {
             // Sem ficha tecnica: se existir insumo com o mesmo nome (ex.: bebida revendida), baixa 1 por unidade vendida.
@@ -130,10 +132,12 @@ public class InsumoService {
                     .ifPresent(i -> linhas.add(new Object[]{i, BigDecimal.ONE}));
         }
         for (Object[] linha : linhas) {
-            BigDecimal qtd = ((BigDecimal) linha[1]).multiply(BigDecimal.valueOf(quantidade)).setScale(3, RoundingMode.HALF_UP);
+            Insumo insumo = (Insumo) linha[0];
+            // quantidade de uso -> unidade de estoque (ex.: 3 latas = 0,125 de um fardo de 24)
+            BigDecimal qtd = ((BigDecimal) linha[1]).multiply(BigDecimal.valueOf(quantidade))
+                    .divide(insumo.fatorUso(), 6, RoundingMode.HALF_UP);
             if (qtd.signum() == 0) continue;
             BigDecimal delta = consumo ? qtd.negate() : qtd;
-            Insumo insumo = (Insumo) linha[0];
             insumo.setEstoqueAtual(insumo.getEstoqueAtual().add(delta));
             insumoRepository.save(insumo);
             movimentoRepository.save(MovimentoInsumo.builder()
@@ -158,6 +162,6 @@ public class InsumoService {
     private InsumoResponse paraResponse(Insumo i) {
         boolean abaixo = i.getEstoqueMinimo().signum() > 0 && i.getEstoqueAtual().compareTo(i.getEstoqueMinimo()) <= 0;
         return new InsumoResponse(i.getId(), i.getNome(), i.getUnidade(), i.getEstoqueAtual(), i.getEstoqueMinimo(),
-                i.getCustoUnitario(), i.isAtivo(), abaixo);
+                i.getCustoUnitario(), i.isAtivo(), abaixo, i.getUnidadesPorEmbalagem());
     }
 }
