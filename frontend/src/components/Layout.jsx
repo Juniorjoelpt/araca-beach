@@ -13,6 +13,7 @@ const PERFIL_LABEL = { ADMIN: 'Administrador', RECEPCAO: 'Operador', GARCOM: 'Ga
 const menuBase = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/agenda', label: 'Agenda / Reservas', icon: CalendarDays },
+  { to: '/dayuse', label: 'Day Use', icon: Ticket },
   { to: '/quadras', label: 'Quadras', icon: MapPin },
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet },
@@ -27,7 +28,6 @@ const menuBase = [
   { to: '/restaurante', label: 'Restaurante', icon: UtensilsCrossed },
   { to: '/restaurante/reservas', label: 'Reservas de mesa', icon: CalendarClock },
   { to: '/restaurante/gestao', label: 'Gestão do restaurante', icon: ChefHat, soAdmin: true },
-  { to: '/dayuse', label: 'Day Use', icon: Ticket },
   { to: '/loja', label: 'Loja', icon: ShoppingBag },
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
   { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },
