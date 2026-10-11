@@ -307,11 +307,13 @@ function Configurar({ onFechar }) {
 
   async function salvarTipo(t) {
     setErro(''); setOk('')
+    if (!(num(t.precoSemana) > 0)) { setErro('Informe o preço (Seg–Sex). Se for o mesmo todos os dias, deixe Sáb/Dom vazio.'); return }
     try { await dayUseService.atualizarTipo(t.id, payload(t)); setOk('Ingresso salvo.'); await carregar() } catch (err) { setErro(msg(err, 'Não foi possível salvar.')) }
   }
   async function criar() {
     setErro(''); setOk('')
     if (!novo.nome.trim()) { setErro('Informe o nome do ingresso.'); return }
+    if (!(num(novo.precoSemana) > 0)) { setErro('Informe o preço (Seg–Sex). Se for o mesmo todos os dias, deixe Sáb/Dom vazio.'); return }
     try { await dayUseService.criarTipo(payload(novo)); setNovo({ nome: '', precoSemana: '', precoFimSemana: '', pessoasPorUnidade: '1', custo: '' }); setOk('Ingresso criado.'); await carregar() } catch (err) { setErro(msg(err, 'Não foi possível criar.')) }
   }
   async function salvarCapacidade() {
@@ -338,8 +340,8 @@ function Configurar({ onFechar }) {
             {tipos.map((t) => (
               <div key={t.id} className="border rounded-lg p-2 grid grid-cols-[1fr_90px_90px] gap-2 items-center">
                 <input value={t.nome} onChange={(e) => edit(t.id, 'nome', e.target.value)} className="border rounded px-2 py-1" />
-                <input value={t.precoSemana ?? ''} onChange={(e) => edit(t.id, 'precoSemana', e.target.value)} inputMode="decimal" placeholder="Semana" className="border rounded px-2 py-1" />
-                <input value={t.precoFimSemana ?? ''} onChange={(e) => edit(t.id, 'precoFimSemana', e.target.value)} inputMode="decimal" placeholder="Fim sem." className="border rounded px-2 py-1" />
+                <label className="text-[10px] text-gray-500">Seg–Sex (R$)<input value={t.precoSemana ?? ''} onChange={(e) => edit(t.id, 'precoSemana', e.target.value)} inputMode="decimal" placeholder="0,00" className="border rounded px-2 py-1 w-full text-sm text-gray-800" /></label>
+                <label className="text-[10px] text-gray-500">Sáb/Dom (R$)<input value={t.precoFimSemana ?? ''} onChange={(e) => edit(t.id, 'precoFimSemana', e.target.value)} inputMode="decimal" placeholder="igual" className="border rounded px-2 py-1 w-full text-sm text-gray-800" /></label>
                 <label className="text-[11px] text-gray-500 flex items-center gap-1">Pessoas por ingresso <input value={t.pessoasPorUnidade ?? 1} onChange={(e) => edit(t.id, 'pessoasPorUnidade', e.target.value)} inputMode="numeric" className="border rounded px-2 py-1 w-14 text-sm text-gray-800" /></label>
                 <input value={t.custo ?? ''} onChange={(e) => edit(t.id, 'custo', e.target.value)} inputMode="decimal" placeholder="Custo" title="Custo por ingresso (opcional, para o lucro)" className="border rounded px-2 py-1 col-span-2" />
                 <label className="flex items-center gap-1 text-xs col-span-2"><input type="checkbox" checked={t.ativo} onChange={(e) => edit(t.id, 'ativo', e.target.checked)} /> Ativo (à venda)</label>
@@ -348,8 +350,8 @@ function Configurar({ onFechar }) {
             ))}
             <div className="border border-dashed rounded-lg p-2 grid grid-cols-[1fr_90px_90px] gap-2 items-center">
               <input value={novo.nome} onChange={(e) => setNovo({ ...novo, nome: e.target.value })} placeholder="Novo ingresso (ex.: Adulto, Pacote 10 pessoas)" className="border rounded px-2 py-1" />
-              <input value={novo.precoSemana} onChange={(e) => setNovo({ ...novo, precoSemana: e.target.value })} inputMode="decimal" placeholder="Semana" className="border rounded px-2 py-1" />
-              <input value={novo.precoFimSemana} onChange={(e) => setNovo({ ...novo, precoFimSemana: e.target.value })} inputMode="decimal" placeholder="Fim sem." className="border rounded px-2 py-1" />
+              <label className="text-[10px] text-gray-500">Seg–Sex (R$)<input value={novo.precoSemana} onChange={(e) => setNovo({ ...novo, precoSemana: e.target.value })} inputMode="decimal" placeholder="0,00" className="border rounded px-2 py-1 w-full text-sm text-gray-800" /></label>
+              <label className="text-[10px] text-gray-500">Sáb/Dom (R$)<input value={novo.precoFimSemana} onChange={(e) => setNovo({ ...novo, precoFimSemana: e.target.value })} inputMode="decimal" placeholder="igual" className="border rounded px-2 py-1 w-full text-sm text-gray-800" /></label>
               <label className="text-[11px] text-gray-500 flex items-center gap-1">Pessoas por ingresso <input value={novo.pessoasPorUnidade} onChange={(e) => setNovo({ ...novo, pessoasPorUnidade: e.target.value })} inputMode="numeric" className="border rounded px-2 py-1 w-14 text-sm text-gray-800" /></label>
               <input value={novo.custo} onChange={(e) => setNovo({ ...novo, custo: e.target.value })} inputMode="decimal" placeholder="Custo (opcional)" className="border rounded px-2 py-1 col-span-2" />
               <button onClick={criar} className="bg-araca-verde text-araca-azul font-semibold px-2 py-1 rounded text-xs col-span-3">Adicionar ingresso</button>

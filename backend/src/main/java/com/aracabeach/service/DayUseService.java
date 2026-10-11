@@ -45,7 +45,7 @@ public class DayUseService {
     }
 
     static BigDecimal precoNaData(DayUseTipo t, LocalDate data) {
-        return fimDeSemana(data) && t.getPrecoFimSemana() != null ? t.getPrecoFimSemana() : t.getPrecoSemana();
+        return fimDeSemana(data) && t.getPrecoFimSemana() != null && t.getPrecoFimSemana().signum() > 0 ? t.getPrecoFimSemana() : t.getPrecoSemana();
     }
 
     private TipoResponse paraResponse(DayUseTipo t, LocalDate data) {
