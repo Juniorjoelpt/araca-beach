@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp, Ticket,
 } from 'lucide-react'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
@@ -27,6 +27,7 @@ const menuBase = [
   { to: '/restaurante', label: 'Restaurante', icon: UtensilsCrossed },
   { to: '/restaurante/reservas', label: 'Reservas de mesa', icon: CalendarClock },
   { to: '/restaurante/gestao', label: 'Gestão do restaurante', icon: ChefHat, soAdmin: true },
+  { to: '/dayuse', label: 'Day Use', icon: Ticket },
   { to: '/loja', label: 'Loja', icon: ShoppingBag },
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
   { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },

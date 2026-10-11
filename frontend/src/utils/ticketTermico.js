@@ -140,10 +140,32 @@ export function imprimirComprovanteLoja(comanda) {
     </div>`)
 }
 
+/** Comprovante de venda de Day Use (80mm). `venda` e a resposta de /dayuse/vendas. */
+export function imprimirDayUse(venda) {
+  const forma = { PIX: 'Pix', CARTAO_CREDITO: 'Cartão crédito', CARTAO_DEBITO: 'Cartão débito', DINHEIRO: 'Dinheiro' }[venda.forma] || venda.forma
+  imprimirHtml(`
+    <div class="ticket">
+      <h1>ARAÇA BEACH</h1>
+      <h2>DAY USE</h2>
+      <div class="c forte">${esc(venda.data.split('-').reverse().join('/'))}</div>
+      ${venda.nomeCliente ? `<div class="c">${esc(venda.nomeCliente)}</div>` : ''}
+      <div class="c peq">Venda #${venda.id} · ${new Date(venda.criadoEm).toLocaleString('pt-BR')}</div>
+      <div class="linha"></div>
+      ${venda.itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.tipoNome)}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
+      <div class="linha"></div>
+      <div class="tot forte"><span>TOTAL (${venda.pessoas} pessoa${venda.pessoas > 1 ? 's' : ''})</span><span>${brl(venda.valorTotal)}</span></div>
+      <div class="c peq">Pago em ${esc(forma)}</div>
+      <div class="linha"></div>
+      <div class="c peq">Válido somente na data indicada.</div>
+      <div class="c peq">Apresente este comprovante na entrada.</div>
+      <div class="c peq">Documento sem valor fiscal</div>
+    </div>`)
+}
+
 const FORMA_ROTULO = { PIX: 'Pix', CARTAO_CREDITO: 'Cartão créd.', CARTAO_DEBITO: 'Cartão déb.', DINHEIRO: 'Dinheiro' }
 const ORIGEM_ROTULO = {
   RESERVA: 'Quadras', RESTAURANTE: 'Restaurante', LOJA: 'Loja', MENSALIDADE: 'Mensalidade',
-  MATRICULA: 'Aulas', PACOTE: 'Pacote de aulas', OUTROS: 'Outros',
+  MATRICULA: 'Aulas', PACOTE: 'Pacote de aulas', DAYUSE: 'Day Use', OUTROS: 'Outros',
 }
 const dataBr = (iso) => iso.split('-').reverse().join('/')
 

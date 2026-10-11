@@ -11,7 +11,7 @@ const iso = (d) => format(d, 'yyyy-MM-dd')
 const FORMA = { PIX: 'Pix', CARTAO_CREDITO: 'Cartão de crédito', CARTAO_DEBITO: 'Cartão de débito', DINHEIRO: 'Dinheiro' }
 const ORIGEM = {
   RESERVA: 'Quadras', RESTAURANTE: 'Restaurante', LOJA: 'Loja', MENSALIDADE: 'Mensalidade',
-  MATRICULA: 'Aulas', PACOTE: 'Pacote de aulas', OUTROS: 'Outros',
+  MATRICULA: 'Aulas', PACOTE: 'Pacote de aulas', DAYUSE: 'Day Use', OUTROS: 'Outros',
 }
 
 function msgErro(err, padrao) {

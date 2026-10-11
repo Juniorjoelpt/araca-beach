@@ -1,0 +1,56 @@
+package com.aracabeach.dto;
+
+import com.aracabeach.domain.dayuse.StatusDayUse;
+import com.aracabeach.domain.financeiro.FormaPagamento;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public final class DayUseDtos {
+
+    private DayUseDtos() {}
+
+    // ---------- requests ----------
+
+    public record TipoRequest(@NotBlank @Size(max = 80) String nome,
+                              @NotNull @DecimalMin("0.00") @Digits(integer = 8, fraction = 2) BigDecimal precoSemana,
+                              @DecimalMin("0.00") @Digits(integer = 8, fraction = 2) BigDecimal precoFimSemana,
+                              Boolean ativo) {}
+
+    public record ConfigRequest(@Min(0) @Max(100000) Integer capacidadeDiaria) {}
+
+    public record ItemVendaRequest(@NotNull Long tipoId, @Min(1) @Max(200) int quantidade) {}
+
+    public record VendaRequest(@NotNull LocalDate data,
+                               @Size(max = 80) String nomeCliente,
+                               @Size(max = 30) String telefone,
+                               @Size(max = 200) String observacao,
+                               @NotNull FormaPagamento forma,
+                               @NotEmpty @Valid List<ItemVendaRequest> itens) {}
+
+    public record EntradaRequest(@Min(1) @Max(200) int quantidade) {}
+
+    // ---------- responses ----------
+
+    /** `preco` ja e o valor valido para a data consultada (semana ou fim de semana). */
+    public record TipoResponse(Long id, String nome, BigDecimal precoSemana, BigDecimal precoFimSemana,
+                               BigDecimal preco, boolean ativo) {}
+
+    public record ConfigResponse(Integer capacidadeDiaria) {}
+
+    public record ItemVendaResponse(Long tipoId, String tipoNome, BigDecimal precoUnitario, int quantidade, BigDecimal subtotal) {}
+
+    public record VendaResponse(Long id, LocalDate data, String nomeCliente, String telefone, String observacao,
+                                FormaPagamento forma, BigDecimal valorTotal, int pessoas, int entraram,
+                                StatusDayUse status, String operador, LocalDateTime criadoEm,
+                                LocalDateTime canceladaEm, String motivoCancelamento, List<ItemVendaResponse> itens) {}
+
+    public record ResumoDia(LocalDate data, int pessoasVendidas, int pessoasEntraram, Integer capacidade, Integer vagasRestantes,
+                            BigDecimal valorTotal, int vendas, int canceladas) {}
+
+    public record DiaResponse(ResumoDia resumo, List<VendaResponse> vendas) {}
+}

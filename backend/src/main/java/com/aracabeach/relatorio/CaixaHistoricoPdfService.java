@@ -285,6 +285,7 @@ public class CaixaHistoricoPdfService {
             case "MENSALIDADE" -> "Mensalidade";
             case "MATRICULA" -> "Aulas";
             case "PACOTE" -> "Pacote de aulas";
+            case "DAYUSE" -> "Day Use";
             default -> "Outros";
         };
     }
