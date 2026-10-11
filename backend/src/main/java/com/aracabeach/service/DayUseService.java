@@ -158,7 +158,7 @@ public class DayUseService {
 
     /** Reserva online do cliente do portal: ocupa vagas, fica PENDENTE ate a recepcao confirmar o pagamento. */
     @Transactional
-    public VendaResponse reservarPeloPortal(Cliente cliente, PortalReservaRequest r) {
+    public VendaResponse reservarPeloPortal(Cliente cliente, PortalDayUseRequest r) {
         LocalDate hoje = LocalDate.now();
         if (r.data().isBefore(hoje)) throw new IllegalArgumentException("Escolha uma data a partir de hoje.");
         if (r.data().isAfter(hoje.plusDays(90))) throw new IllegalArgumentException("Só é possível reservar com até 90 dias de antecedência.");

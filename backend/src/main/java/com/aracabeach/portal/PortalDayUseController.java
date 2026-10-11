@@ -28,7 +28,7 @@ public class PortalDayUseController {
 
     @PostMapping("/reservas")
     @ResponseStatus(HttpStatus.CREATED)
-    public VendaResponse reservar(@AuthenticationPrincipal Cliente cliente, @Valid @RequestBody PortalReservaRequest request) {
+    public VendaResponse reservar(@AuthenticationPrincipal Cliente cliente, @Valid @RequestBody PortalDayUseRequest request) {
         return service.reservarPeloPortal(cliente, request);
     }
 

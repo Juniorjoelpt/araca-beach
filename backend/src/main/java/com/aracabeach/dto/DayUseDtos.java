@@ -36,7 +36,7 @@ public final class DayUseDtos {
                                @NotNull FormaPagamento forma,
                                @NotEmpty @Valid List<ItemVendaRequest> itens) {}
 
-    public record PortalReservaRequest(@NotNull LocalDate data,
+    public record PortalDayUseRequest(@NotNull LocalDate data,
                                        @Size(max = 200) String observacao,
                                        @NotEmpty @Valid List<ItemVendaRequest> itens) {}
 
