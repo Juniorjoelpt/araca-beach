@@ -38,6 +38,18 @@ export default function Restaurante() {
   const [modalNova, setModalNova] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [fechando, setFechando] = useState(false)
+  const [abaComandas, setAbaComandas] = useState('abertas') // 'abertas' | 'pendentes'
+  const [agora, setAgora] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setAgora(Date.now()), 60000)
+    return () => clearInterval(t)
+  }, [])
+  // Comanda aberta ha 11h ou mais vai para "Pendentes", mas continua aberta.
+  const LIMITE_PENDENTE_MS = 11 * 60 * 60 * 1000
+  const ehPendente = (c) => agora - new Date(c.abertaEm).getTime() >= LIMITE_PENDENTE_MS
+  const comandasRecentes = useMemo(() => comandas.filter((c) => !ehPendente(c)), [comandas, agora]) // eslint-disable-line react-hooks/exhaustive-deps
+  const comandasPendentes = useMemo(() => comandas.filter(ehPendente), [comandas, agora]) // eslint-disable-line react-hooks/exhaustive-deps
+  const listaComandas = abaComandas === 'pendentes' ? comandasPendentes : comandasRecentes
 
   const [formaPag, setFormaPag] = useState('PIX')
   const [valorPag, setValorPag] = useState('')
@@ -323,10 +335,14 @@ export default function Restaurante() {
       <div className="grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_320px] gap-4 items-start">
         {/* comandas abertas */}
         <div className="bg-white rounded-xl shadow p-3">
-          <h3 className="font-semibold text-araca-azul mb-2 text-sm">Comandas abertas ({comandas.length})</h3>
-          {comandas.length === 0 && <p className="text-gray-400 text-sm">Nenhuma comanda aberta.</p>}
+          <div className="flex gap-1 mb-2 text-xs">
+            <button onClick={() => setAbaComandas('abertas')} className={`flex-1 rounded-lg px-2 py-1.5 font-semibold ${abaComandas === 'abertas' ? 'bg-araca-azul text-white' : 'bg-gray-100 text-gray-600'}`}>Abertas ({comandasRecentes.length})</button>
+            <button onClick={() => setAbaComandas('pendentes')} className={`flex-1 rounded-lg px-2 py-1.5 font-semibold ${abaComandas === 'pendentes' ? 'bg-amber-500 text-white' : comandasPendentes.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'}`}>Pendentes ({comandasPendentes.length})</button>
+          </div>
+          {abaComandas === 'pendentes' && <p className="text-[11px] text-gray-500 mb-2">Comandas abertas há mais de 11 horas. Continuam abertas e podem ser fechadas normalmente.</p>}
+          {listaComandas.length === 0 && <p className="text-gray-400 text-sm">{abaComandas === 'pendentes' ? 'Nenhuma comanda pendente.' : 'Nenhuma comanda aberta.'}</p>}
           <div className="space-y-2">
-            {comandas.map((c) => (
+            {listaComandas.map((c) => (
               <button
                 key={c.id}
                 onClick={() => { setSelecionadaId(c.id); setCarrinho([]) }}
