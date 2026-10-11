@@ -87,6 +87,15 @@ public class DayUseService {
         return paraResponse(tipoRepository.save(t), LocalDate.now());
     }
 
+    /** Exclui o tipo. As vendas ja feitas guardam nome e preco proprios, entao nao sao afetadas. */
+    @Transactional
+    public void excluirTipo(Long id) {
+        DayUseTipo t = tipoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Tipo de ingresso não encontrado: " + id));
+        auditoria.detalhe("Day Use: ingresso '" + t.getNome() + "' excluído");
+        tipoRepository.delete(t);
+    }
+
     @Transactional(readOnly = true)
     public ConfigResponse config() {
         DayUseConfig c = configRepository.findById(CONFIG_ID).orElse(null);

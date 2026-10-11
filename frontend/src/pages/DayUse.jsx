@@ -310,6 +310,11 @@ function Configurar({ onFechar }) {
     if (!(num(t.precoSemana) > 0)) { setErro('Informe o preço (Seg–Sex). Se for o mesmo todos os dias, deixe Sáb/Dom vazio.'); return }
     try { await dayUseService.atualizarTipo(t.id, payload(t)); setOk('Ingresso salvo.'); await carregar() } catch (err) { setErro(msg(err, 'Não foi possível salvar.')) }
   }
+  async function excluirTipo(t) {
+    if (!window.confirm(`Excluir o ingresso "${t.nome}"? As vendas já feitas continuam registradas.`)) return
+    setErro(''); setOk('')
+    try { await dayUseService.excluirTipo(t.id); setOk('Ingresso excluído.'); await carregar() } catch (err) { setErro(msg(err, 'Não foi possível excluir.')) }
+  }
   async function criar() {
     setErro(''); setOk('')
     if (!novo.nome.trim()) { setErro('Informe o nome do ingresso.'); return }
@@ -345,7 +350,7 @@ function Configurar({ onFechar }) {
                 <label className="text-[11px] text-gray-500 flex items-center gap-1">Pessoas por ingresso <input value={t.pessoasPorUnidade ?? 1} onChange={(e) => edit(t.id, 'pessoasPorUnidade', e.target.value)} inputMode="numeric" className="border rounded px-2 py-1 w-14 text-sm text-gray-800" /></label>
                 <input value={t.custo ?? ''} onChange={(e) => edit(t.id, 'custo', e.target.value)} inputMode="decimal" placeholder="Custo" title="Custo por ingresso (opcional, para o lucro)" className="border rounded px-2 py-1 col-span-2" />
                 <label className="flex items-center gap-1 text-xs col-span-2"><input type="checkbox" checked={t.ativo} onChange={(e) => edit(t.id, 'ativo', e.target.checked)} /> Ativo (à venda)</label>
-                <button onClick={() => salvarTipo(t)} className="bg-araca-azul text-white px-2 py-1 rounded text-xs">Salvar</button>
+                <div className="flex gap-1"><button onClick={() => salvarTipo(t)} className="bg-araca-azul text-white px-2 py-1 rounded text-xs">Salvar</button><button onClick={() => excluirTipo(t)} className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Excluir</button></div>
               </div>
             ))}
             <div className="border border-dashed rounded-lg p-2 grid grid-cols-[1fr_90px_90px] gap-2 items-center">

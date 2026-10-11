@@ -12,6 +12,7 @@ export const dayUseService = {
   // gestao (ADMIN)
   todosOsTipos: () => api.get(`${base}/gestao/tipos`).then((r) => r.data),
   criarTipo: (d) => api.post(`${base}/gestao/tipos`, d).then((r) => r.data),
+  excluirTipo: (id) => api.delete(`${base}/gestao/tipos/${id}`),
   atualizarTipo: (id, d) => api.put(`${base}/gestao/tipos/${id}`, d).then((r) => r.data),
   confirmarPagamento: (id, forma) => api.patch(`${base}/vendas/${id}/pagamento`, { forma }).then((r) => r.data),
   salvarConfig: (capacidadeDiaria, mensagemPortal) => api.put(`${base}/gestao/config`, { capacidadeDiaria, mensagemPortal }).then((r) => r.data),

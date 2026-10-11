@@ -73,6 +73,12 @@ public class DayUseController {
         return service.atualizarTipo(id, request);
     }
 
+    @DeleteMapping("/gestao/tipos/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluirTipo(@PathVariable Long id) {
+        service.excluirTipo(id);
+    }
+
     @PutMapping("/gestao/config")
     public ConfigResponse salvarConfig(@Valid @RequestBody ConfigRequest request) {
         return service.salvarConfig(request);
