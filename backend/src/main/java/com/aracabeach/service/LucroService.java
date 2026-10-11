@@ -24,6 +24,7 @@ public class LucroService {
 
     private final RestauranteRelatorioService restauranteRelatorio;
     private final ComandaRepository lojaRepository;
+    private final com.aracabeach.repository.DayUseVendaRepository dayUseRepository;
 
     @Transactional(readOnly = true)
     public LucroResponse gerar(LocalDate inicio, LocalDate fim) {
@@ -51,8 +52,25 @@ public class LucroService {
         custo = custo.setScale(2, RoundingMode.HALF_UP);
         LucroResponse.Loja loja = new LucroResponse.Loja(vendas.size(), receita, custo, receita.subtract(custo), List.copyOf(semCusto));
 
-        BigDecimal receitaTotal = rest.receita().subtract(rest.descontos()).add(receita);
-        BigDecimal custoTotal = rest.custo().add(rest.perdaCortesias()).add(custo);
-        return new LucroResponse(inicio, fim, rest, loja, receitaTotal, custoTotal, rest.lucro().add(loja.lucro()));
+        // Day Use: pelo dia do pagamento (mesmo criterio do caixa). Custo so quando informado no ingresso.
+        List<com.aracabeach.domain.dayuse.DayUseVenda> dayUseVendas = dayUseRepository.findByStatusAndPagoEmBetween(
+                com.aracabeach.domain.dayuse.StatusDayUse.ATIVA, LocalDateTime.of(inicio, LocalTime.MIN), LocalDateTime.of(fim, LocalTime.MAX));
+        BigDecimal duReceita = BigDecimal.ZERO, duCusto = BigDecimal.ZERO;
+        int duPessoas = 0;
+        for (com.aracabeach.domain.dayuse.DayUseVenda v : dayUseVendas) {
+            duReceita = duReceita.add(v.getValorTotal());
+            duPessoas += v.getPessoas();
+            for (com.aracabeach.domain.dayuse.DayUseItem i : v.getItens()) {
+                if (i.getCustoUnitario() != null) duCusto = duCusto.add(i.getCustoUnitario().multiply(BigDecimal.valueOf(i.getQuantidade())));
+            }
+        }
+        duReceita = duReceita.setScale(2, RoundingMode.HALF_UP);
+        duCusto = duCusto.setScale(2, RoundingMode.HALF_UP);
+        LucroResponse.DayUse dayUse = new LucroResponse.DayUse(dayUseVendas.size(), duPessoas, duReceita, duCusto, duReceita.subtract(duCusto));
+
+        BigDecimal receitaTotal = rest.receita().subtract(rest.descontos()).add(receita).add(duReceita);
+        BigDecimal custoTotal = rest.custo().add(rest.perdaCortesias()).add(custo).add(duCusto);
+        return new LucroResponse(inicio, fim, rest, loja, dayUse, receitaTotal, custoTotal,
+                rest.lucro().add(loja.lucro()).add(dayUse.lucro()));
     }
 }

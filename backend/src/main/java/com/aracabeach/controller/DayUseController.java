@@ -45,6 +45,11 @@ public class DayUseController {
         return service.registrarEntrada(id, request.quantidade());
     }
 
+    @PatchMapping("/vendas/{id}/pagamento")
+    public VendaResponse confirmarPagamento(@PathVariable Long id, @Valid @RequestBody ConfirmarPagamentoRequest request) {
+        return service.confirmarPagamento(id, request.forma());
+    }
+
     @PatchMapping("/vendas/{id}/cancelar")
     public VendaResponse cancelar(@PathVariable Long id, @RequestParam(required = false) String motivo) {
         return service.cancelar(id, motivo);

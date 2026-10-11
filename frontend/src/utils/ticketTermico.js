@@ -151,10 +151,10 @@ export function imprimirDayUse(venda) {
       ${venda.nomeCliente ? `<div class="c">${esc(venda.nomeCliente)}</div>` : ''}
       <div class="c peq">Venda #${venda.id} · ${new Date(venda.criadoEm).toLocaleString('pt-BR')}</div>
       <div class="linha"></div>
-      ${venda.itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.tipoNome)}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
+      ${venda.itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.tipoNome)}${i.pessoasPorUnidade > 1 ? ` (${i.pessoas} pessoas)` : ''}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
       <div class="linha"></div>
       <div class="tot forte"><span>TOTAL (${venda.pessoas} pessoa${venda.pessoas > 1 ? 's' : ''})</span><span>${brl(venda.valorTotal)}</span></div>
-      <div class="c peq">Pago em ${esc(forma)}</div>
+      <div class="c peq">Pago em ${esc(forma || '-')}</div>
       <div class="linha"></div>
       <div class="c peq">Válido somente na data indicada.</div>
       <div class="c peq">Apresente este comprovante na entrada.</div>

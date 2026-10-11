@@ -2,6 +2,8 @@ package com.aracabeach.domain.dayuse;
 
 import com.aracabeach.domain.financeiro.FormaPagamento;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -37,8 +39,10 @@ public class DayUseVenda {
     @Column(length = 200)
     private String observacao;
 
+    /** Nulo enquanto a reserva online nao foi paga. */
     @Enumerated(EnumType.STRING)
-    @Column(name = "forma_pagamento", nullable = false, length = 20)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "forma_pagamento", length = 20)
     private FormaPagamento formaPagamento;
 
     @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
@@ -54,9 +58,22 @@ public class DayUseVenda {
     private int entraram = 0;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
     @Builder.Default
     private StatusDayUse status = StatusDayUse.ATIVA;
+
+    /** Cliente do portal que reservou online (nulo em venda de balcao). */
+    @Column(name = "cliente_id")
+    private Long clienteId;
+
+    /** BALCAO ou PORTAL. */
+    @Column(length = 10)
+    private String origem;
+
+    /** Quando foi pago (venda de balcao: na hora; reserva online: na confirmacao). Base do lucro. */
+    @Column(name = "pago_em")
+    private LocalDateTime pagoEm;
 
     @Column(name = "pagamento_id")
     private Long pagamentoId;

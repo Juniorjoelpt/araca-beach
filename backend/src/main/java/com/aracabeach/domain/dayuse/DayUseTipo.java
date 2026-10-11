@@ -29,6 +29,14 @@ public class DayUseTipo {
     @Column(name = "preco_fim_semana", precision = 10, scale = 2)
     private BigDecimal precoFimSemana;
 
+    /** Quantas pessoas 1 ingresso deste tipo cobre (1 = individual; 10 = pacote para grupo de 10). Nulo = 1. */
+    @Column(name = "pessoas_por_unidade")
+    private Integer pessoasPorUnidade;
+
+    /** Custo por ingresso (opcional), so para o calculo de lucro. */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal custo;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean ativo = true;

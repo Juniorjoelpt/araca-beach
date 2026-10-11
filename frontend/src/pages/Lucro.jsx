@@ -65,6 +65,7 @@ export default function Lucro() {
 
   const r = dados?.restaurante
   const l = dados?.loja
+  const du = dados?.dayUse
 
   return (
     <div>
@@ -118,6 +119,15 @@ export default function Lucro() {
               <Aviso itens={l.itensSemCusto} />
             </section>
           </div>
+          {du && (
+            <section className="bg-white rounded-xl shadow p-4 mt-4">
+              <h2 className="font-semibold text-araca-azul mb-2">Day Use · {du.vendas} venda(s) · {du.pessoas} pessoa(s)</h2>
+              <Linha rotulo="Receita (ingressos pagos no período)" valor={brl(du.receita)} />
+              <Linha rotulo="Custo dos ingressos (se informado)" valor={brl(du.custo)} negativo />
+              <Linha rotulo={`Lucro · margem ${pct(du.lucro, du.receita)}`} valor={brl(du.lucro)} forte />
+              <p className="text-[11px] text-gray-400 mt-2">Conta pelo dia do pagamento. Informe o custo por ingresso em Day Use → Ingressos e capacidade para ver o lucro real.</p>
+            </section>
+          )}
           <p className="text-xs text-gray-500 mt-4">
             O custo é gravado no momento da venda (ficha técnica ou insumo de mesmo nome; na Loja, o custo do produto). Vendas anteriores a esta versão usam o custo atual como estimativa.
           </p>

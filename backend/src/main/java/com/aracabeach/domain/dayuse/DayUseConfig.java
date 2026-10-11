@@ -19,4 +19,8 @@ public class DayUseConfig {
     /** Maximo de pessoas por dia. 0 ou nulo = sem limite. */
     @Column(name = "capacidade_diaria")
     private Integer capacidadeDiaria;
+
+    /** Texto mostrado ao cliente no portal (ex.: como pagar a reserva). */
+    @Column(name = "mensagem_portal", length = 300)
+    private String mensagemPortal;
 }

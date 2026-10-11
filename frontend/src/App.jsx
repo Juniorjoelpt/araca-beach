@@ -28,6 +28,7 @@ import PortalConfirmarEmail from './pages/portal/PortalConfirmarEmail.jsx'
 import PortalEsqueciSenha from './pages/portal/PortalEsqueciSenha.jsx'
 import PortalRedefinirSenha from './pages/portal/PortalRedefinirSenha.jsx'
 import PortalAulas from './pages/portal/PortalAulas.jsx'
+import PortalDayUse from './pages/portal/PortalDayUse.jsx'
 import PortalConta from './pages/portal/PortalConta.jsx'
 import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
@@ -95,6 +96,7 @@ export default function App() {
       >
         <Route path="/portal" element={<PortalAgendar />} />
         <Route path="/portal/minhas-reservas" element={<PortalMinhasReservas />} />
+        <Route path="/portal/dayuse" element={<PortalDayUse />} />
         <Route path="/portal/aulas" element={<PortalAulas />} />
         <Route path="/portal/conta" element={<PortalConta />} />
         <Route path="/portal/perfil" element={<PortalPerfil />} />

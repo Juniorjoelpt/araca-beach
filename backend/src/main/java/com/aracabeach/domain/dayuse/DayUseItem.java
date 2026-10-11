@@ -33,4 +33,11 @@ public class DayUseItem {
 
     @Column(nullable = false)
     private int quantidade;
+
+    /** Pessoas cobertas por unidade (pacote de grupo > 1). Nulo = 1. */
+    @Column(name = "pessoas_por_unidade")
+    private Integer pessoasPorUnidade;
+
+    @Column(name = "custo_unitario", precision = 10, scale = 2)
+    private BigDecimal custoUnitario;
 }
