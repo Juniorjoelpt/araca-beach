@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface AulaRepository extends JpaRepository<Aula, Long> {
 
+    boolean existsByProfessorId(Long professorId);
+
     List<Aula> findByInicioBetween(LocalDateTime inicio, LocalDateTime fim);
 
     List<Aula> findByProfessorIdAndInicioBetween(Long professorId, LocalDateTime inicio, LocalDateTime fim);

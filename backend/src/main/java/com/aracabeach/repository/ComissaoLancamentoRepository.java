@@ -13,6 +13,9 @@ import java.util.Optional;
 
 public interface ComissaoLancamentoRepository extends JpaRepository<ComissaoLancamento, Long> {
 
+    boolean existsByProfessorId(Long professorId);
+
+
     Optional<ComissaoLancamento> findByOrigemAndReferenciaId(OrigemComissao origem, Long referenciaId);
 
     @Query("""

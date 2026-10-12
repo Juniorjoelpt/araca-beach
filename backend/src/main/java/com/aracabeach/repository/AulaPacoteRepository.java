@@ -11,6 +11,9 @@ import java.util.List;
 
 public interface AulaPacoteRepository extends JpaRepository<AulaPacote, Long> {
 
+    boolean existsByProfessorId(Long professorId);
+
+
     List<AulaPacote> findByPacoteIdOrderByInicioAsc(Long pacoteId);
 
     List<AulaPacote> findByPacoteClienteIdOrderByInicioDesc(Long clienteId);

@@ -31,6 +31,11 @@ public class AulaController {
         return aulaService.criar(request);
     }
 
+    @PutMapping("/{id}")
+    public Aula atualizar(@PathVariable Long id, @Valid @RequestBody AulaRequest request) {
+        return aulaService.atualizar(id, request);
+    }
+
     @DeleteMapping("/{id}")
     public void remover(@PathVariable Long id) {
         aulaService.remover(id);

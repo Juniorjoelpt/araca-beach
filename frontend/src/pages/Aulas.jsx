@@ -41,6 +41,10 @@ export default function Aulas() {
   const [formProfessor, setFormProfessor] = useState({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
   const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '' })
 
+  const [editProfessorId, setEditProfessorId] = useState(null)
+  const [editAulaId, setEditAulaId] = useState(null)
+  const [editTurmaId, setEditTurmaId] = useState(null)
+
   const [comissao, setComissao] = useState(null)
   const [filtroComissao, setFiltroComissao] = useState({
     professorId: '',
@@ -78,16 +82,46 @@ export default function Aulas() {
     e.preventDefault()
     setErro('')
     try {
-      await turmaService.criar({
+      const dados = {
         ...formTurma,
         professorId: Number(formTurma.professorId),
         quadraId: Number(formTurma.quadraId),
         capacidadeMaxima: formTurma.capacidadeMaxima ? Number(formTurma.capacidadeMaxima) : null,
-      })
+      }
+      if (editTurmaId) await turmaService.atualizar(editTurmaId, dados)
+      else await turmaService.criar(dados)
+      setEditTurmaId(null)
       setFormTurma({ ...formTurma, nome: '', capacidadeMaxima: '' })
       carregarTurmas()
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível criar a turma.')
+    }
+  }
+
+  function handleEditarTurma(t) {
+    setEditTurmaId(t.id)
+    setFormTurma({
+      nome: t.nome, tipo: t.tipo, professorId: String(t.professorId), quadraId: String(t.quadraId),
+      diaSemana: t.diaSemana, horaInicio: String(t.horaInicio).slice(0, 5), horaFim: String(t.horaFim).slice(0, 5),
+      capacidadeMaxima: t.capacidadeMaxima ?? '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function cancelarEdicaoTurma() {
+    setEditTurmaId(null)
+    setFormTurma({ nome: '', tipo: 'VOLEI', professorId: '', quadraId: '', diaSemana: 'MONDAY', horaInicio: '08:00', horaFim: '09:00', capacidadeMaxima: '' })
+  }
+
+  async function handleExcluirTurma(turma) {
+    if (!confirm(`Excluir a turma "${turma.nome}"? Só é possível se ela nunca teve matrículas.`)) return
+    setErro('')
+    try {
+      await turmaService.excluir(turma.id)
+      if (editTurmaId === turma.id) cancelarEdicaoTurma()
+      carregarTurmas()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível excluir a turma.')
     }
   }
 
@@ -210,14 +244,39 @@ export default function Aulas() {
     e.preventDefault()
     setErro('')
     try {
-      await professorService.criar({
+      const dados = {
         ...formProfessor,
         percentualComissao: formProfessor.percentualComissao ? Number(formProfessor.percentualComissao) : null,
-      })
+      }
+      if (editProfessorId) await professorService.atualizar(editProfessorId, dados)
+      else await professorService.criar(dados)
+      setEditProfessorId(null)
       setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
       carregarBase()
     } catch {
       setErro('Não foi possível salvar o professor.')
+    }
+  }
+
+  function handleEditarProfessor(p) {
+    setEditProfessorId(p.id)
+    setFormProfessor({ nome: p.nome, telefone: p.telefone || '', especialidade: p.especialidade, percentualComissao: p.percentualComissao ?? '' })
+  }
+
+  function cancelarEdicaoProfessor() {
+    setEditProfessorId(null)
+    setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
+  }
+
+  async function handleExcluirProfessor(p) {
+    if (!confirm(`Excluir o professor "${p.nome}"? Só é possível se ele não tiver aulas, turmas ou comissões.`)) return
+    setErro('')
+    try {
+      await professorService.excluir(p.id)
+      if (editProfessorId === p.id) cancelarEdicaoProfessor()
+      carregarBase()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível excluir o professor.')
     }
   }
 
@@ -227,7 +286,7 @@ export default function Aulas() {
     const inicio = new Date(`${data}T${formAula.horaInicio}:00`)
     const fim = new Date(inicio.getTime() + formAula.duracao * 60000)
     try {
-      await aulaService.criar({
+      const dadosAula = {
         professorId: Number(formAula.professorId),
         quadraId: Number(formAula.quadraId),
         tipo: formAula.tipo,
@@ -235,16 +294,36 @@ export default function Aulas() {
         fim: format(fim, "yyyy-MM-dd'T'HH:mm:ss"),
         alunos: formAula.alunos ? formAula.alunos.split(',').map((s) => s.trim()).filter(Boolean) : [],
         valor: formAula.valor ? Number(formAula.valor) : null,
-      })
+      }
+      if (editAulaId) await aulaService.atualizar(editAulaId, dadosAula)
+      else await aulaService.criar(dadosAula)
+      setEditAulaId(null)
       setFormAula({ ...formAula, alunos: '', valor: '' })
       carregarAulas()
     } catch (err) {
       if (err.response?.status === 409) {
         setErro('Este professor já tem uma aula nesse horário.')
       } else {
-        setErro('Não foi possível criar a aula.')
+        setErro('Não foi possível salvar a aula.')
       }
     }
+  }
+
+  function handleEditarAula(a) {
+    const ini = new Date(a.inicio)
+    const fim = new Date(a.fim)
+    setEditAulaId(a.id)
+    setData(format(ini, 'yyyy-MM-dd'))
+    setFormAula({
+      professorId: String(a.professor?.id ?? ''), quadraId: String(a.quadra?.id ?? ''), tipo: a.tipo,
+      horaInicio: format(ini, 'HH:mm'), duracao: Math.round((fim - ini) / 60000),
+      alunos: (a.alunos || []).join(', '), valor: a.valor ?? '',
+    })
+  }
+
+  function cancelarEdicaoAula() {
+    setEditAulaId(null)
+    setFormAula({ ...formAula, alunos: '', valor: '' })
   }
 
   async function handleRemover(id) {
@@ -307,7 +386,7 @@ export default function Aulas() {
       <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <form onSubmit={handleCriarProfessor} className="bg-white rounded-xl shadow p-6 space-y-3">
-          <h3 className="font-semibold text-araca-azul">Cadastrar professor</h3>
+          <h3 className="font-semibold text-araca-azul">{editProfessorId ? 'Editar professor' : 'Cadastrar professor'}</h3>
           <input
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             placeholder="Nome"
@@ -338,18 +417,29 @@ export default function Aulas() {
               onChange={(e) => setFormProfessor({ ...formProfessor, percentualComissao: e.target.value })}
             />
           </div>
-          <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
-            Adicionar professor
-          </button>
+          <div className="flex gap-2">
+            <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
+              {editProfessorId ? 'Salvar alterações' : 'Adicionar professor'}
+            </button>
+            {editProfessorId && (
+              <button type="button" onClick={cancelarEdicaoProfessor} className="px-4 py-2 rounded-lg border text-gray-600">Cancelar</button>
+            )}
+          </div>
           <ul className="text-sm text-gray-600 pt-2 space-y-1">
             {professores.map((p) => (
-              <li key={p.id}>{p.nome} · {ESPECIALIDADES.find(e => e.value === p.especialidade)?.label}</li>
+              <li key={p.id} className="flex items-center justify-between gap-2">
+                <span>{p.nome} · {ESPECIALIDADES.find(e => e.value === p.especialidade)?.label}{p.percentualComissao ? ` · ${p.percentualComissao}%` : ''}</span>
+                <span className="flex gap-3 shrink-0">
+                  <button type="button" onClick={() => handleEditarProfessor(p)} className="text-araca-azul hover:underline">Editar</button>
+                  <button type="button" onClick={() => handleExcluirProfessor(p)} className="text-red-600 hover:underline">Excluir</button>
+                </span>
+              </li>
             ))}
           </ul>
         </form>
 
         <form onSubmit={handleCriarAula} className="bg-white rounded-xl shadow p-6 space-y-3">
-          <h3 className="font-semibold text-araca-azul">Agendar aula</h3>
+          <h3 className="font-semibold text-araca-azul">{editAulaId ? 'Editar aula' : 'Agendar aula'}</h3>
           <select
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             value={formAula.professorId}
@@ -387,6 +477,7 @@ export default function Aulas() {
               value={formAula.duracao}
               onChange={(e) => setFormAula({ ...formAula, duracao: Number(e.target.value) })}
             >
+              {![30, 60, 90].includes(formAula.duracao) && <option value={formAula.duracao}>{formAula.duracao} min</option>}
               <option value={30}>30 min</option>
               <option value={60}>1 hora</option>
               <option value={90}>1h30</option>
@@ -408,8 +499,11 @@ export default function Aulas() {
             onChange={(e) => setFormAula({ ...formAula, valor: e.target.value })}
           />
           <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
-            Agendar aula
+            {editAulaId ? 'Salvar alterações' : 'Agendar aula'}
           </button>
+          {editAulaId && (
+            <button type="button" onClick={cancelarEdicaoAula} className="w-full border rounded-lg py-2 text-gray-600">Cancelar edição</button>
+          )}
         </form>
       </div>
 
@@ -438,9 +532,10 @@ export default function Aulas() {
                   {a.alunos?.length > 0 ? ` · ${a.alunos.join(', ')}` : ''}
                 </p>
               </div>
-              <button onClick={() => handleRemover(a.id)} className="text-red-600 text-sm hover:underline">
-                Remover
-              </button>
+              <div className="flex gap-3">
+                <button onClick={() => handleEditarAula(a)} className="text-araca-azul text-sm hover:underline">Editar</button>
+                <button onClick={() => handleRemover(a.id)} className="text-red-600 text-sm hover:underline">Remover</button>
+              </div>
             </li>
           ))}
         </ul>
@@ -513,7 +608,7 @@ export default function Aulas() {
       {aba === 'turmas' && (
         <div className="space-y-6">
           <form onSubmit={handleCriarTurma} className="bg-white rounded-xl shadow p-6 space-y-3">
-            <h3 className="font-semibold text-araca-azul">Nova turma</h3>
+            <h3 className="font-semibold text-araca-azul">{editTurmaId ? 'Editar turma' : 'Nova turma'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input
                 className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
@@ -577,9 +672,14 @@ export default function Aulas() {
                 onChange={(e) => setFormTurma({ ...formTurma, capacidadeMaxima: e.target.value })}
               />
             </div>
-            <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
-              Criar turma
-            </button>
+            <div className="flex gap-2">
+              <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
+                {editTurmaId ? 'Salvar alterações' : 'Criar turma'}
+              </button>
+              {editTurmaId && (
+                <button type="button" onClick={cancelarEdicaoTurma} className="px-4 py-2 rounded-lg border text-gray-600">Cancelar</button>
+              )}
+            </div>
           </form>
 
           <div className="bg-white rounded-xl shadow p-6">
@@ -607,6 +707,8 @@ export default function Aulas() {
                       >
                         {turmaExpandidaId === t.id ? 'Fechar' : 'Ver alunos'}
                       </button>
+                      <button onClick={() => handleEditarTurma(t)} className="text-araca-azul text-sm hover:underline">Editar</button>
+                      <button onClick={() => handleExcluirTurma(t)} className="text-red-600 text-sm hover:underline">Excluir</button>
                       <button
                         onClick={() => handleDesativarTurma(t)}
                         className="text-red-600 text-sm hover:underline"

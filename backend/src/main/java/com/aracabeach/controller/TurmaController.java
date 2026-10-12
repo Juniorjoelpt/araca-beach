@@ -31,6 +31,17 @@ public class TurmaController {
         return turmaService.criar(request);
     }
 
+    @PutMapping("/{id}")
+    public TurmaResponse atualizar(@PathVariable Long id, @Valid @RequestBody TurmaRequest request) {
+        return turmaService.atualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(@PathVariable Long id) {
+        turmaService.excluir(id);
+    }
+
     @PatchMapping("/{id}/desativar")
     public void desativar(@PathVariable Long id) {
         turmaService.desativar(id);

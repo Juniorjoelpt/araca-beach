@@ -63,6 +63,41 @@ public class AulaService {
         return salva;
     }
 
+    @Transactional
+    public Aula atualizar(Long id, AulaRequest request) {
+        Aula aula = aulaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));
+        if (!request.fim().isAfter(request.inicio())) {
+            throw new IllegalArgumentException("O horario de termino deve ser posterior ao de inicio.");
+        }
+        Professor professor = professorRepository.findById(request.professorId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor nao encontrado: " + request.professorId()));
+        Quadra quadra = quadraRepository.findById(request.quadraId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Quadra nao encontrada: " + request.quadraId()));
+
+        boolean conflito = aulaRepository.findConflitantesDoProfessor(professor.getId(), request.inicio(), request.fim())
+                .stream().anyMatch(a -> !a.getId().equals(id));
+        if (conflito) {
+            throw new ConflitoHorarioException("O professor ja tem uma aula nesse horario.");
+        }
+
+        aula.setProfessor(professor);
+        aula.setQuadra(quadra);
+        aula.setTipo(request.tipo());
+        aula.setInicio(request.inicio());
+        aula.setFim(request.fim());
+        aula.setAlunos(new java.util.ArrayList<>(request.alunos() != null ? request.alunos() : List.of()));
+        aula.setValor(request.valor());
+        Aula salva = aulaRepository.save(aula);
+
+        // Recalcula a comissao (so troca se ainda nao foi paga).
+        comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, id);
+        comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
+                "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
+                salva.getInicio().toLocalDate(), salva.getValor());
+        return salva;
+    }
+
     @Transactional(readOnly = true)
     public List<Aula> listarPorDia(LocalDate data) {
         return aulaRepository.findByInicioBetween(LocalDateTime.of(data, LocalTime.MIN), LocalDateTime.of(data, LocalTime.MAX));

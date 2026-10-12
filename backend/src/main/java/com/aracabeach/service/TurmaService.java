@@ -55,6 +55,37 @@ public class TurmaService {
         return paraResponse(turmaRepository.save(turma));
     }
 
+    @Transactional
+    public TurmaResponse atualizar(Long id, TurmaRequest request) {
+        if (!request.horaFim().isAfter(request.horaInicio())) {
+            throw new IllegalArgumentException("O horario de termino deve ser posterior ao de inicio.");
+        }
+        Turma turma = buscarPorId(id);
+        Professor professor = professorRepository.findById(request.professorId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor nao encontrado: " + request.professorId()));
+        Quadra quadra = quadraRepository.findById(request.quadraId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Quadra nao encontrada: " + request.quadraId()));
+        turma.setNome(request.nome());
+        turma.setTipo(request.tipo());
+        turma.setProfessor(professor);
+        turma.setQuadra(quadra);
+        turma.setDiaSemana(request.diaSemana());
+        turma.setHoraInicio(request.horaInicio());
+        turma.setHoraFim(request.horaFim());
+        turma.setCapacidadeMaxima(request.capacidadeMaxima());
+        return paraResponse(turmaRepository.save(turma));
+    }
+
+    /** Exclui a turma so se nunca teve matriculas (cadastro feito por engano). Senao, use desativar. */
+    @Transactional
+    public void excluir(Long id) {
+        Turma turma = buscarPorId(id);
+        if (matriculaRepository.existsByTurmaId(id)) {
+            throw new IllegalArgumentException("Esta turma tem matrículas (ativas ou antigas) e não pode ser excluída. Use Desativar para tirá-la da lista.");
+        }
+        turmaRepository.delete(turma);
+    }
+
     @Transactional(readOnly = true)
     public List<TurmaResponse> listarAtivas() {
         return turmaRepository.findByAtivaTrue().stream()
