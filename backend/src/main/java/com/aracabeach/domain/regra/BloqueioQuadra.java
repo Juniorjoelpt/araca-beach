@@ -36,4 +36,8 @@ public class BloqueioQuadra {
 
     @Column(length = 200)
     private String motivo;
+
+    /** Preenchido quando o bloqueio vem de uma turma (horario fixo da aula em grupo). */
+    @Column(name = "turma_id")
+    private Long turmaId;
 }

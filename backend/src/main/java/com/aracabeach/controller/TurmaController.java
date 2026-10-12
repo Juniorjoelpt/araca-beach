@@ -25,6 +25,14 @@ public class TurmaController {
         return turmaService.listarAtivas();
     }
 
+    @GetMapping("/agenda")
+    public List<com.aracabeach.dto.TurmaAgendaResponse> agenda(
+            @RequestParam Long quadraId,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate de,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate ate) {
+        return turmaService.agenda(quadraId, de, ate);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TurmaResponse criar(@Valid @RequestBody TurmaRequest request) {

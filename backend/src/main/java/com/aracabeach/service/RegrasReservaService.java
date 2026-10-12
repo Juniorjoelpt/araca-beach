@@ -36,7 +36,7 @@ public class RegrasReservaService {
 
     @Transactional(readOnly = true)
     public List<BloqueioQuadraResponse> listarBloqueios() {
-        return bloqueioRepository.findByFimAfterOrderByInicioAsc(LocalDateTime.now()).stream()
+        return bloqueioRepository.findByFimAfterAndTurmaIdIsNullOrderByInicioAsc(LocalDateTime.now()).stream()
                 .map(this::paraResponse).toList();
     }
 

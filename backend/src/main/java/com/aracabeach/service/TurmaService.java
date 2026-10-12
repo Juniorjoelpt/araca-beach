@@ -28,6 +28,9 @@ public class TurmaService {
     private final ProfessorRepository professorRepository;
     private final QuadraRepository quadraRepository;
     private final MatriculaRepository matriculaRepository;
+    private final com.aracabeach.repository.BloqueioQuadraRepository bloqueioRepository;
+
+    private static final int HORIZONTE_SEMANAS = 12;
 
     @Transactional
     public TurmaResponse criar(TurmaRequest request) {
@@ -52,7 +55,9 @@ public class TurmaService {
                 .ativa(true)
                 .build();
 
-        return paraResponse(turmaRepository.save(turma));
+        turma = turmaRepository.save(turma);
+        sincronizarBloqueios(turma);
+        return paraResponse(turma);
     }
 
     @Transactional
@@ -73,7 +78,9 @@ public class TurmaService {
         turma.setHoraInicio(request.horaInicio());
         turma.setHoraFim(request.horaFim());
         turma.setCapacidadeMaxima(request.capacidadeMaxima());
-        return paraResponse(turmaRepository.save(turma));
+        turma = turmaRepository.save(turma);
+        sincronizarBloqueios(turma);
+        return paraResponse(turma);
     }
 
     /** Exclui a turma so se nunca teve matriculas (cadastro feito por engano). Senao, use desativar. */
@@ -83,7 +90,57 @@ public class TurmaService {
         if (matriculaRepository.existsByTurmaId(id)) {
             throw new IllegalArgumentException("Esta turma tem matrículas (ativas ou antigas) e não pode ser excluída. Use Desativar para tirá-la da lista.");
         }
+        bloqueioRepository.deleteByTurmaId(id);
         turmaRepository.delete(turma);
+    }
+
+    /**
+     * Faz a turma "ocupar" a quadra: gera um bloqueio de agenda para cada ocorrencia semanal
+     * nas proximas semanas. Assim a recepcao, o portal, as recorrencias e os pacotes
+     * enxergam o horario como indisponivel. Apaga e recria as ocorrencias futuras.
+     */
+    @Transactional
+    public void sincronizarBloqueios(Turma turma) {
+        java.time.LocalDateTime agora = java.time.LocalDateTime.now();
+        bloqueioRepository.deleteByTurmaIdAndFimAfter(turma.getId(), agora);
+        if (!turma.isAtiva()) return;
+
+        java.time.LocalDate hoje = java.time.LocalDate.now();
+        java.time.LocalDate limite = hoje.plusWeeks(HORIZONTE_SEMANAS);
+        java.time.LocalDate data = hoje.with(java.time.temporal.TemporalAdjusters.nextOrSame(turma.getDiaSemana()));
+        for (; !data.isAfter(limite); data = data.plusWeeks(1)) {
+            java.time.LocalDateTime inicio = java.time.LocalDateTime.of(data, turma.getHoraInicio());
+            java.time.LocalDateTime fim = java.time.LocalDateTime.of(data, turma.getHoraFim());
+            if (!fim.isAfter(agora)) continue;
+            bloqueioRepository.save(com.aracabeach.domain.regra.BloqueioQuadra.builder()
+                    .quadra(turma.getQuadra())
+                    .inicio(inicio)
+                    .fim(fim)
+                    .motivo("Turma: " + turma.getNome())
+                    .turmaId(turma.getId())
+                    .build());
+        }
+    }
+
+    @Transactional
+    public void sincronizarTodas() {
+        turmaRepository.findByAtivaTrue().forEach(this::sincronizarBloqueios);
+    }
+
+    /** Ocorrencias das turmas ativas de uma quadra no periodo, para mostrar no calendario. */
+    @Transactional(readOnly = true)
+    public List<com.aracabeach.dto.TurmaAgendaResponse> agenda(Long quadraId, java.time.LocalDate de, java.time.LocalDate ate) {
+        List<com.aracabeach.dto.TurmaAgendaResponse> lista = new java.util.ArrayList<>();
+        for (Turma t : turmaRepository.findByAtivaTrue()) {
+            if (!t.getQuadra().getId().equals(quadraId)) continue;
+            java.time.LocalDate data = de.with(java.time.temporal.TemporalAdjusters.nextOrSame(t.getDiaSemana()));
+            for (; !data.isAfter(ate); data = data.plusWeeks(1)) {
+                lista.add(new com.aracabeach.dto.TurmaAgendaResponse(t.getId(), t.getNome(), t.getProfessor().getNome(),
+                        java.time.LocalDateTime.of(data, t.getHoraInicio()), java.time.LocalDateTime.of(data, t.getHoraFim()),
+                        matriculaRepository.findByTurmaIdAndAtivaTrue(t.getId()).size()));
+            }
+        }
+        return lista;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +161,7 @@ public class TurmaService {
         Turma turma = buscarPorId(id);
         turma.setAtiva(false);
         turmaRepository.save(turma);
+        bloqueioRepository.deleteByTurmaIdAndFimAfter(id, java.time.LocalDateTime.now());
     }
 
     private TurmaResponse paraResponse(Turma t) {

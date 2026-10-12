@@ -22,4 +22,11 @@ public interface BloqueioQuadraRepository extends JpaRepository<BloqueioQuadra, 
             @Param("fim") LocalDateTime fim);
 
     List<BloqueioQuadra> findByFimAfterOrderByInicioAsc(LocalDateTime agora);
+
+    /** Bloqueios manuais (os de turma ficam de fora da tela de Regras). */
+    List<BloqueioQuadra> findByFimAfterAndTurmaIdIsNullOrderByInicioAsc(LocalDateTime agora);
+
+    void deleteByTurmaIdAndFimAfter(Long turmaId, LocalDateTime agora);
+
+    void deleteByTurmaId(Long turmaId);
 }

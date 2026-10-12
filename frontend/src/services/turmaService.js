@@ -3,6 +3,7 @@ import api from './api.js'
 export const turmaService = {
   listar: () => api.get('/turmas').then((r) => r.data),
   criar: (dados) => api.post('/turmas', dados).then((r) => r.data),
+  agenda: (quadraId, de, ate) => api.get('/turmas/agenda', { params: { quadraId, de, ate } }).then((r) => r.data),
   atualizar: (id, dados) => api.put(`/turmas/${id}`, dados).then((r) => r.data),
   excluir: (id) => api.delete(`/turmas/${id}`),
   desativar: (id) => api.patch(`/turmas/${id}/desativar`).then((r) => r.data),

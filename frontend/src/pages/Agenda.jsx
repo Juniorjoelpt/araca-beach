@@ -7,6 +7,7 @@ import { clienteService } from '../services/clienteService.js'
 import { reservaService } from '../services/reservaService.js'
 import { financeiroService } from '../services/financeiroService.js'
 import { recorrenciaService } from '../services/recorrenciaService.js'
+import { turmaService } from '../services/turmaService.js'
 
 const DURACOES = [
   { minutos: 30, label: '30 min' },
@@ -45,6 +46,7 @@ export default function Agenda() {
   const [quadraId, setQuadraId] = useState('')
   const [semanaBase, setSemanaBase] = useState(() => startOfWeek(new Date(), { locale: ptBR }))
   const [reservas, setReservas] = useState([])
+  const [turmasAgenda, setTurmasAgenda] = useState([])
   const [pagamentosPorReserva, setPagamentosPorReserva] = useState({})
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -116,6 +118,8 @@ export default function Agenda() {
       const fim = format(diasDaSemana[6], "yyyy-MM-dd'T'23:59:59")
       const dados = await reservaService.agenda(quadraId, inicio, fim)
       setReservas(dados)
+      turmaService.agenda(quadraId, format(diasDaSemana[0], 'yyyy-MM-dd'), format(diasDaSemana[6], 'yyyy-MM-dd'))
+        .then(setTurmasAgenda).catch(() => setTurmasAgenda([]))
 
       try {
         const dia = format(new Date(), 'yyyy-MM-dd')
@@ -395,6 +399,21 @@ export default function Agenda() {
                       />
                     ))}
 
+                    {turmasAgenda.filter((t) => isSameDay(new Date(t.inicio), dia)).map((t) => (
+                      <div
+                        key={`turma-${t.turmaId}-${t.inicio}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title={`Turma: ${t.nome} · Prof. ${t.professor} · ${t.alunos} aluno(s)`}
+                        className="absolute left-0.5 right-0.5 rounded-lg border-l-4 border-purple-700 bg-purple-500 px-2 py-1 text-left text-white text-[11px] leading-tight shadow-sm"
+                        style={estiloBloco(t)}
+                      >
+                        <p className="font-semibold truncate">Turma: {t.nome}</p>
+                        <p className="truncate opacity-90">
+                          {format(new Date(t.inicio), 'HH:mm')}–{format(new Date(t.fim), 'HH:mm')} · {t.professor}
+                        </p>
+                      </div>
+                    ))}
+
                     {reservasDoDia(dia).map((r) => {
                       const statusPagamento = pagamentosPorReserva[r.id] || 'PENDENTE'
                       const cancelada = r.status === 'CANCELADA' || r.status === 'NAO_COMPARECEU'
@@ -428,6 +447,7 @@ export default function Agenda() {
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500 inline-block" /> Parcial</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-araca-azul-claro inline-block" /> Pendente</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-300 inline-block" /> Cancelada</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-purple-500 inline-block" /> Turma (aula em grupo)</span>
       </div>
 
       {recorrencias.length > 0 && (
