@@ -57,7 +57,7 @@ public class PortalReservaService {
     public List<PortalQuadraResponse> listarQuadrasDisponiveis() {
         return quadraRepository.findAll().stream()
                 .filter(q -> q.getStatus() == StatusQuadra.DISPONIVEL)
-                .map(q -> new PortalQuadraResponse(q.getId(), q.getNome(), q.getTipo().name(), q.getValorHora(), q.getCapacidade()))
+                .map(q -> new PortalQuadraResponse(q.getId(), q.getNome(), q.getTipo(), q.getValorHora(), q.getCapacidade()))
                 .toList();
     }
 

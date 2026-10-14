@@ -9,4 +9,6 @@ public interface TurmaRepository extends JpaRepository<Turma, Long> {
     List<Turma> findByAtivaTrue();
 
     boolean existsByProfessorId(Long professorId);
+
+    boolean existsByTipo(String tipo);
 }

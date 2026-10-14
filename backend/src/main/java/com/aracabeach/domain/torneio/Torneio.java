@@ -1,6 +1,7 @@
 package com.aracabeach.domain.torneio;
 
-import com.aracabeach.domain.quadra.TipoQuadra;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,9 +29,10 @@ public class Torneio {
     @Column(nullable = false, length = 120)
     private String nome;
 
-    @Enumerated(EnumType.STRING)
+    /** Codigo da modalidade (ver Modalidade.codigo). */
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
-    private TipoQuadra modalidade;
+    private String modalidade;
 
     @Column(nullable = false)
     private LocalDate dataInicio;

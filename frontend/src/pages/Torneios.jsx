@@ -2,20 +2,17 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { torneioService, chaveamentoService } from '../services/torneioService.js'
 import { Trophy } from 'lucide-react'
-
-const MODALIDADES = [
-  { value: 'VOLEI', label: 'Vôlei' },
-  { value: 'FUTEVOLEI', label: 'Futevôlei' },
-  { value: 'BEACH_TENNIS', label: 'Beach Tennis' },
-]
+import { useModalidades } from '../utils/useModalidades.js'
 
 const CATEGORIAS_SUGERIDAS = {
   VOLEI: ['Masculino', 'Feminino', 'Misto'],
   FUTEVOLEI: ['Masculino A', 'Masculino B', 'Feminino', 'Dupla Mista'],
   BEACH_TENNIS: ['Masculino A', 'Masculino B', 'Feminino A', 'Feminino B', 'Dupla Mista'],
 }
+const CATEGORIAS_PADRAO = ['Masculino', 'Feminino', 'Misto']
 
 export default function Torneios() {
+  const { modalidades: MODALIDADES } = useModalidades()
   const [torneios, setTorneios] = useState([])
   const [selecionado, setSelecionado] = useState(null)
   const [inscricoes, setInscricoes] = useState([])
@@ -23,6 +20,13 @@ export default function Torneios() {
 
   const [formTorneio, setFormTorneio] = useState({ nome: '', modalidade: 'BEACH_TENNIS', dataInicio: '', dataFim: '', categorias: [] })
   const [categoriaParaAdicionar, setCategoriaParaAdicionar] = useState('')
+
+  // Se a modalidade padrao do formulario nao existir (ex.: foi removida), usa a primeira cadastrada.
+  useEffect(() => {
+    if (MODALIDADES.length && !MODALIDADES.some((m) => m.value === formTorneio.modalidade)) {
+      setFormTorneio((f) => ({ ...f, modalidade: MODALIDADES[0].value }))
+    }
+  }, [MODALIDADES]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [categoriaChaveamento, setCategoriaChaveamento] = useState('')
   const [confrontos, setConfrontos] = useState([])
@@ -224,7 +228,7 @@ export default function Torneios() {
               onChange={(e) => adicionarCategoria(e.target.value)}
             >
               <option value="">Escolher categoria sugerida...</option>
-              {(CATEGORIAS_SUGERIDAS[formTorneio.modalidade] || [])
+              {(CATEGORIAS_SUGERIDAS[formTorneio.modalidade] || CATEGORIAS_PADRAO)
                 .filter((c) => !formTorneio.categorias.includes(c))
                 .map((c) => <option key={c} value={c}>{c}</option>)}
             </select>

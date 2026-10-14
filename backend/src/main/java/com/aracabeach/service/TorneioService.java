@@ -19,9 +19,11 @@ public class TorneioService {
 
     private final TorneioRepository torneioRepository;
     private final InscricaoRepository inscricaoRepository;
+    private final ModalidadeService modalidadeService;
 
     @Transactional
     public Torneio criar(TorneioRequest request) {
+        modalidadeService.exigir(request.modalidade());
         Torneio torneio = Torneio.builder()
                 .nome(request.nome())
                 .modalidade(request.modalidade())

@@ -5,6 +5,7 @@ import { pacoteService } from '../services/pacoteService.js'
 import { clienteService } from '../services/clienteService.js'
 import { professorService } from '../services/professorService.js'
 import { quadraService } from '../services/quadraService.js'
+import { useModalidades } from '../utils/useModalidades.js'
 
 const FORMAS = [
   { value: 'PIX', label: 'Pix' },
@@ -13,12 +14,6 @@ const FORMAS = [
   { value: 'CARTAO_DEBITO', label: 'Cartão de débito' },
 ]
 
-const TIPOS = [
-  { value: '', label: 'Qualquer modalidade' },
-  { value: 'VOLEI', label: 'Vôlei' },
-  { value: 'FUTEVOLEI', label: 'Futevôlei' },
-  { value: 'BEACH_TENNIS', label: 'Beach Tennis' },
-]
 
 const SITUACAO_COR = {
   ATIVO: 'bg-green-100 text-green-700',
@@ -39,6 +34,8 @@ const input = 'w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-
 const brl = (v) => `R$ ${Number(v).toFixed(2).replace('.', ',')}`
 
 export default function Pacotes() {
+  const { modalidades } = useModalidades()
+  const TIPOS = [{ value: '', label: 'Qualquer modalidade' }, ...modalidades]
   const [aba, setAba] = useState('vendas')
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')

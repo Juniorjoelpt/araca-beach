@@ -2,6 +2,7 @@ package com.aracabeach.controller;
 
 import com.aracabeach.domain.quadra.Quadra;
 import com.aracabeach.repository.QuadraRepository;
+import com.aracabeach.service.ModalidadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 public class QuadraController {
 
     private final QuadraRepository quadraRepository;
+    private final ModalidadeService modalidadeService;
 
     @GetMapping
     public List<Quadra> listar() {
@@ -22,11 +24,13 @@ public class QuadraController {
 
     @PostMapping
     public Quadra criar(@Valid @RequestBody Quadra quadra) {
+        modalidadeService.exigir(quadra.getTipo());
         return quadraRepository.save(quadra);
     }
 
     @PutMapping("/{id}")
     public Quadra atualizar(@PathVariable Long id, @Valid @RequestBody Quadra quadra) {
+        modalidadeService.exigir(quadra.getTipo());
         quadra.setId(id);
         return quadraRepository.save(quadra);
     }

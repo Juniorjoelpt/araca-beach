@@ -21,6 +21,7 @@ import java.util.List;
 public class ProfessorController {
 
     private final ProfessorRepository professorRepository;
+    private final com.aracabeach.service.ModalidadeService modalidadeService;
     private final AulaRepository aulaRepository;
     private final TurmaRepository turmaRepository;
     private final AulaPacoteRepository aulaPacoteRepository;
@@ -33,6 +34,7 @@ public class ProfessorController {
 
     @PostMapping
     public Professor criar(@Valid @RequestBody ProfessorRequest request) {
+        modalidadeService.exigir(request.especialidade());
         Professor professor = Professor.builder()
                 .nome(request.nome())
                 .telefone(request.telefone())
@@ -47,6 +49,7 @@ public class ProfessorController {
     public Professor atualizar(@PathVariable Long id, @Valid @RequestBody ProfessorRequest request) {
         Professor professor = professorRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Professor nao encontrado: " + id));
+        modalidadeService.exigir(request.especialidade());
         professor.setNome(request.nome());
         professor.setTelefone(request.telefone());
         professor.setEspecialidade(request.especialidade());

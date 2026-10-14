@@ -6,6 +6,7 @@ import { aulaService } from '../services/aulaService.js'
 import { turmaService, matriculaService } from '../services/turmaService.js'
 import { clienteService } from '../services/clienteService.js'
 import { GraduationCap, Users2 } from 'lucide-react'
+import { useModalidades } from '../utils/useModalidades.js'
 
 const DIAS_SEMANA = [
   { value: 'MONDAY', label: 'Segunda' },
@@ -17,18 +18,13 @@ const DIAS_SEMANA = [
   { value: 'SUNDAY', label: 'Domingo' },
 ]
 
-const ESPECIALIDADES = [
-  { value: 'VOLEI', label: 'Vôlei' },
-  { value: 'FUTEVOLEI', label: 'Futevôlei' },
-  { value: 'BEACH_TENNIS', label: 'Beach Tennis' },
-]
-
 const TIPOS_AULA = [
   { value: 'PARTICULAR', label: 'Particular' },
   { value: 'TURMA', label: 'Turma' },
 ]
 
 export default function Aulas() {
+  const { modalidades: ESPECIALIDADES } = useModalidades()
   const [aba, setAba] = useState('avulsas')
 
   const [professores, setProfessores] = useState([])
@@ -62,6 +58,14 @@ export default function Aulas() {
     horaInicio: '08:00', horaFim: '09:00', capacidadeMaxima: '',
   })
   const [turmaExpandidaId, setTurmaExpandidaId] = useState(null)
+
+  // Se a modalidade padrao dos formularios nao existir (ex.: foi removida), usa a primeira cadastrada.
+  useEffect(() => {
+    if (!ESPECIALIDADES.length) return
+    const existe = (v) => ESPECIALIDADES.some((e) => e.value === v)
+    setFormProfessor((f) => (existe(f.especialidade) ? f : { ...f, especialidade: ESPECIALIDADES[0].value }))
+    setFormTurma((f) => (existe(f.tipo) ? f : { ...f, tipo: ESPECIALIDADES[0].value }))
+  }, [ESPECIALIDADES]) // eslint-disable-line react-hooks/exhaustive-deps
   const [matriculasPorTurma, setMatriculasPorTurma] = useState({})
   const [pagamentosPorMatricula, setPagamentosPorMatricula] = useState({})
   const [formMatricula, setFormMatricula] = useState({ clienteId: '', valorMensal: '', diaVencimento: 10 })

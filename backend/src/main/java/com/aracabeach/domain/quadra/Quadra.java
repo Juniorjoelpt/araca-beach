@@ -1,6 +1,9 @@
 package com.aracabeach.domain.quadra;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,9 +28,11 @@ public class Quadra {
     @Column(nullable = false, length = 80)
     private String nome;
 
-    @Enumerated(EnumType.STRING)
+    /** Codigo da modalidade (ver Modalidade.codigo), ex.: BEACH_TENNIS. */
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
-    private TipoQuadra tipo;
+    @NotBlank
+    private String tipo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

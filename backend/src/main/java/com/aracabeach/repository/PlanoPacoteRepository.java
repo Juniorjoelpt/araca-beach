@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PlanoPacoteRepository extends JpaRepository<PlanoPacote, Long> {
     List<PlanoPacote> findByAtivoTrueOrderByNomeAsc();
+
+    boolean existsByTipo(String tipo);
 }

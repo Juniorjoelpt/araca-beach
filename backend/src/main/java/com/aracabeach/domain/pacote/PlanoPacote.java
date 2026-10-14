@@ -26,7 +26,7 @@ public class PlanoPacote {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    /** Modalidade (mesmos valores de TipoQuadra) ou vazio para qualquer. */
+    /** Modalidade (codigo de Modalidade) ou vazio para qualquer. */
     @Column(length = 20)
     private String tipo;
 

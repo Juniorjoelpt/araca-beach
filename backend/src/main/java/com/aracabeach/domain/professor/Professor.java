@@ -1,6 +1,7 @@
 package com.aracabeach.domain.professor;
 
-import com.aracabeach.domain.quadra.TipoQuadra;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,9 +30,10 @@ public class Professor {
     @Column(length = 20)
     private String telefone;
 
-    @Enumerated(EnumType.STRING)
+    /** Codigo da modalidade (ver Modalidade.codigo). */
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
-    private TipoQuadra especialidade;
+    private String especialidade;
 
     @Column(name = "percentual_comissao", precision = 5, scale = 2)
     private BigDecimal percentualComissao;
