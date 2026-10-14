@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Package, GraduationCap } from 'lucide-react'
 
+import { resumoHorarios } from '../../utils/horariosTurma.js'
 import { portalReservaService } from '../../services/portalReservaService.js'
 
 const DIA = {
@@ -122,7 +123,7 @@ export default function PortalAulas() {
             {turmas.map((t) => (
               <div key={t.matriculaId} className="bg-white rounded-xl shadow p-4">
                 <p className="font-semibold text-araca-azul">{t.turmaNome}</p>
-                <p className="text-sm text-gray-600">{DIA[t.diaSemana] || t.diaSemana} · {t.horaInicio.slice(0, 5)}–{t.horaFim.slice(0, 5)}</p>
+                <p className="text-sm text-gray-600">{resumoHorarios(t.horarios?.length ? t.horarios : [{ diaSemana: t.diaSemana, horaInicio: t.horaInicio, horaFim: t.horaFim }])}</p>
                 <p className="text-xs text-gray-500">Prof. {t.professorNome} · {t.quadraNome}</p>
               </div>
             ))}

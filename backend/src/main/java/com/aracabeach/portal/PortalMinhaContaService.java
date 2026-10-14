@@ -91,9 +91,12 @@ public class PortalMinhaContaService {
                         m.getTurma().getTipo(),
                         m.getTurma().getProfessor().getNome(),
                         m.getTurma().getQuadra().getNome(),
-                        m.getTurma().getDiaSemana().name(),
-                        m.getTurma().getHoraInicio(),
-                        m.getTurma().getHoraFim()))
+                        m.getTurma().horariosEfetivos().get(0).getDiaSemana().name(),
+                        m.getTurma().horariosEfetivos().get(0).getHoraInicio(),
+                        m.getTurma().horariosEfetivos().get(0).getHoraFim(),
+                        m.getTurma().horariosEfetivos().stream()
+                                .map(h -> new PortalTurmaResponse.Horario(h.getDiaSemana().name(), h.getHoraInicio(), h.getHoraFim()))
+                                .toList()))
                 .toList();
     }
 }

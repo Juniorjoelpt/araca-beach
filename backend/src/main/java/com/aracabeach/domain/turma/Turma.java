@@ -11,6 +11,9 @@ import lombok.Setter;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Uma turma e uma aula em grupo que se repete toda semana no mesmo dia e
@@ -49,6 +52,7 @@ public class Turma {
     @JoinColumn(name = "quadra_id", nullable = false)
     private Quadra quadra;
 
+    // Primeiro horario da turma (mantido por compatibilidade). Os horarios reais ficam em `horarios`.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DayOfWeek diaSemana;
@@ -59,10 +63,25 @@ public class Turma {
     @Column(nullable = false)
     private LocalTime horaFim;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<TurmaHorario> horarios = new ArrayList<>();
+
     // Nulo = sem limite de vagas.
     private Integer capacidadeMaxima;
 
     @Builder.Default
     @Column(nullable = false)
     private boolean ativa = true;
+
+    /** Todos os horarios da turma, ordenados; turmas antigas (sem linhas em horarios) usam o dia/horario original. */
+    public List<TurmaHorario> horariosEfetivos() {
+        if (horarios == null || horarios.isEmpty()) {
+            return List.of(TurmaHorario.builder().diaSemana(diaSemana).horaInicio(horaInicio).horaFim(horaFim).build());
+        }
+        return horarios.stream()
+                .sorted(Comparator.comparing((TurmaHorario h) -> h.getDiaSemana().getValue()).thenComparing(TurmaHorario::getHoraInicio))
+                .toList();
+    }
 }

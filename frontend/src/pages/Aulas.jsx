@@ -7,6 +7,7 @@ import { turmaService, matriculaService } from '../services/turmaService.js'
 import { clienteService } from '../services/clienteService.js'
 import { GraduationCap, Users2 } from 'lucide-react'
 import { useModalidades } from '../utils/useModalidades.js'
+import { blocosParaHorarios, horariosParaBlocos, resumoHorarios } from '../utils/horariosTurma.js'
 
 const DIAS_SEMANA = [
   { value: 'MONDAY', label: 'Segunda' },
@@ -53,10 +54,25 @@ export default function Aulas() {
   const [turmas, setTurmas] = useState([])
   const [clientes, setClientes] = useState([])
   const [carregandoTurmas, setCarregandoTurmas] = useState(true)
+  const blocoVazio = () => ({ dias: ['MONDAY'], horaInicio: '08:00', horaFim: '09:00' })
   const [formTurma, setFormTurma] = useState({
-    nome: '', tipo: 'VOLEI', professorId: '', quadraId: '', diaSemana: 'MONDAY',
-    horaInicio: '08:00', horaFim: '09:00', capacidadeMaxima: '',
+    nome: '', tipo: 'VOLEI', professorId: '', quadraId: '',
+    blocos: [blocoVazio()], capacidadeMaxima: '',
   })
+
+  function atualizarBloco(i, mudanca) {
+    setFormTurma((f) => ({ ...f, blocos: f.blocos.map((b, j) => (j === i ? { ...b, ...mudanca } : b)) }))
+  }
+  function alternarDia(i, dia) {
+    setFormTurma((f) => ({
+      ...f,
+      blocos: f.blocos.map((b, j) => {
+        if (j !== i) return b
+        const dias = b.dias.includes(dia) ? b.dias.filter((d) => d !== dia) : [...b.dias, dia]
+        return { ...b, dias }
+      }),
+    }))
+  }
   const [turmaExpandidaId, setTurmaExpandidaId] = useState(null)
 
   // Se a modalidade padrao dos formularios nao existir (ex.: foi removida), usa a primeira cadastrada.
@@ -86,8 +102,14 @@ export default function Aulas() {
     e.preventDefault()
     setErro('')
     try {
+      if (formTurma.blocos.some((b) => b.dias.length === 0)) {
+        setErro('Marque ao menos um dia da semana em cada horário.')
+        return
+      }
+      const { blocos, ...resto } = formTurma
       const dados = {
-        ...formTurma,
+        ...resto,
+        horarios: blocosParaHorarios(blocos),
         professorId: Number(formTurma.professorId),
         quadraId: Number(formTurma.quadraId),
         capacidadeMaxima: formTurma.capacidadeMaxima ? Number(formTurma.capacidadeMaxima) : null,
@@ -95,7 +117,7 @@ export default function Aulas() {
       if (editTurmaId) await turmaService.atualizar(editTurmaId, dados)
       else await turmaService.criar(dados)
       setEditTurmaId(null)
-      setFormTurma({ ...formTurma, nome: '', capacidadeMaxima: '' })
+      setFormTurma({ ...formTurma, nome: '', capacidadeMaxima: '', blocos: [blocoVazio()] })
       carregarTurmas()
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível criar a turma.')
@@ -106,7 +128,7 @@ export default function Aulas() {
     setEditTurmaId(t.id)
     setFormTurma({
       nome: t.nome, tipo: t.tipo, professorId: String(t.professorId), quadraId: String(t.quadraId),
-      diaSemana: t.diaSemana, horaInicio: String(t.horaInicio).slice(0, 5), horaFim: String(t.horaFim).slice(0, 5),
+      blocos: horariosParaBlocos(t.horarios?.length ? t.horarios : [{ diaSemana: t.diaSemana, horaInicio: t.horaInicio, horaFim: t.horaFim }]),
       capacidadeMaxima: t.capacidadeMaxima ?? '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -114,7 +136,7 @@ export default function Aulas() {
 
   function cancelarEdicaoTurma() {
     setEditTurmaId(null)
-    setFormTurma({ nome: '', tipo: 'VOLEI', professorId: '', quadraId: '', diaSemana: 'MONDAY', horaInicio: '08:00', horaFim: '09:00', capacidadeMaxima: '' })
+    setFormTurma({ nome: '', tipo: ESPECIALIDADES[0]?.value ?? 'VOLEI', professorId: '', quadraId: '', blocos: [blocoVazio()], capacidadeMaxima: '' })
   }
 
   async function handleExcluirTurma(turma) {
@@ -646,27 +668,6 @@ export default function Aulas() {
                 <option value="">Selecione a quadra...</option>
                 {quadras.map((q) => <option key={q.id} value={q.id}>{q.nome}</option>)}
               </select>
-              <select
-                className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-                value={formTurma.diaSemana}
-                onChange={(e) => setFormTurma({ ...formTurma, diaSemana: e.target.value })}
-              >
-                {DIAS_SEMANA.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-              </select>
-              <div className="flex gap-3">
-                <input
-                  type="time"
-                  className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-                  value={formTurma.horaInicio}
-                  onChange={(e) => setFormTurma({ ...formTurma, horaInicio: e.target.value })}
-                />
-                <input
-                  type="time"
-                  className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-                  value={formTurma.horaFim}
-                  onChange={(e) => setFormTurma({ ...formTurma, horaFim: e.target.value })}
-                />
-              </div>
               <input
                 type="number"
                 min="1"
@@ -675,6 +676,62 @@ export default function Aulas() {
                 value={formTurma.capacidadeMaxima}
                 onChange={(e) => setFormTurma({ ...formTurma, capacidadeMaxima: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Horários da turma</p>
+              {formTurma.blocos.map((b, i) => (
+                <div key={i} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap gap-1">
+                    {DIAS_SEMANA.map((d) => (
+                      <button
+                        type="button"
+                        key={d.value}
+                        onClick={() => alternarDia(i, d.value)}
+                        className={`px-2.5 py-1 rounded-full text-xs border ${b.dias.includes(d.value) ? 'bg-araca-azul text-white border-araca-azul' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                      >
+                        {d.label.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      className="border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                      value={b.horaInicio}
+                      onChange={(e) => atualizarBloco(i, { horaInicio: e.target.value })}
+                      required
+                    />
+                    <span className="text-gray-400">às</span>
+                    <input
+                      type="time"
+                      className="border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                      value={b.horaFim}
+                      onChange={(e) => atualizarBloco(i, { horaFim: e.target.value })}
+                      required
+                    />
+                  </div>
+                  {formTurma.blocos.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setFormTurma((f) => ({ ...f, blocos: f.blocos.filter((_, j) => j !== i) }))}
+                      className="text-red-600 text-sm hover:underline ml-auto"
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFormTurma((f) => {
+                  const ultimo = f.blocos[f.blocos.length - 1]
+                  return { ...f, blocos: [...f.blocos, { dias: [...ultimo.dias], horaInicio: ultimo.horaFim, horaFim: ultimo.horaFim }] }
+                })}
+                className="text-araca-azul text-sm font-medium hover:underline"
+              >
+                + Adicionar outro horário
+              </button>
+              <p className="text-xs text-gray-500">Marque os dias e informe início e fim. Use "Adicionar outro horário" para horários separados (ex.: 17h, 18h e 20h nos mesmos dias).</p>
             </div>
             <div className="flex gap-2">
               <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
@@ -699,7 +756,7 @@ export default function Aulas() {
                     <div>
                       <p className="font-medium text-araca-azul">{t.nome}</p>
                       <p className="text-sm text-gray-500">
-                        {DIAS_SEMANA.find((d) => d.value === t.diaSemana)?.label} · {t.horaInicio}–{t.horaFim} ·{' '}
+                        {resumoHorarios(t.horarios?.length ? t.horarios : [{ diaSemana: t.diaSemana, horaInicio: t.horaInicio, horaFim: t.horaFim }])} ·{' '}
                         {t.professorNome} · {t.quadraNome} · {t.matriculasAtivas}
                         {t.capacidadeMaxima ? `/${t.capacidadeMaxima}` : ''} aluno(s)
                       </p>

@@ -1,11 +1,12 @@
 package com.aracabeach.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
+import java.util.List;
 
 public record TurmaRequest(
         @NotBlank String nome,
@@ -16,9 +17,8 @@ public record TurmaRequest(
         @NotBlank String tipo,
         @NotNull Long professorId,
         @NotNull Long quadraId,
-        @NotNull DayOfWeek diaSemana,
-        @NotNull LocalTime horaInicio,
-        @NotNull LocalTime horaFim,
+        // Um ou mais horarios semanais (ex.: seg/qua/sex as 17h, 18h e 20h).
+        @NotEmpty @Valid List<TurmaHorarioDto> horarios,
         @Min(1) Integer capacidadeMaxima
 ) {
 }
