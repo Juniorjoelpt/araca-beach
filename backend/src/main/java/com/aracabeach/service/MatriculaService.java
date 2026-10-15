@@ -80,6 +80,7 @@ public class MatriculaService {
                 .valorMensal(request.valorMensal())
                 .diaVencimento(request.diaVencimento())
                 .ativa(true)
+                .formaPagamento(request.formaPagamento())
                 .build();
         matricula = matriculaRepository.save(matricula);
 
@@ -120,6 +121,35 @@ public class MatriculaService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada: " + id));
         matricula.setAtiva(false);
         matriculaRepository.save(matricula);
+    }
+
+    @Transactional
+    public MatriculaResponse atualizarFormaPagamento(Long id, com.aracabeach.domain.financeiro.FormaPagamento forma) {
+        Matricula matricula = matriculaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada: " + id));
+        matricula.setFormaPagamento(forma);
+        return paraResponse(matriculaRepository.save(matricula));
+    }
+
+    /** Situacao do mes atual de todas as matriculas ativas (pagina Financeiro). */
+    @Transactional
+    public List<com.aracabeach.dto.MatriculaFinanceiroResponse> financeiroDoMes() {
+        YearMonth mes = YearMonth.now();
+        LocalDate hoje = LocalDate.now();
+        List<com.aracabeach.dto.MatriculaFinanceiroResponse> lista = new java.util.ArrayList<>();
+        for (Matricula m : matriculaRepository.findByAtivaTrue()) {
+            gerarCobrancaDoMes(m, mes);
+            PagamentoMatricula p = pagamentoMatriculaRepository
+                    .findByMatriculaIdAndReferenciaMes(m.getId(), mes.toString()).orElse(null);
+            if (p == null) continue;
+            lista.add(new com.aracabeach.dto.MatriculaFinanceiroResponse(
+                    m.getId(), p.getId(), m.getCliente().getNome(), m.getTurma().getNome(),
+                    p.getReferenciaMes(), p.getValor(), p.getVencimento(), p.isPago(),
+                    !p.isPago() && p.getVencimento().isBefore(hoje),
+                    p.getDataPagamento(), p.isPago() ? p.getFormaPagamento() : m.getFormaPagamento()));
+        }
+        lista.sort(java.util.Comparator.comparing(com.aracabeach.dto.MatriculaFinanceiroResponse::clienteNome));
+        return lista;
     }
 
     @Transactional(readOnly = true)
@@ -237,7 +267,8 @@ public class MatriculaService {
                 m.getDataMatricula(),
                 m.getValorMensal(),
                 m.getDiaVencimento(),
-                m.isAtiva()
+                m.isAtiva(),
+                m.getFormaPagamento()
         );
     }
 

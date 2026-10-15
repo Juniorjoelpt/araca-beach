@@ -24,6 +24,13 @@ const TIPOS_AULA = [
   { value: 'TURMA', label: 'Turma' },
 ]
 
+const FORMAS_PAGAMENTO = [
+  { value: 'PIX', label: 'Pix' },
+  { value: 'CARTAO_CREDITO', label: 'Cartão de crédito' },
+  { value: 'CARTAO_DEBITO', label: 'Cartão de débito' },
+  { value: 'DINHEIRO', label: 'Dinheiro' },
+]
+
 export default function Aulas() {
   const { modalidades: ESPECIALIDADES } = useModalidades()
   const [aba, setAba] = useState('avulsas')
@@ -84,7 +91,7 @@ export default function Aulas() {
   }, [ESPECIALIDADES]) // eslint-disable-line react-hooks/exhaustive-deps
   const [matriculasPorTurma, setMatriculasPorTurma] = useState({})
   const [pagamentosPorMatricula, setPagamentosPorMatricula] = useState({})
-  const [formMatricula, setFormMatricula] = useState({ clienteId: '', valorMensal: '', diaVencimento: 10 })
+  const [formMatricula, setFormMatricula] = useState({ clienteId: '', valorMensal: '', diaVencimento: 10, formaPagamento: 'PIX' })
 
   async function carregarTurmas() {
     setCarregandoTurmas(true)
@@ -196,8 +203,9 @@ export default function Aulas() {
         clienteId: Number(formMatricula.clienteId),
         valorMensal: Number(formMatricula.valorMensal),
         diaVencimento: Number(formMatricula.diaVencimento),
+        formaPagamento: formMatricula.formaPagamento || null,
       })
-      setFormMatricula({ clienteId: '', valorMensal: '', diaVencimento: 10 })
+      setFormMatricula({ clienteId: '', valorMensal: '', diaVencimento: 10, formaPagamento: 'PIX' })
       carregarTurmas()
       setTurmaExpandidaId(turmaId)
       await carregarMatriculasDaTurma(turmaId)
@@ -220,9 +228,27 @@ export default function Aulas() {
     }
   }
 
+  function turmaIdDaMatricula(matriculaId) {
+    return Object.keys(matriculasPorTurma).find((tid) => (matriculasPorTurma[tid] || []).some((m) => m.id === matriculaId))
+  }
+
+  async function handleFormaPagamentoMatricula(matricula, forma) {
+    try {
+      const atualizada = await matriculaService.atualizarFormaPagamento(matricula.id, forma || null)
+      setMatriculasPorTurma((prev) => ({
+        ...prev,
+        [matricula.turmaId]: (prev[matricula.turmaId] || []).map((m) => (m.id === matricula.id ? atualizada : m)),
+      }))
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível alterar a forma de pagamento.')
+    }
+  }
+
   async function handlePagarMensalidade(pagamento) {
     try {
-      await matriculaService.registrarPagamento(pagamento.id, { formaPagamento: 'DINHEIRO' })
+      await matriculaService.registrarPagamento(pagamento.id, {
+        formaPagamento: (matriculasPorTurma[turmaIdDaMatricula(pagamento.matriculaId)] || []).find((m) => m.id === pagamento.matriculaId)?.formaPagamento || 'DINHEIRO',
+      })
       const atualizados = await matriculaService.listarPagamentos(pagamento.matriculaId)
       setPagamentosPorMatricula((prev) => ({ ...prev, [pagamento.matriculaId]: atualizados }))
     } catch (err) {
@@ -818,6 +844,16 @@ export default function Aulas() {
                             required
                           />
                         </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Forma de pagamento</label>
+                          <select
+                            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                            value={formMatricula.formaPagamento}
+                            onChange={(e) => setFormMatricula({ ...formMatricula, formaPagamento: e.target.value })}
+                          >
+                            {FORMAS_PAGAMENTO.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                          </select>
+                        </div>
                         <button type="submit" className="bg-araca-verde text-araca-azul text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
                           Matricular
                         </button>
@@ -835,6 +871,17 @@ export default function Aulas() {
                                 <p className="text-xs text-gray-500">
                                   R$ {Number(m.valorMensal).toFixed(2)}/mês · vencimento dia {m.diaVencimento}
                                 </p>
+                                <label className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                  Pagamento:
+                                  <select
+                                    className="border rounded px-1 py-0.5 text-xs"
+                                    value={m.formaPagamento || ''}
+                                    onChange={(e) => handleFormaPagamentoMatricula(m, e.target.value)}
+                                  >
+                                    <option value="">Não definida</option>
+                                    {FORMAS_PAGAMENTO.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                                  </select>
+                                </label>
                               </div>
                               <button
                                 onClick={() => handleCancelarMatricula(m)}

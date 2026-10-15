@@ -1,5 +1,7 @@
 package com.aracabeach.dto;
 
+import com.aracabeach.domain.financeiro.FormaPagamento;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -12,6 +14,7 @@ public record MatriculaResponse(
         LocalDate dataMatricula,
         BigDecimal valorMensal,
         int diaVencimento,
-        boolean ativa
+        boolean ativa,
+        FormaPagamento formaPagamento
 ) {
 }

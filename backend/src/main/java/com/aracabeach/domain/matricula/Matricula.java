@@ -2,6 +2,7 @@ package com.aracabeach.domain.matricula;
 
 import com.aracabeach.domain.cliente.Cliente;
 import com.aracabeach.domain.turma.Turma;
+import com.aracabeach.domain.financeiro.FormaPagamento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,6 +54,10 @@ public class Matricula {
     @Builder.Default
     @Column(nullable = false)
     private boolean ativa = true;
+
+    // Forma de pagamento combinada com o aluno (sugerida ao dar baixa).
+    @Enumerated(EnumType.STRING)
+    private FormaPagamento formaPagamento;
 
     // "yyyy-MM" do ultimo mes em que a cobranca ja foi gerada.
     private String ultimoMesGerado;

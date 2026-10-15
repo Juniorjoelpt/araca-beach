@@ -36,6 +36,7 @@ export default function Financeiro() {
   const [reservaSelecionada, setReservaSelecionada] = useState(null)
   const [pagamento, setPagamento] = useState({ valor: '', formaPagamento: 'PIX', ehSinal: false })
 
+  const [matriculas, setMatriculas] = useState([])
   const [cobrancas, setCobrancas] = useState([])
   const [carregandoCobrancas, setCarregandoCobrancas] = useState(true)
   const [cobrancaSelecionada, setCobrancaSelecionada] = useState(null)
@@ -103,6 +104,26 @@ export default function Financeiro() {
     }
   }
 
+  async function carregarMatriculas() {
+    try {
+      setMatriculas(await matriculaService.financeiro())
+    } catch {
+      setMatriculas([])
+    }
+  }
+
+  useEffect(() => {
+    carregarMatriculas()
+  }, [])
+
+  function pagarMatricula(m) {
+    setCobrancaSelecionada({
+      pagamentoId: m.pagamentoId, tipo: 'MATRICULA_TURMA', clienteNome: m.clienteNome,
+      descricao: `${m.turmaNome} - ${m.referenciaMes}`, valor: m.valor,
+    })
+    setFormaCobranca(m.formaPagamento || 'PIX')
+  }
+
   function abrirPagamentoCobranca(cobranca) {
     setCobrancaSelecionada(cobranca)
     setFormaCobranca('PIX')
@@ -124,6 +145,7 @@ export default function Financeiro() {
       }
       setCobrancaSelecionada(null)
       carregarCobrancas()
+      carregarMatriculas()
       carregar()
     } catch {
       setErro('Não foi possível registrar o pagamento dessa cobrança.')
@@ -209,6 +231,52 @@ export default function Financeiro() {
                     >
                       Marcar como pago
                     </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {matriculas.length > 0 && (
+        <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
+          <div className="px-4 py-3 bg-gray-50 border-b">
+            <h3 className="font-semibold text-araca-azul text-sm">
+              Matrículas de turmas — {matriculas[0].referenciaMes}
+            </h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600 text-left">
+              <tr>
+                <th className="px-4 py-2">Aluno</th>
+                <th className="px-4 py-2">Turma</th>
+                <th className="px-4 py-2">Vencimento</th>
+                <th className="px-4 py-2">Valor</th>
+                <th className="px-4 py-2">Forma</th>
+                <th className="px-4 py-2">Situação</th>
+                <th className="px-4 py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {matriculas.map((m) => (
+                <tr key={m.matriculaId} className="border-t">
+                  <td className="px-4 py-2 font-medium text-araca-azul">{m.clienteNome}</td>
+                  <td className="px-4 py-2">{m.turmaNome}</td>
+                  <td className="px-4 py-2">{format(new Date(m.vencimento + 'T00:00:00'), 'dd/MM/yyyy')}</td>
+                  <td className="px-4 py-2">R$ {Number(m.valor).toFixed(2)}</td>
+                  <td className="px-4 py-2">{FORMAS.find((x) => x.value === m.formaPagamento)?.label || '—'}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${m.pago ? badge.PAGO : m.vencida ? badge.PENDENTE : badge.PARCIAL}`}>
+                      {m.pago ? 'Pago' : m.vencida ? 'Vencida' : 'A vencer'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    {!m.pago && (
+                      <button onClick={() => pagarMatricula(m)} className="text-araca-verde-escuro hover:underline font-medium">
+                        Marcar como pago
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -35,6 +35,17 @@ public class MatriculaController {
         matriculaService.cancelar(id);
     }
 
+    @GetMapping("/financeiro")
+    public List<com.aracabeach.dto.MatriculaFinanceiroResponse> financeiro() {
+        return matriculaService.financeiroDoMes();
+    }
+
+    @PatchMapping("/{id}/forma-pagamento")
+    public MatriculaResponse atualizarFormaPagamento(@PathVariable Long id,
+            @RequestBody java.util.Map<String, com.aracabeach.domain.financeiro.FormaPagamento> corpo) {
+        return matriculaService.atualizarFormaPagamento(id, corpo.get("formaPagamento"));
+    }
+
     @GetMapping("/cliente/{clienteId}")
     public List<MatriculaResponse> listarPorCliente(@PathVariable Long clienteId) {
         return matriculaService.listarPorCliente(clienteId);

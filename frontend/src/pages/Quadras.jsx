@@ -10,6 +10,7 @@ const msgErro = (err, padrao) => err?.response?.data?.mensagem || padrao
 export default function Quadras() {
   const [quadras, setQuadras] = useState([])
   const [form, setForm] = useState(vazio)
+  const [editando, setEditando] = useState(null) // quadra em edição (objeto completo)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
 
@@ -47,16 +48,46 @@ export default function Quadras() {
     e.preventDefault()
     setErro('')
     try {
-      await quadraService.criar({
+      const dados = {
         ...form,
         valorHora: Number(form.valorHora),
         capacidade: form.capacidade ? Number(form.capacidade) : null,
-      })
-      setForm(vazio)
+      }
+      if (editando) {
+        // O PUT grava a quadra inteira: mantém status, foto e observações atuais.
+        await quadraService.atualizar(editando.id, {
+          ...dados,
+          status: form.status || editando.status,
+          fotoUrl: editando.fotoUrl ?? null,
+          observacoes: editando.observacoes ?? null,
+        })
+        setEditando(null)
+      } else {
+        await quadraService.criar(dados)
+      }
+      setForm({ ...vazio, tipo: modalidades[0]?.value || '' })
       carregar()
     } catch (err) {
       setErro(msgErro(err, 'Não foi possível salvar a quadra.'))
     }
+  }
+
+  function iniciarEdicao(q) {
+    setErro('')
+    setEditando(q)
+    setForm({
+      nome: q.nome,
+      tipo: q.tipo,
+      valorHora: String(q.valorHora),
+      capacidade: q.capacidade ?? '',
+      status: q.status,
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function cancelarEdicao() {
+    setEditando(null)
+    setForm({ ...vazio, tipo: modalidades[0]?.value || '' })
   }
 
   async function handleRemover(id) {
@@ -116,6 +147,12 @@ export default function Quadras() {
       </h2>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        {editando && (
+          <div className="md:col-span-5 flex items-center justify-between bg-araca-areia/60 rounded-lg px-3 py-2 text-sm text-araca-azul">
+            <span>Editando <strong>{editando.nome}</strong></span>
+            <button type="button" onClick={cancelarEdicao} className="text-gray-500 hover:underline">Cancelar edição</button>
+          </div>
+        )}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
           <input
@@ -175,7 +212,7 @@ export default function Quadras() {
             type="submit"
             className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition h-fit"
           >
-            Adicionar
+            {editando ? 'Salvar' : 'Adicionar'}
           </button>
         </div>
       </form>
@@ -258,7 +295,13 @@ export default function Quadras() {
                 <td className="px-4 py-3">R$ {Number(q.valorHora).toFixed(2)}</td>
                 <td className="px-4 py-3">{q.capacidade ?? '—'}</td>
                 <td className="px-4 py-3">{q.status}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right space-x-3">
+                  <button
+                    onClick={() => iniciarEdicao(q)}
+                    className="text-araca-azul hover:underline"
+                  >
+                    Editar
+                  </button>
                   <button
                     onClick={() => handleRemover(q.id)}
                     className="text-red-600 hover:underline"
