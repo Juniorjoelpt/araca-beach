@@ -4,6 +4,7 @@ import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
   GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp, Ticket,
 } from 'lucide-react'
+import AvisoVencimentos from './AvisoVencimentos.jsx'
 import { authService } from '../services/authService.js'
 import logoIcone from '../assets/logos/icone-256.png'
 import logoMarcaDagua from '../assets/logos/logo-transparente.png'
@@ -128,6 +129,7 @@ export default function Layout() {
           className="pointer-events-none select-none fixed bottom-0 right-0 z-0 w-[560px] max-w-[55vw] opacity-[0.10] -mb-10 -mr-10"
         />
         <div className="relative z-10">
+          <AvisoVencimentos />
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
