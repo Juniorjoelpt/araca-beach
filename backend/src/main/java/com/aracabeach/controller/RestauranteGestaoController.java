@@ -101,11 +101,6 @@ public class RestauranteGestaoController {
 
     // ---------- desconto e relatorio ----------
 
-    @PatchMapping("/comandas/{id}/desconto")
-    public ComandaResponse desconto(@PathVariable Long id, @Valid @RequestBody DescontoRequest request) {
-        return comandaService.aplicarDesconto(id, request);
-    }
-
     @GetMapping("/historico-pedidos")
     public HistoricoPedidosResponse historicoPedidos(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate inicio,

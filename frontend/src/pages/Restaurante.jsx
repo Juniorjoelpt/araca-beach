@@ -526,7 +526,7 @@ export default function Restaurante() {
                 {Number(selecionada.desconto) > 0 && (
                   <div className="flex justify-between text-green-700"><span>Desconto{selecionada.descontoMotivo ? ` (${selecionada.descontoMotivo})` : ''}</span><span>-{brl(selecionada.desconto)}</span></div>
                 )}
-                {ehAdmin && <button onClick={aplicarDesconto} className="text-xs underline text-gray-500">aplicar desconto</button>}
+                <button onClick={aplicarDesconto} className="text-xs underline text-gray-500">aplicar desconto</button>
                 <div className="flex justify-between font-bold text-base text-araca-azul"><span>Total</span><span>{brl(selecionada.total)}</span></div>
               </div>
               )}

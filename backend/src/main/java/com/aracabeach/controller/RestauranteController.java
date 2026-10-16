@@ -51,6 +51,11 @@ public class RestauranteController {
         return comandaService.lancarPedido(id, request);
     }
 
+    @PatchMapping("/comandas/{id}/desconto")
+    public ComandaResponse desconto(@PathVariable Long id, @Valid @RequestBody DescontoRequest request) {
+        return comandaService.aplicarDesconto(id, request);
+    }
+
     @PatchMapping("/comandas/{id}/itens/{itemId}/cortesia")
     public ComandaResponse cortesiaItem(@PathVariable Long id, @PathVariable Long itemId, @RequestParam boolean cortesia) {
         return comandaService.definirCortesiaItem(id, itemId, cortesia);

@@ -16,10 +16,6 @@ function categoriaInfo(value) {
   return CATEGORIAS.find((c) => c.value === value) || CATEGORIAS[3]
 }
 
-function usuarioAtual() {
-  try { return JSON.parse(localStorage.getItem('araca_beach_usuario') || 'null') } catch { return null }
-}
-
 const produtoVazio = { nome: '', categoria: 'BEBIDA', preco: '', custo: '', estoque: '', ehAluguel: false }
 
 export default function Loja() {
@@ -157,7 +153,6 @@ export default function Loja() {
     }
   }
 
-  const ehAdmin = usuarioAtual()?.perfil === 'ADMIN'
   const subtotalComanda = (comandaAtiva?.itens || []).reduce(
     (soma, item) => soma + (item.cortesia ? 0 : Number(item.precoUnitario) * item.quantidade),
     0
@@ -378,7 +373,7 @@ export default function Loja() {
                   </span>
                 )}
                 Total: R$ {totalComanda.toFixed(2)}
-                {ehAdmin && !comandaAtiva.fechada && (
+                {!comandaAtiva.fechada && (
                   <button type="button" onClick={handleDesconto} className="ml-2 text-xs font-normal underline text-gray-500">
                     {descontoComanda > 0 ? 'alterar desconto' : 'aplicar desconto'}
                   </button>
