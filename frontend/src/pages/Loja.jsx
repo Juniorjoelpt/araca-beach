@@ -358,7 +358,7 @@ export default function Loja() {
                     {item.cortesia
                       ? <span><s className="text-gray-400 mr-1">R$ {(Number(item.precoUnitario) * item.quantidade).toFixed(2)}</s>R$ 0,00</span>
                       : <span>R$ {(Number(item.precoUnitario) * item.quantidade).toFixed(2)}</span>}
-                    {ehAdmin && !comandaAtiva.fechada && (
+                    {!comandaAtiva.fechada && (
                       <button type="button" onClick={() => alternarCortesia(item)} title={item.cortesia ? 'Remover cortesia' : 'Dar como cortesia'}
                         className={item.cortesia ? 'text-purple-700' : 'text-gray-400 hover:text-purple-700'}>
                         <Gift size={16} />

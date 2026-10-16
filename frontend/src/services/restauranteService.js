@@ -36,6 +36,8 @@ export const restauranteService = {
   itens: () => api.get(`${gestao}/itens`).then((r) => r.data),
   criarItem: (d) => api.post(`${gestao}/itens`, d).then((r) => r.data),
   atualizarItem: (id, d) => api.put(`${gestao}/itens/${id}`, d).then((r) => r.data),
+  cortesiaItem: (id, itemId, cortesia) =>
+    api.patch(`${base}/comandas/${id}/itens/${itemId}/cortesia`, null, { params: { cortesia } }).then((r) => r.data),
   pausarItem: (id, pausado) => api.patch(`${gestao}/itens/${id}/pausa`, { pausado }).then((r) => r.data),
   definirFicha: (id, linhas, custoProducao) => api.put(`${gestao}/itens/${id}/ficha`, { linhas, custoProducao }).then((r) => r.data),
   insumos: () => api.get(`${gestao}/insumos`).then((r) => r.data),

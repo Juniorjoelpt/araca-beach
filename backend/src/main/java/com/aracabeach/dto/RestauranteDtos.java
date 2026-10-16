@@ -108,7 +108,7 @@ public final class RestauranteDtos {
 
     public record ItemPedidoResponse(Long id, Long itemId, String nome, int quantidade, BigDecimal precoUnitario,
                                      BigDecimal subtotal, String observacao, Praca praca, boolean cancelado,
-                                     String motivoCancelamento) {}
+                                     String motivoCancelamento, boolean cortesia, BigDecimal valorReferencia) {}
 
     public record PedidoResponse(Long id, int numero, LocalDateTime criadoEm, List<ItemPedidoResponse> itens, String lancadoPor) {}
 

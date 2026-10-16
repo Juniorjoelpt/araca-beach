@@ -54,7 +54,18 @@ public class ItemPedidoRestaurante {
     @Column(name = "motivo_cancelamento", length = 200)
     private String motivoCancelamento;
 
+    /** Item dado como cortesia: sai do estoque, mas nao e cobrado. */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean cortesia = false;
+
+    /** Valor cobrado do item (zero quando e cortesia). */
     public BigDecimal getSubtotal() {
+        return cortesia ? BigDecimal.ZERO : getValorReferencia();
+    }
+
+    /** Valor de tabela do item, mesmo sendo cortesia. */
+    public BigDecimal getValorReferencia() {
         return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
     }
 }

@@ -244,6 +244,31 @@ public class ComandaRestauranteService {
     }
 
     @Transactional
+    public ComandaResponse definirCortesiaItem(Long comandaId, Long itemPedidoId, boolean cortesia) {
+        ComandaRestaurante c = abertaOuErro(comandaId);
+        if (c.isCortesia()) {
+            throw new IllegalArgumentException("Esta comanda ja e de cortesia.");
+        }
+        ItemPedidoRestaurante alvo = c.getPedidos().stream()
+                .flatMap(p -> p.getItens().stream())
+                .filter(i -> i.getId().equals(itemPedidoId))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Item do pedido não encontrado: " + itemPedidoId));
+        if (alvo.isCancelado()) {
+            throw new IllegalArgumentException("Este item já foi cancelado.");
+        }
+        alvo.setCortesia(cortesia);
+        BigDecimal sub = subtotal(c);
+        BigDecimal limite = sub.add(taxa(c, sub));
+        if (c.getDescontoValor().compareTo(limite) > 0) {
+            c.setDescontoValor(limite);
+        }
+        auditoria.detalhe("Comanda #" + comandaId + ": " + (cortesia ? "cortesia" : "removeu cortesia de") + " "
+                + alvo.getQuantidade() + "x " + alvo.getNome() + " (R$ " + alvo.getValorReferencia() + ")");
+        return paraResponse(comandaRepository.save(c));
+    }
+
+    @Transactional
     public ComandaResponse aplicarDesconto(Long id, DescontoRequest r) {
         ComandaRestaurante c = abertaOuErro(id);
         if (c.isCortesia()) {
@@ -411,7 +436,7 @@ public class ComandaRestauranteService {
                 p.getId(), p.getNumero(), p.getCriadoEm(),
                 p.getItens().stream().map(i -> new ItemPedidoResponse(i.getId(), i.getItem().getId(), i.getNome(),
                         i.getQuantidade(), i.getPrecoUnitario(), i.getSubtotal(), i.getObservacao(), i.getPraca(),
-                        i.isCancelado(), i.getMotivoCancelamento())).toList(),
+                        i.isCancelado(), i.getMotivoCancelamento(), i.isCortesia(), i.getValorReferencia())).toList(),
                 p.getLancadoPor())).toList();
 
         List<PagamentoRestResponse> pagamentos = c.getPagamentos().stream()

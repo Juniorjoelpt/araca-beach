@@ -103,7 +103,7 @@ export function imprimirConta(comanda) {
       <div class="c forte">${esc(comanda.rotulo)}</div>
       <div class="c peq">Comanda #${comanda.id} · ${new Date().toLocaleString('pt-BR')}</div>
       <div class="linha"></div>
-      ${itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.nome)}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
+      ${itens.map((i) => `<div class="tot"><span>${i.quantidade}x ${esc(i.nome)}</span><span>${i.cortesia ? 'CORTESIA' : brl(i.subtotal)}</span></div>`).join('')}
       <div class="linha"></div>
       ${comanda.cortesia ? `
       <div class="tot"><span>Valor de referência</span><span>${brl(comanda.subtotal)}</span></div>

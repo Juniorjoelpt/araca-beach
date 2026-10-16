@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/regras/**").hasRole("ADMIN")
                         .requestMatchers("/api/pacotes/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/comissoes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/comandas/*/desconto", "/api/comandas/*/itens/*/cortesia").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/comandas/*/desconto").hasRole("ADMIN")
                         .requestMatchers("/api/dayuse/gestao/**").hasRole("ADMIN")
                         .requestMatchers("/api/dayuse/**").hasAnyRole("ADMIN", "RECEPCAO")
                         .requestMatchers("/api/lucro/**").hasRole("ADMIN")

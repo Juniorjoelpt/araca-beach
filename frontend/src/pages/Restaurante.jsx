@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { format, formatDistanceToNowStrict } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search, Ban, ScanBarcode } from 'lucide-react'
+import { Gift, UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search, Ban, ScanBarcode } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
 import { clienteService } from '../services/clienteService.js'
 import { imprimirPedido, imprimirConta, imprimirCancelamento, imprimirCancelamentoComanda } from '../utils/ticketTermico.js'
@@ -237,6 +237,11 @@ export default function Restaurante() {
 
   async function mudarTaxa(percentual) {
     const nova = await executar(() => restauranteService.taxaServico(selecionada.id, percentual))
+    if (nova) atualizarComanda(nova)
+  }
+
+  async function alternarCortesiaItem(item) {
+    const nova = await executar(() => restauranteService.cortesiaItem(selecionada.id, item.id, !item.cortesia))
     if (nova) atualizarComanda(nova)
   }
 
@@ -479,9 +484,14 @@ export default function Restaurante() {
                       <div key={i.id} className={`flex items-start justify-between gap-2 text-sm ${i.cancelado ? 'line-through text-gray-400' : ''}`}>
                         <span className="flex-1">
                           {i.quantidade}x {i.nome}
+                          {i.cortesia && !i.cancelado && <span className="ml-2 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full px-2 py-0.5 no-underline">Cortesia</span>}
                           {i.observacao && <span className="block text-xs text-gray-500 no-underline">» {i.observacao}</span>}
                         </span>
-                        <span>{brl(i.subtotal)}</span>
+                        <span>{i.cortesia && !i.cancelado ? <><s className="text-gray-400 mr-1">{brl(i.valorReferencia)}</s>{brl(0)}</> : brl(i.subtotal)}</span>
+                        {!i.cancelado && !selecionada.cortesia && (
+                          <button onClick={() => alternarCortesiaItem(i)} title={i.cortesia ? 'Remover cortesia' : 'Dar como cortesia'}
+                            className={`p-0.5 ${i.cortesia ? 'text-purple-700' : 'text-gray-400 hover:text-purple-700'}`}><Gift size={14} /></button>
+                        )}
                         {!i.cancelado && (
                           <button onClick={() => cancelarItem(i)} title="Cancelar item" className="text-red-500 p-0.5"><X size={14} /></button>
                         )}

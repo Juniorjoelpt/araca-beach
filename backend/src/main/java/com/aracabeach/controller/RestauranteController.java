@@ -51,6 +51,11 @@ public class RestauranteController {
         return comandaService.lancarPedido(id, request);
     }
 
+    @PatchMapping("/comandas/{id}/itens/{itemId}/cortesia")
+    public ComandaResponse cortesiaItem(@PathVariable Long id, @PathVariable Long itemId, @RequestParam boolean cortesia) {
+        return comandaService.definirCortesiaItem(id, itemId, cortesia);
+    }
+
     @DeleteMapping("/comandas/{id}/itens/{itemId}")
     public ComandaResponse cancelarItem(@PathVariable Long id, @PathVariable Long itemId,
                                         @RequestParam(required = false) String motivo) {
