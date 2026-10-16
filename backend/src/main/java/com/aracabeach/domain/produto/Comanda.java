@@ -58,10 +58,27 @@ public class Comanda {
     @Column(length = 120)
     private String operador;
 
+    @Column(name = "desconto_valor", precision = 10, scale = 2)
+    private BigDecimal descontoValor;
+
+    @Column(name = "desconto_motivo", length = 200)
+    private String descontoMotivo;
+
+    public BigDecimal getDescontoValor() {
+        return descontoValor == null ? BigDecimal.ZERO : descontoValor;
+    }
+
+    /** Soma dos itens cobrados (cortesias ficam de fora), antes do desconto. */
     @Transient
-    public BigDecimal getTotal() {
+    public BigDecimal getSubtotalItens() {
         return itens.stream()
                 .map(ItemComanda::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /** Total a pagar: itens cobrados menos o desconto (nunca negativo). */
+    @Transient
+    public BigDecimal getTotal() {
+        return getSubtotalItens().subtract(getDescontoValor()).max(BigDecimal.ZERO);
     }
 }

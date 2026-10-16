@@ -110,8 +110,7 @@ public class GerencialService {
         Map<LocalDate, BigDecimal> lojaPorDia = new HashMap<>();
         BigDecimal loja = BigDecimal.ZERO;
         for (var c : comandaRepository.findByFechadaTrueAndCriadoEmBetween(di, df)) {
-            BigDecimal total = c.getItens().stream().map(ItemComanda::getSubtotal)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal total = c.getTotal();
             loja = loja.add(total);
             lojaPorDia.merge(c.getCriadoEm().toLocalDate(), total, BigDecimal::add);
         }

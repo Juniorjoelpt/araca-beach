@@ -39,6 +39,20 @@ public class ComandaController {
         return comandaService.adicionarItem(id, request);
     }
 
+    @PatchMapping("/{id}/itens/{itemId}/cortesia")
+    public Comanda cortesiaItem(@PathVariable Long id, @PathVariable Long itemId,
+                                @RequestParam boolean cortesia) {
+        return comandaService.definirCortesiaItem(id, itemId, cortesia);
+    }
+
+    @PatchMapping("/{id}/desconto")
+    public Comanda desconto(@PathVariable Long id, @RequestBody java.util.Map<String, Object> corpo) {
+        Object v = corpo.get("valor");
+        java.math.BigDecimal valor = v == null || v.toString().isBlank() ? null : new java.math.BigDecimal(v.toString());
+        Object m = corpo.get("motivo");
+        return comandaService.aplicarDesconto(id, valor, m == null ? null : m.toString());
+    }
+
     @PatchMapping("/{id}/fechar")
     public Comanda fechar(@PathVariable Long id,
                           @RequestParam(required = false) com.aracabeach.domain.financeiro.FormaPagamento forma) {

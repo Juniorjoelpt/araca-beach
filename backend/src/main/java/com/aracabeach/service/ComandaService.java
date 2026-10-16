@@ -83,6 +83,40 @@ public class ComandaService {
     }
 
     @Transactional
+    public Comanda definirCortesiaItem(Long comandaId, Long itemId, boolean cortesia) {
+        Comanda comanda = buscarPorId(comandaId);
+        if (comanda.isFechada()) {
+            throw new IllegalArgumentException("Esta comanda ja foi fechada.");
+        }
+        ItemComanda item = comanda.getItens().stream()
+                .filter(i -> i.getId().equals(itemId)).findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Item nao encontrado: " + itemId));
+        item.setCortesia(cortesia);
+        // O desconto nao pode passar do que ainda e cobrado.
+        if (comanda.getDescontoValor().compareTo(comanda.getSubtotalItens()) > 0) {
+            comanda.setDescontoValor(comanda.getSubtotalItens());
+        }
+        return comandaRepository.save(comanda);
+    }
+
+    @Transactional
+    public Comanda aplicarDesconto(Long comandaId, BigDecimal valor, String motivo) {
+        Comanda comanda = buscarPorId(comandaId);
+        if (comanda.isFechada()) {
+            throw new IllegalArgumentException("Esta comanda ja foi fechada.");
+        }
+        if (valor == null || valor.signum() < 0) {
+            throw new IllegalArgumentException("Valor de desconto invalido.");
+        }
+        if (valor.compareTo(comanda.getSubtotalItens()) > 0) {
+            throw new IllegalArgumentException("O desconto nao pode ser maior que o total da comanda.");
+        }
+        comanda.setDescontoValor(valor);
+        comanda.setDescontoMotivo(motivo == null || motivo.isBlank() ? null : motivo.trim());
+        return comandaRepository.save(comanda);
+    }
+
+    @Transactional
     public Comanda fechar(Long comandaId, FormaPagamento forma) {
         Comanda comanda = buscarPorId(comandaId);
         if (comanda.isFechada()) {

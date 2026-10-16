@@ -3,7 +3,7 @@ import { clienteService } from '../services/clienteService.js'
 import { produtoService } from '../services/produtoService.js'
 import { comandaService } from '../services/comandaService.js'
 import { imprimirComprovanteLoja } from '../utils/ticketTermico.js'
-import { ShoppingBag, Plus, Pencil, Trash2, X, Wine, UtensilsCrossed, Dumbbell, Package, Printer } from 'lucide-react'
+import { Gift, ShoppingBag, Plus, Pencil, Trash2, X, Wine, UtensilsCrossed, Dumbbell, Package, Printer } from 'lucide-react'
 
 const CATEGORIAS = [
   { value: 'BEBIDA', label: 'Bebida', icon: Wine },
@@ -14,6 +14,10 @@ const CATEGORIAS = [
 
 function categoriaInfo(value) {
   return CATEGORIAS.find((c) => c.value === value) || CATEGORIAS[3]
+}
+
+function usuarioAtual() {
+  try { return JSON.parse(localStorage.getItem('araca_beach_usuario') || 'null') } catch { return null }
 }
 
 const produtoVazio = { nome: '', categoria: 'BEBIDA', preco: '', custo: '', estoque: '', ehAluguel: false }
@@ -153,10 +157,34 @@ export default function Loja() {
     }
   }
 
-  const totalComanda = (comandaAtiva?.itens || []).reduce(
-    (soma, item) => soma + Number(item.precoUnitario) * item.quantidade,
+  const ehAdmin = usuarioAtual()?.perfil === 'ADMIN'
+  const subtotalComanda = (comandaAtiva?.itens || []).reduce(
+    (soma, item) => soma + (item.cortesia ? 0 : Number(item.precoUnitario) * item.quantidade),
     0
   )
+  const descontoComanda = Number(comandaAtiva?.descontoValor || 0)
+  const totalComanda = Math.max(subtotalComanda - descontoComanda, 0)
+
+  async function alternarCortesia(item) {
+    try {
+      setComandaAtiva(await comandaService.cortesiaItem(comandaAtiva.id, item.id, !item.cortesia))
+    } catch (err) {
+      setErro(err?.response?.data?.mensagem || 'Não foi possível alterar a cortesia.')
+    }
+  }
+
+  async function handleDesconto() {
+    const entrada = window.prompt('Valor do desconto em R$ (0 remove o desconto):', descontoComanda ? String(descontoComanda) : '')
+    if (entrada === null) return
+    const valor = Number(String(entrada).replace(',', '.'))
+    if (Number.isNaN(valor) || valor < 0) { setErro('Valor de desconto inválido.'); return }
+    const motivo = valor > 0 ? (window.prompt('Motivo do desconto:', comandaAtiva.descontoMotivo || '') || '') : ''
+    try {
+      setComandaAtiva(await comandaService.desconto(comandaAtiva.id, valor, motivo))
+    } catch (err) {
+      setErro(err?.response?.data?.mensagem || 'Não foi possível aplicar o desconto.')
+    }
+  }
 
   function totalDaComanda(comanda) {
     return (comanda.itens || []).reduce(
@@ -322,15 +350,40 @@ export default function Loja() {
               )}
               {(comandaAtiva.itens || []).map((item) => (
                 <li key={item.id} className="py-2 px-3 flex justify-between text-araca-azul">
-                  <span>{item.produto?.nome} × {item.quantidade}</span>
-                  <span className="font-medium">R$ {(Number(item.precoUnitario) * item.quantidade).toFixed(2)}</span>
+                  <span>
+                    {item.produto?.nome} × {item.quantidade}
+                    {item.cortesia && <span className="ml-2 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full px-2 py-0.5">Cortesia</span>}
+                  </span>
+                  <span className="font-medium flex items-center gap-3">
+                    {item.cortesia
+                      ? <span><s className="text-gray-400 mr-1">R$ {(Number(item.precoUnitario) * item.quantidade).toFixed(2)}</s>R$ 0,00</span>
+                      : <span>R$ {(Number(item.precoUnitario) * item.quantidade).toFixed(2)}</span>}
+                    {ehAdmin && !comandaAtiva.fechada && (
+                      <button type="button" onClick={() => alternarCortesia(item)} title={item.cortesia ? 'Remover cortesia' : 'Dar como cortesia'}
+                        className={item.cortesia ? 'text-purple-700' : 'text-gray-400 hover:text-purple-700'}>
+                        <Gift size={16} />
+                      </button>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
 
 
             <div className="flex items-center justify-between pt-4 mt-2">
-              <span className="font-semibold text-araca-azul">Total: R$ {totalComanda.toFixed(2)}</span>
+              <span className="font-semibold text-araca-azul">
+                {descontoComanda > 0 && (
+                  <span className="block text-xs font-normal text-green-700">
+                    Desconto{comandaAtiva.descontoMotivo ? ` (${comandaAtiva.descontoMotivo})` : ''}: -R$ {descontoComanda.toFixed(2)}
+                  </span>
+                )}
+                Total: R$ {totalComanda.toFixed(2)}
+                {ehAdmin && !comandaAtiva.fechada && (
+                  <button type="button" onClick={handleDesconto} className="ml-2 text-xs font-normal underline text-gray-500">
+                    {descontoComanda > 0 ? 'alterar desconto' : 'aplicar desconto'}
+                  </button>
+                )}
+              </span>
               <button
                 onClick={() => imprimirComprovanteLoja(comandaAtiva)}
                 disabled={(comandaAtiva.itens || []).length === 0}

@@ -56,8 +56,7 @@ public class DashboardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal faturamentoLoja = comandaRepository.findByFechadaTrueAndCriadoEmBetween(inicioDia, fimDia).stream()
-                .flatMap(c -> c.getItens().stream())
-                .map(ItemComanda::getSubtotal)
+                .map(c -> c.getTotal())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal faturamentoTotal = faturamentoReservas.add(faturamentoLoja);
@@ -111,8 +110,7 @@ public class DashboardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal faturamentoLoja = comandaRepository.findByFechadaTrueAndCriadoEmBetween(inicioDia, fimDia).stream()
-                .flatMap(c -> c.getItens().stream())
-                .map(ItemComanda::getSubtotal)
+                .map(c -> c.getTotal())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         int quantidadeReservas = (int) reservaRepository.findByInicioBetween(inicioDia, fimDia).stream()

@@ -56,9 +56,7 @@ public class ClienteHistoricoService {
     }
 
     private ClienteHistoricoResponse.ComandaHistoricoItem paraComandaItem(Comanda c) {
-        BigDecimal total = c.getItens().stream()
-                .map(ItemComanda::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = c.getTotal();
         return new ClienteHistoricoResponse.ComandaHistoricoItem(c.getId(), c.getCriadoEm(), c.isFechada(), total);
     }
 }

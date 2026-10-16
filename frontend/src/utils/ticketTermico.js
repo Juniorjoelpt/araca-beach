@@ -121,7 +121,9 @@ export function imprimirConta(comanda) {
 /** Comprovante (nao fiscal) de uma comanda da Loja da arena. */
 export function imprimirComprovanteLoja(comanda) {
   const itens = comanda.itens || []
-  const total = itens.reduce((soma, i) => soma + Number(i.precoUnitario) * i.quantidade, 0)
+  const subtotal = itens.reduce((soma, i) => soma + (i.cortesia ? 0 : Number(i.precoUnitario) * i.quantidade), 0)
+  const desconto = Number(comanda.descontoValor || 0)
+  const total = Math.max(subtotal - desconto, 0)
   imprimirHtml(`
     <div class="ticket">
       <h1>ARAÇA BEACH</h1>
@@ -130,9 +132,10 @@ export function imprimirComprovanteLoja(comanda) {
       <div class="c peq">Comanda #${comanda.id} · ${new Date().toLocaleString('pt-BR')}</div>
       <div class="linha"></div>
       ${itens.map((i) => `
-        <div class="tot"><span>${i.quantidade}x ${esc(i.produto?.nome)}</span><span>${brl(Number(i.precoUnitario) * i.quantidade)}</span></div>
+        <div class="tot"><span>${i.quantidade}x ${esc(i.produto?.nome)}</span><span>${i.cortesia ? 'CORTESIA' : brl(Number(i.precoUnitario) * i.quantidade)}</span></div>
         ${i.quantidade > 1 ? `<div class="peq" style="margin-left:10px">${brl(i.precoUnitario)} cada</div>` : ''}`).join('')}
       <div class="linha"></div>
+      ${desconto > 0 ? `<div class="tot"><span>Desconto</span><span>-${brl(desconto)}</span></div>` : ''}
       <div class="tot forte"><span>TOTAL</span><span>${brl(total)}</span></div>
       <div class="linha"></div>
       <div class="c peq">Obrigado pela preferência!</div>
