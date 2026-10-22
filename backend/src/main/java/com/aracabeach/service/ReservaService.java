@@ -62,8 +62,11 @@ public class ReservaService {
         Cliente cliente = clienteRepository.findById(request.clienteId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado: " + request.clienteId()));
 
+        if (request.valorPersonalizado() != null && request.valorPersonalizado().signum() < 0) {
+            throw new IllegalArgumentException("O valor personalizado nao pode ser negativo.");
+        }
         return criarReserva(quadra, cliente, request.inicio(), request.fim(),
-                OrigemReserva.RECEPCAO, request.observacoes());
+                OrigemReserva.RECEPCAO, request.observacoes(), request.valorPersonalizado());
     }
 
     /**
@@ -74,6 +77,12 @@ public class ReservaService {
     @Transactional
     public Reserva criarReserva(Quadra quadra, Cliente cliente, LocalDateTime inicio, LocalDateTime fim,
                                 OrigemReserva origem, String observacoes) {
+        return criarReserva(quadra, cliente, inicio, fim, origem, observacoes, null);
+    }
+
+    @Transactional
+    public Reserva criarReserva(Quadra quadra, Cliente cliente, LocalDateTime inicio, LocalDateTime fim,
+                                OrigemReserva origem, String observacoes, java.math.BigDecimal valorPersonalizado) {
         validarHorarioReservavel(quadra, inicio, fim);
         validarDisponibilidade(quadra.getId(), inicio, fim, null);
 
@@ -86,7 +95,8 @@ public class ReservaService {
                 .fim(fim)
                 .status(StatusReserva.CONFIRMADA)
                 .origem(origem)
-                .valorTotal(preco.valorTotal())
+                .valorTotal(valorPersonalizado != null
+                        ? valorPersonalizado.setScale(2, java.math.RoundingMode.HALF_UP) : preco.valorTotal())
                 .observacoes(observacoes)
                 .build();
 

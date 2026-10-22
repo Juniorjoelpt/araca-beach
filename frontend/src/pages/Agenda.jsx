@@ -14,6 +14,11 @@ const DURACOES = [
   { minutos: 60, label: '1 hora' },
   { minutos: 90, label: '1h30' },
   { minutos: 120, label: '2 horas' },
+  { minutos: 150, label: '2h30' },
+  { minutos: 180, label: '3 horas' },
+  { minutos: 240, label: '4 horas' },
+  { minutos: 300, label: '5 horas' },
+  { minutos: 360, label: '6 horas' },
 ]
 
 const DIAS_SEMANA = [
@@ -55,7 +60,7 @@ export default function Agenda() {
   const [reservaSelecionada, setReservaSelecionada] = useState(null)
 
   const [tipoReserva, setTipoReserva] = useState('unica')
-  const [form, setForm] = useState({ clienteId: '', data: format(new Date(), 'yyyy-MM-dd'), horaInicio: '08:00', duracao: 60 })
+  const [form, setForm] = useState({ clienteId: '', data: format(new Date(), 'yyyy-MM-dd'), horaInicio: '08:00', duracao: 60, valorPersonalizado: '' })
   const [recorrencias, setRecorrencias] = useState([])
   const [formRecorrente, setFormRecorrente] = useState({
     clienteId: '', diaSemana: 'MONDAY', horaInicio: '08:00', duracao: 60, vigenciaFim: '',
@@ -153,6 +158,7 @@ export default function Agenda() {
       data: format(diaClicado ?? new Date(), 'yyyy-MM-dd'),
       horaInicio: horaClicada ?? '08:00',
       duracao: 60,
+      valorPersonalizado: '',
     })
     setTipoReserva('unica')
     setModalAberto(true)
@@ -174,6 +180,7 @@ export default function Agenda() {
         clienteId: Number(form.clienteId),
         inicio: format(inicio, "yyyy-MM-dd'T'HH:mm:ss"),
         fim: format(fim, "yyyy-MM-dd'T'HH:mm:ss"),
+        valorPersonalizado: form.valorPersonalizado !== '' ? Number(String(form.valorPersonalizado).replace(',', '.')) : null,
       })
       setSucesso('Reserva criada com sucesso.')
       setModalAberto(false)
@@ -581,23 +588,51 @@ export default function Agenda() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duração</label>
-                  <select
-                    className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-                    value={form.duracao}
-                    onChange={(e) => setForm({ ...form, duracao: Number(e.target.value) })}
-                  >
-                    {DURACOES.map((d) => <option key={d.minutos} value={d.minutos}>{d.label}</option>)}
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Horários consecutivos (duração total)
+                  </label>
+                  <div className="flex gap-2">
+                    <button type="button" aria-label="Menos 30 minutos"
+                      onClick={() => setForm({ ...form, duracao: Math.max(30, form.duracao - 30) })}
+                      className="px-3 border rounded-lg text-lg hover:bg-gray-50">−</button>
+                    <select
+                      className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                      value={form.duracao}
+                      onChange={(e) => setForm({ ...form, duracao: Number(e.target.value) })}
+                    >
+                      {DURACOES.map((d) => <option key={d.minutos} value={d.minutos}>{d.label}</option>)}
+                    </select>
+                    <button type="button" aria-label="Mais 30 minutos"
+                      onClick={() => setForm({ ...form, duracao: Math.min(360, form.duracao + 30) })}
+                      className="px-3 border rounded-lg text-lg hover:bg-gray-50">+</button>
+                  </div>
+                  {(() => {
+                    const ini = new Date(`${form.data}T${form.horaInicio}:00`)
+                    if (Number.isNaN(ini.getTime())) return null
+                    const f = new Date(ini.getTime() + form.duracao * 60000)
+                    return <p className="text-xs text-gray-500 mt-1">{format(ini, 'HH:mm')} às {format(f, 'HH:mm')}</p>
+                  })()}
                 </div>
                 {precoPrevisto && (
                   <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                    Valor: <strong className="text-araca-azul">R$ {Number(precoPrevisto.valorTotal).toFixed(2)}</strong>
+                    Valor da quadra: <strong className="text-araca-azul">R$ {Number(precoPrevisto.valorTotal).toFixed(2)}</strong>
                     {precoPrevisto.mensalista && Number(precoPrevisto.desconto) > 0 && (
                       <span className="text-green-700"> (mensalista: −R$ {Number(precoPrevisto.desconto).toFixed(2)})</span>
                     )}
                   </p>
                 )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Valor personalizado (opcional)
+                  </label>
+                  <input
+                    type="number" min="0" step="0.01" inputMode="decimal"
+                    placeholder={precoPrevisto ? `Padrão: R$ ${Number(precoPrevisto.valorTotal).toFixed(2)}` : 'Deixe vazio para usar o valor da quadra'}
+                    className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                    value={form.valorPersonalizado}
+                    onChange={(e) => setForm({ ...form, valorPersonalizado: e.target.value })}
+                  />
+                </div>
                 <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
                   Criar reserva
                 </button>

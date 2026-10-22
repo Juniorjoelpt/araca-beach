@@ -17,6 +17,8 @@ public record ReservaRequest(
         @NotNull Long clienteId,
         @NotNull LocalDateTime inicio,
         @NotNull LocalDateTime fim,
-        String observacoes
+        String observacoes,
+        /** Opcional: substitui o valor calculado (quadra/regras). */
+        java.math.BigDecimal valorPersonalizado
 ) {
 }
