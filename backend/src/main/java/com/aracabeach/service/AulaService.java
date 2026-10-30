@@ -26,6 +26,7 @@ public class AulaService {
     private final ProfessorRepository professorRepository;
     private final QuadraRepository quadraRepository;
     private final ComissaoService comissaoService;
+    private final com.aracabeach.repository.PagamentoRepository pagamentoRepository;
 
     @Transactional
     public Aula criar(AulaRequest request) {
@@ -60,7 +61,43 @@ public class AulaService {
         comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
                 "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
                 salva.getInicio().toLocalDate(), salva.getValor());
+        if (Boolean.TRUE.equals(request.pago())) {
+            salva = registrarPagamento(salva.getId(), request.formaPagamento());
+        }
         return salva;
+    }
+
+    /** Recebe a aula avulsa: marca como paga e lanca o valor no caixa. */
+    @Transactional
+    public Aula registrarPagamento(Long id, com.aracabeach.domain.financeiro.FormaPagamento forma) {
+        Aula aula = aulaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));
+        if (aula.isPago()) {
+            throw new IllegalArgumentException("Essa aula ja foi paga.");
+        }
+        if (aula.getValor() == null || aula.getValor().signum() <= 0) {
+            throw new IllegalArgumentException("Informe o valor da aula antes de registrar o pagamento.");
+        }
+        if (forma == null) {
+            throw new IllegalArgumentException("Informe a forma de pagamento.");
+        }
+        aula.setPago(true);
+        aula.setDataPagamento(LocalDate.now());
+        aula.setFormaPagamento(forma);
+        aula = aulaRepository.save(aula);
+
+        pagamentoRepository.save(com.aracabeach.domain.financeiro.Pagamento.builder()
+                .reserva(null)
+                .valor(aula.getValor())
+                .formaPagamento(forma)
+                .status(com.aracabeach.domain.financeiro.StatusPagamento.PAGO)
+                .ehSinal(false)
+                .origem("MATRICULA")
+                .descricao("Aula avulsa " + aula.getTipo() + " " + aula.getInicio().toLocalDate()
+                        + " - " + aula.getProfessor().getNome())
+                .operador(com.aracabeach.config.OperadorAtual.login())
+                .build());
+        return aula;
     }
 
     @Transactional
@@ -81,6 +118,9 @@ public class AulaService {
             throw new ConflitoHorarioException("O professor ja tem uma aula nesse horario.");
         }
 
+        if (aula.isPago() && (request.valor() == null || request.valor().compareTo(aula.getValor()) != 0)) {
+            throw new IllegalArgumentException("Aula ja paga: o valor nao pode ser alterado.");
+        }
         aula.setProfessor(professor);
         aula.setQuadra(quadra);
         aula.setTipo(request.tipo());
@@ -105,6 +145,9 @@ public class AulaService {
 
     @Transactional
     public void remover(Long id) {
+        if (aulaRepository.findById(id).map(Aula::isPago).orElse(false)) {
+            throw new IllegalArgumentException("Aula ja paga: nao pode ser removida (o valor ja entrou no caixa).");
+        }
         comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, id);
         aulaRepository.deleteById(id);
     }

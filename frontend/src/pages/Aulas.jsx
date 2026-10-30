@@ -43,7 +43,7 @@ export default function Aulas() {
   const [carregando, setCarregando] = useState(true)
 
   const [formProfessor, setFormProfessor] = useState({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
-  const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '' })
+  const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '', pago: false, formaPagamento: 'PIX' })
 
   const [editProfessorId, setEditProfessorId] = useState(null)
   const [editAulaId, setEditAulaId] = useState(null)
@@ -346,18 +346,32 @@ export default function Aulas() {
         fim: format(fim, "yyyy-MM-dd'T'HH:mm:ss"),
         alunos: formAula.alunos ? formAula.alunos.split(',').map((s) => s.trim()).filter(Boolean) : [],
         valor: formAula.valor ? Number(formAula.valor) : null,
+        pago: !editAulaId && !!formAula.pago && !!formAula.valor,
+        formaPagamento: formAula.formaPagamento,
       }
       if (editAulaId) await aulaService.atualizar(editAulaId, dadosAula)
       else await aulaService.criar(dadosAula)
       setEditAulaId(null)
-      setFormAula({ ...formAula, alunos: '', valor: '' })
+      setFormAula({ ...formAula, alunos: '', valor: '', pago: false })
       carregarAulas()
     } catch (err) {
       if (err.response?.status === 409) {
         setErro('Este professor já tem uma aula nesse horário.')
       } else {
-        setErro('Não foi possível salvar a aula.')
+        setErro(err.response?.data?.mensagem || 'Não foi possível salvar a aula.')
       }
+    }
+  }
+
+  async function handlePagarAula(a) {
+    const forma = (window.prompt(`Receber R$ ${Number(a.valor).toFixed(2)} — forma de pagamento (PIX, DINHEIRO, CARTAO_DEBITO, CARTAO_CREDITO):`, 'PIX') || '').trim().toUpperCase()
+    if (!forma) return
+    setErro('')
+    try {
+      await aulaService.pagar(a.id, forma)
+      carregarAulas()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível registrar o pagamento.')
     }
   }
 
@@ -375,7 +389,7 @@ export default function Aulas() {
 
   function cancelarEdicaoAula() {
     setEditAulaId(null)
-    setFormAula({ ...formAula, alunos: '', valor: '' })
+    setFormAula({ ...formAula, alunos: '', valor: '', pago: false })
   }
 
   async function handleRemover(id) {
@@ -546,10 +560,28 @@ export default function Aulas() {
             step="0.01"
             min="0"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-            placeholder="Valor da aula (R$) — opcional, usado no cálculo de comissão"
+            placeholder="Valor da aula (R$) — entra no caixa quando for pago e base da comissão"
             value={formAula.valor}
             onChange={(e) => setFormAula({ ...formAula, valor: e.target.value })}
           />
+          {!editAulaId && (
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={formAula.pago}
+                  onChange={(e) => setFormAula({ ...formAula, pago: e.target.checked })} />
+                Aula já paga
+              </label>
+              {formAula.pago && (
+                <select className="border rounded-lg px-2 py-1 text-sm" value={formAula.formaPagamento}
+                  onChange={(e) => setFormAula({ ...formAula, formaPagamento: e.target.value })}>
+                  <option value="PIX">Pix</option>
+                  <option value="DINHEIRO">Dinheiro</option>
+                  <option value="CARTAO_DEBITO">Cartão de débito</option>
+                  <option value="CARTAO_CREDITO">Cartão de crédito</option>
+                </select>
+              )}
+            </div>
+          )}
           <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
             {editAulaId ? 'Salvar alterações' : 'Agendar aula'}
           </button>
@@ -584,7 +616,10 @@ export default function Aulas() {
                   {a.alunos?.length > 0 ? ` · ${a.alunos.join(', ')}` : ''}
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
+                {a.valor > 0 && (a.pago
+                  ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago</span>
+                  : <button onClick={() => handlePagarAula(a)} className="text-green-700 text-sm font-semibold hover:underline">Receber</button>)}
                 <button onClick={() => handleEditarAula(a)} className="text-araca-azul text-sm hover:underline">Editar</button>
                 <button onClick={() => handleRemover(a.id)} className="text-red-600 text-sm hover:underline">Remover</button>
               </div>

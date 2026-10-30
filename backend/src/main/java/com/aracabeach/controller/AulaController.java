@@ -36,6 +36,12 @@ public class AulaController {
         return aulaService.atualizar(id, request);
     }
 
+    @PatchMapping("/{id}/pagamento")
+    public Aula pagar(@PathVariable Long id,
+                      @RequestBody java.util.Map<String, com.aracabeach.domain.financeiro.FormaPagamento> corpo) {
+        return aulaService.registrarPagamento(id, corpo.get("formaPagamento"));
+    }
+
     @DeleteMapping("/{id}")
     public void remover(@PathVariable Long id) {
         aulaService.remover(id);

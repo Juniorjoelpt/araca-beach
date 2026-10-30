@@ -14,6 +14,9 @@ public record AulaRequest(
         @NotNull LocalDateTime inicio,
         @NotNull LocalDateTime fim,
         List<String> alunos,
-        BigDecimal valor
+        BigDecimal valor,
+        /** Opcional: ja registra o recebimento ao agendar. */
+        Boolean pago,
+        com.aracabeach.domain.financeiro.FormaPagamento formaPagamento
 ) {
 }

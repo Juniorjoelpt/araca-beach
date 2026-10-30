@@ -52,4 +52,16 @@ public class Aula {
 
     @Column(precision = 10, scale = 2)
     private java.math.BigDecimal valor;
+
+    /** Recebimento da aula avulsa (entra no caixa quando marcado como pago). */
+    @Builder.Default
+    @Column(columnDefinition = "boolean default false")
+    private boolean pago = false;
+
+    private java.time.LocalDate dataPagamento;
+
+    @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.VARCHAR)
+    @Column(length = 20)
+    private com.aracabeach.domain.financeiro.FormaPagamento formaPagamento;
 }
