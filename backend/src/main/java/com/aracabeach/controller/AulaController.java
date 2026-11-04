@@ -42,6 +42,23 @@ public class AulaController {
         return aulaService.registrarPagamento(id, corpo.get("formaPagamento"));
     }
 
+    @PostMapping("/{id}/alunos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Aula adicionarAluno(@PathVariable Long id, @Valid @RequestBody com.aracabeach.dto.AulaParticipanteRequest request) {
+        return aulaService.adicionarAluno(id, request);
+    }
+
+    @PatchMapping("/{id}/alunos/{alunoId}/pagamento")
+    public Aula pagarAluno(@PathVariable Long id, @PathVariable Long alunoId,
+                           @RequestBody java.util.Map<String, com.aracabeach.domain.financeiro.FormaPagamento> corpo) {
+        return aulaService.pagarAluno(id, alunoId, corpo.get("formaPagamento"));
+    }
+
+    @DeleteMapping("/{id}/alunos/{alunoId}")
+    public Aula removerAluno(@PathVariable Long id, @PathVariable Long alunoId) {
+        return aulaService.removerAluno(id, alunoId);
+    }
+
     @DeleteMapping("/{id}")
     public void remover(@PathVariable Long id) {
         aulaService.remover(id);

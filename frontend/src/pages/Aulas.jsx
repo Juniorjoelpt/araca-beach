@@ -43,7 +43,11 @@ export default function Aulas() {
   const [carregando, setCarregando] = useState(true)
 
   const [formProfessor, setFormProfessor] = useState({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '', tipoRemuneracao: 'PERCENTUAL', valorHora: '' })
-  const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '', pago: false, formaPagamento: 'PIX' })
+  const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '', pago: false, formaPagamento: 'PIX', lista: [] })
+  const [novoAluno, setNovoAluno] = useState({ nome: '', valor: '', pago: false, forma: 'PIX' })
+  const [editPorAluno, setEditPorAluno] = useState(false)
+  const [addAluno, setAddAluno] = useState(null) // { aulaId, nome, valor }
+  const [formaAluno, setFormaAluno] = useState('PIX')
 
   const [editProfessorId, setEditProfessorId] = useState(null)
   const [editAulaId, setEditAulaId] = useState(null)
@@ -346,15 +350,20 @@ export default function Aulas() {
         tipo: formAula.tipo,
         inicio: format(inicio, "yyyy-MM-dd'T'HH:mm:ss"),
         fim: format(fim, "yyyy-MM-dd'T'HH:mm:ss"),
-        alunos: formAula.alunos ? formAula.alunos.split(',').map((s) => s.trim()).filter(Boolean) : [],
         valorPorAluno: formAula.valor ? Number(formAula.valor) : null,
-        pago: !editAulaId && !!formAula.pago && !!formAula.valor,
-        formaPagamento: formAula.formaPagamento,
+      }
+      if (!editAulaId) {
+        dadosAula.participantes = formAula.lista.map((x) => ({
+          nome: x.nome, valor: x.valor, pago: x.pago, formaPagamento: x.pago ? x.forma : null,
+        }))
+      } else if (!editPorAluno) {
+        dadosAula.alunos = formAula.alunos ? formAula.alunos.split(',').map((s) => s.trim()).filter(Boolean) : []
       }
       if (editAulaId) await aulaService.atualizar(editAulaId, dadosAula)
       else await aulaService.criar(dadosAula)
       setEditAulaId(null)
-      setFormAula({ ...formAula, alunos: '', valor: '', pago: false })
+      setEditPorAluno(false)
+      setFormAula({ ...formAula, alunos: '', valor: '', pago: false, lista: [] })
       carregarAulas()
     } catch (err) {
       if (err.response?.status === 409) {
@@ -363,6 +372,39 @@ export default function Aulas() {
         setErro(err.response?.data?.mensagem || 'Não foi possível salvar a aula.')
       }
     }
+  }
+
+  function adicionarAlunoNaLista() {
+    const nome = novoAluno.nome.trim()
+    const valor = novoAluno.valor !== '' ? Number(novoAluno.valor) : (formAula.valor !== '' ? Number(formAula.valor) : null)
+    if (!nome) { setErro('Digite o nome do aluno.'); return }
+    if (valor == null || Number.isNaN(valor) || valor < 0) { setErro('Informe o valor do aluno (ou o valor padrão por aluno).'); return }
+    setErro('')
+    setFormAula({ ...formAula, lista: [...formAula.lista, { nome, valor, pago: novoAluno.pago, forma: novoAluno.forma }] })
+    setNovoAluno({ ...novoAluno, nome: '', valor: '', pago: false })
+  }
+
+  async function executarAluno(fn) {
+    setErro('')
+    try {
+      await fn()
+      carregarAulas()
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível concluir a operação.')
+    }
+  }
+
+  function handleAddAlunoAula(a) {
+    if (!addAluno?.nome?.trim()) { setErro('Digite o nome do aluno.'); return }
+    executarAluno(async () => {
+      await aulaService.adicionarAluno(a.id, {
+        nome: addAluno.nome.trim(),
+        valor: addAluno.valor !== '' ? Number(addAluno.valor) : null,
+        pago: !!addAluno.pago,
+        formaPagamento: addAluno.pago ? formaAluno : null,
+      })
+      setAddAluno(null)
+    })
   }
 
   async function handlePagarAula(a) {
@@ -381,6 +423,7 @@ export default function Aulas() {
     const ini = new Date(a.inicio)
     const fim = new Date(a.fim)
     setEditAulaId(a.id)
+    setEditPorAluno(!!a.porAluno)
     setData(format(ini, 'yyyy-MM-dd'))
     setFormAula({
       professorId: String(a.professor?.id ?? ''), quadraId: String(a.quadra?.id ?? ''), tipo: a.tipo,
@@ -392,7 +435,8 @@ export default function Aulas() {
 
   function cancelarEdicaoAula() {
     setEditAulaId(null)
-    setFormAula({ ...formAula, alunos: '', valor: '', pago: false })
+    setEditPorAluno(false)
+    setFormAula({ ...formAula, alunos: '', valor: '', pago: false, lista: [] })
   }
 
   async function handleRemover(id) {
@@ -579,46 +623,81 @@ export default function Aulas() {
               <option value={90}>1h30</option>
             </select>
           </div>
-          <input
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-            placeholder="Alunos (separados por vírgula)"
-            value={formAula.alunos}
-            onChange={(e) => setFormAula({ ...formAula, alunos: e.target.value })}
-          />
+          {(!editAulaId || !editPorAluno) && !editAulaId ? null : (editAulaId && !editPorAluno && (
+            <input
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+              placeholder="Alunos (separados por vírgula)"
+              value={formAula.alunos}
+              onChange={(e) => setFormAula({ ...formAula, alunos: e.target.value })}
+            />
+          ))}
           <input
             type="number"
             step="0.01"
             min="0"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-            placeholder="Valor por aluno (R$) — total = valor × nº de alunos"
+            placeholder="Valor padrão por aluno (R$)"
             value={formAula.valor}
             onChange={(e) => setFormAula({ ...formAula, valor: e.target.value })}
           />
-          {formAula.valor !== '' && Number(formAula.valor) > 0 && (() => {
-            const n = Math.max(1, formAula.alunos.split(',').map((x) => x.trim()).filter(Boolean).length)
-            return (
-              <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                {n} aluno{n > 1 ? 's' : ''} × R$ {Number(formAula.valor).toFixed(2)} = <strong className="text-araca-azul">R$ {(n * Number(formAula.valor)).toFixed(2)}</strong>
-              </p>
-            )
-          })()}
           {!editAulaId && (
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={formAula.pago}
-                  onChange={(e) => setFormAula({ ...formAula, pago: e.target.checked })} />
-                Aula já paga
-              </label>
-              {formAula.pago && (
-                <select className="border rounded-lg px-2 py-1 text-sm" value={formAula.formaPagamento}
-                  onChange={(e) => setFormAula({ ...formAula, formaPagamento: e.target.value })}>
-                  <option value="PIX">Pix</option>
-                  <option value="DINHEIRO">Dinheiro</option>
-                  <option value="CARTAO_DEBITO">Cartão de débito</option>
-                  <option value="CARTAO_CREDITO">Cartão de crédito</option>
-                </select>
+            <div className="border rounded-lg p-3 space-y-2 bg-gray-50">
+              <p className="text-sm font-medium text-gray-700">Alunos da aula</p>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  className="flex-1 min-w-[8rem] border rounded-lg px-3 py-2"
+                  placeholder="Nome do aluno"
+                  value={novoAluno.nome}
+                  onChange={(e) => setNovoAluno({ ...novoAluno, nome: e.target.value })}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); adicionarAlunoNaLista() } }}
+                />
+                <input
+                  type="number" step="0.01" min="0"
+                  className="w-28 border rounded-lg px-3 py-2"
+                  placeholder={formAula.valor ? `R$ ${Number(formAula.valor).toFixed(2)}` : 'Valor'}
+                  value={novoAluno.valor}
+                  onChange={(e) => setNovoAluno({ ...novoAluno, valor: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={novoAluno.pago}
+                    onChange={(e) => setNovoAluno({ ...novoAluno, pago: e.target.checked })} />
+                  Já pagou
+                </label>
+                {novoAluno.pago && (
+                  <select className="border rounded-lg px-2 py-1 text-sm" value={novoAluno.forma}
+                    onChange={(e) => setNovoAluno({ ...novoAluno, forma: e.target.value })}>
+                    <option value="PIX">Pix</option>
+                    <option value="DINHEIRO">Dinheiro</option>
+                    <option value="CARTAO_DEBITO">Cartão de débito</option>
+                    <option value="CARTAO_CREDITO">Cartão de crédito</option>
+                  </select>
+                )}
+                <button type="button" onClick={adicionarAlunoNaLista}
+                  className="ml-auto bg-araca-azul text-white text-sm px-3 py-1.5 rounded-lg">+ Adicionar aluno</button>
+              </div>
+              {formAula.lista.length > 0 && (
+                <ul className="text-sm divide-y">
+                  {formAula.lista.map((x, idx) => (
+                    <li key={idx} className="flex items-center justify-between py-1">
+                      <span>{x.nome} · R$ {Number(x.valor).toFixed(2)}{x.pago ? ` · pago (${x.forma})` : ' · a receber'}</span>
+                      <button type="button" className="text-red-600"
+                        onClick={() => setFormAula({ ...formAula, lista: formAula.lista.filter((_, k) => k !== idx) })}>remover</button>
+                    </li>
+                  ))}
+                </ul>
               )}
+              {formAula.lista.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  Total: <strong className="text-araca-azul">R$ {formAula.lista.reduce((t, x) => t + Number(x.valor), 0).toFixed(2)}</strong>
+                </p>
+              )}
+              <p className="text-xs text-gray-500">Cada pagamento marcado entra no caixa na hora de agendar. Dá para adicionar mais alunos e receber depois, na lista de aulas.</p>
             </div>
+          )}
+          {editAulaId && editPorAluno && (
+            <p className="text-xs text-gray-500">Alunos e pagamentos desta aula são gerenciados na lista de aulas ao lado.</p>
           )}
           {erro && <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
           <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
@@ -644,19 +723,64 @@ export default function Aulas() {
         {!carregando && aulas.length === 0 && <p className="text-gray-400 text-sm">Nenhuma aula nesse dia.</p>}
         <ul className="space-y-2">
           {aulas.map((a) => (
-            <li key={a.id} className="flex items-center justify-between border rounded-lg px-4 py-3">
+            <li key={a.id} className="flex items-start justify-between gap-3 border rounded-lg px-4 py-3">
               <div>
                 <p className="font-medium text-araca-azul">
                   {format(new Date(a.inicio), 'HH:mm')} — {format(new Date(a.fim), 'HH:mm')} · {a.professor?.nome}
                 </p>
                 <p className="text-sm text-gray-500">
                   {a.quadra?.nome} · {TIPOS_AULA.find(t => t.value === a.tipo)?.label}
-                  {a.valor ? ` · R$ ${Number(a.valor).toFixed(2)}${a.valorPorAluno && a.alunos?.length > 1 ? ` (${a.alunos.length} × ${Number(a.valorPorAluno).toFixed(2)})` : ''}` : ''}
-                  {a.alunos?.length > 0 ? ` · ${a.alunos.join(', ')}` : ''}
+                  {a.valor ? ` · R$ ${Number(a.valor).toFixed(2)}${!a.porAluno && a.valorPorAluno && a.alunos?.length > 1 ? ` (${a.alunos.length} × ${Number(a.valorPorAluno).toFixed(2)})` : ''}` : ''}
+                  {!a.porAluno && a.alunos?.length > 0 ? ` · ${a.alunos.join(', ')}` : ''}
                 </p>
+                {a.porAluno && (
+                  <div className="mt-2 text-sm">
+                    <div className="flex items-center gap-2 mb-1 text-xs text-gray-500">
+                      Forma ao receber:
+                      <select className="border rounded px-1 py-0.5" value={formaAluno} onChange={(e) => setFormaAluno(e.target.value)}>
+                        <option value="PIX">Pix</option>
+                        <option value="DINHEIRO">Dinheiro</option>
+                        <option value="CARTAO_DEBITO">Débito</option>
+                        <option value="CARTAO_CREDITO">Crédito</option>
+                      </select>
+                    </div>
+                    <ul className="space-y-1">
+                      {(a.participantes || []).map((p) => (
+                        <li key={p.id} className="flex items-center gap-3">
+                          <span className="flex-1">{p.nome} · R$ {Number(p.valor).toFixed(2)}</span>
+                          {p.pago
+                            ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago ({p.formaPagamento})</span>
+                            : (<>
+                                {Number(p.valor) > 0 && <button type="button" className="text-green-700 font-semibold hover:underline"
+                                  onClick={() => executarAluno(() => aulaService.pagarAluno(a.id, p.id, formaAluno))}>Receber</button>}
+                                <button type="button" className="text-red-600 hover:underline"
+                                  onClick={() => { if (confirm(`Remover ${p.nome} da aula?`)) executarAluno(() => aulaService.removerAluno(a.id, p.id)) }}>x</button>
+                              </>)}
+                        </li>
+                      ))}
+                    </ul>
+                    {addAluno?.aulaId === a.id ? (
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <input className="border rounded px-2 py-1 flex-1 min-w-[7rem]" placeholder="Nome do aluno" value={addAluno.nome}
+                          onChange={(e) => setAddAluno({ ...addAluno, nome: e.target.value })} />
+                        <input type="number" step="0.01" min="0" className="border rounded px-2 py-1 w-24"
+                          placeholder={a.valorPorAluno ? `R$ ${Number(a.valorPorAluno).toFixed(2)}` : 'Valor'} value={addAluno.valor}
+                          onChange={(e) => setAddAluno({ ...addAluno, valor: e.target.value })} />
+                        <label className="flex items-center gap-1 text-xs">
+                          <input type="checkbox" checked={!!addAluno.pago} onChange={(e) => setAddAluno({ ...addAluno, pago: e.target.checked })} /> já pagou
+                        </label>
+                        <button type="button" className="bg-araca-azul text-white px-2 py-1 rounded" onClick={() => handleAddAlunoAula(a)}>Salvar</button>
+                        <button type="button" className="text-gray-500" onClick={() => setAddAluno(null)}>cancelar</button>
+                      </div>
+                    ) : (
+                      <button type="button" className="mt-2 text-araca-azul hover:underline"
+                        onClick={() => setAddAluno({ aulaId: a.id, nome: '', valor: '', pago: false })}>+ Adicionar aluno</button>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 items-center">
-                {a.valor > 0 && (a.pago
+                {!a.porAluno && a.valor > 0 && (a.pago
                   ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago</span>
                   : <button onClick={() => handlePagarAula(a)} className="text-green-700 text-sm font-semibold hover:underline">Receber</button>)}
                 <button onClick={() => handleEditarAula(a)} className="text-araca-azul text-sm hover:underline">Editar</button>

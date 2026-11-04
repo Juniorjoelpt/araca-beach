@@ -47,18 +47,27 @@ public class AulaService {
             throw new ConflitoHorarioException("O professor ja tem uma aula nesse horario.");
         }
 
+        boolean porAluno = request.participantes() != null;
         Aula aula = Aula.builder()
                 .professor(professor)
                 .quadra(quadra)
                 .tipo(request.tipo())
                 .inicio(request.inicio())
                 .fim(request.fim())
-                .alunos(request.alunos() != null ? request.alunos() : List.of())
-                .valor(totalDaAula(request))
+                .alunos(porAluno ? new java.util.ArrayList<>() : (request.alunos() != null ? request.alunos() : List.of()))
+                .valor(porAluno ? java.math.BigDecimal.ZERO : totalDaAula(request))
                 .valorPorAluno(request.valorPorAluno())
+                .porAluno(porAluno)
                 .build();
 
         Aula salva = aulaRepository.save(aula);
+        if (porAluno) {
+            for (var pr : request.participantes()) {
+                incluirAluno(salva, pr);
+            }
+            recalcular(salva);
+            return aulaRepository.save(salva);
+        }
         comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
                 "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
                 salva.getInicio().toLocalDate(), salva.getValor(), horasDa(salva));
@@ -66,6 +75,119 @@ public class AulaService {
             salva = registrarPagamento(salva.getId(), request.formaPagamento());
         }
         return salva;
+    }
+
+    // ---------- Aula com alunos individuais ----------
+
+    @Transactional
+    public Aula adicionarAluno(Long aulaId, com.aracabeach.dto.AulaParticipanteRequest request) {
+        Aula aula = buscar(aulaId);
+        exigirPorAluno(aula);
+        incluirAluno(aula, request);
+        recalcular(aula);
+        return aulaRepository.save(aula);
+    }
+
+    @Transactional
+    public Aula pagarAluno(Long aulaId, Long alunoId, com.aracabeach.domain.financeiro.FormaPagamento forma) {
+        Aula aula = buscar(aulaId);
+        com.aracabeach.domain.aula.AulaParticipante p = participante(aula, alunoId);
+        receber(aula, p, forma);
+        return aulaRepository.save(aula);
+    }
+
+    @Transactional
+    public Aula removerAluno(Long aulaId, Long alunoId) {
+        Aula aula = buscar(aulaId);
+        com.aracabeach.domain.aula.AulaParticipante p = participante(aula, alunoId);
+        if (p.isPago()) {
+            throw new IllegalArgumentException("Aluno ja pagou: nao pode ser removido (o valor ja entrou no caixa).");
+        }
+        comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, -p.getId());
+        aula.getParticipantes().remove(p);
+        recalcular(aula);
+        return aulaRepository.save(aula);
+    }
+
+    private Aula buscar(Long id) {
+        return aulaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));
+    }
+
+    private void exigirPorAluno(Aula aula) {
+        if (!aula.isPorAluno()) {
+            throw new IllegalArgumentException("Esta aula foi criada no formato antigo (sem alunos individuais).");
+        }
+    }
+
+    private com.aracabeach.domain.aula.AulaParticipante participante(Aula aula, Long alunoId) {
+        return aula.getParticipantes().stream().filter(x -> x.getId().equals(alunoId)).findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno nao encontrado nesta aula."));
+    }
+
+    private void incluirAluno(Aula aula, com.aracabeach.dto.AulaParticipanteRequest pr) {
+        java.math.BigDecimal valor = pr.valor() != null ? pr.valor() : aula.getValorPorAluno();
+        if (valor == null || valor.signum() < 0) {
+            throw new IllegalArgumentException("Informe o valor do aluno (ou o valor padrao por aluno da aula).");
+        }
+        com.aracabeach.domain.aula.AulaParticipante p = com.aracabeach.domain.aula.AulaParticipante.builder()
+                .aula(aula).nome(pr.nome().trim()).valor(valor.setScale(2, java.math.RoundingMode.HALF_UP)).build();
+        aula.getParticipantes().add(p);
+        aulaRepository.saveAndFlush(aula);
+        if (Boolean.TRUE.equals(pr.pago())) {
+            receber(aula, p, pr.formaPagamento());
+        }
+    }
+
+    /** Registra o pagamento de um aluno e lanca no caixa. */
+    private void receber(Aula aula, com.aracabeach.domain.aula.AulaParticipante p,
+                         com.aracabeach.domain.financeiro.FormaPagamento forma) {
+        if (p.isPago()) {
+            throw new IllegalArgumentException("Esse aluno ja pagou.");
+        }
+        if (forma == null) {
+            throw new IllegalArgumentException("Informe a forma de pagamento.");
+        }
+        if (p.getValor() == null || p.getValor().signum() <= 0) {
+            throw new IllegalArgumentException("Informe um valor maior que zero para receber de " + p.getNome() + ".");
+        }
+        p.setPago(true);
+        p.setDataPagamento(LocalDate.now());
+        p.setFormaPagamento(forma);
+        pagamentoRepository.save(com.aracabeach.domain.financeiro.Pagamento.builder()
+                .reserva(null)
+                .valor(p.getValor())
+                .formaPagamento(forma)
+                .status(com.aracabeach.domain.financeiro.StatusPagamento.PAGO)
+                .ehSinal(false)
+                .origem("MATRICULA")
+                .descricao("Aula avulsa " + aula.getTipo() + " " + aula.getInicio().toLocalDate()
+                        + " - " + p.getNome() + " (prof. " + aula.getProfessor().getNome() + ")")
+                .operador(com.aracabeach.config.OperadorAtual.login())
+                .build());
+    }
+
+    /** Atualiza total, nomes e comissao (por aluno para %, por hora da aula para professor por hora). */
+    private void recalcular(Aula aula) {
+        java.math.BigDecimal total = aula.getParticipantes().stream()
+                .map(com.aracabeach.domain.aula.AulaParticipante::getValor)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        aula.setValor(total);
+        aula.setAlunos(new java.util.ArrayList<>(aula.getParticipantes().stream()
+                .map(com.aracabeach.domain.aula.AulaParticipante::getNome).toList()));
+        Professor prof = aula.getProfessor();
+        LocalDate dia = aula.getInicio().toLocalDate();
+        if (prof.isPorHora()) {
+            comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, aula.getId());
+            comissaoService.lancar(prof, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, aula.getId(),
+                    "Aula " + aula.getTipo() + " - " + dia, dia, total, horasDa(aula));
+        } else {
+            for (var p : aula.getParticipantes()) {
+                comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, -p.getId());
+                comissaoService.lancar(prof, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, -p.getId(),
+                        "Aula " + aula.getTipo() + " - " + dia + " - " + p.getNome(), dia, p.getValor());
+            }
+        }
     }
 
     static java.math.BigDecimal horasDa(Aula a) {
@@ -136,6 +258,18 @@ public class AulaService {
             throw new ConflitoHorarioException("O professor ja tem uma aula nesse horario.");
         }
 
+        if (aula.isPorAluno()) {
+            aula.setProfessor(professor);
+            aula.setQuadra(quadra);
+            aula.setTipo(request.tipo());
+            aula.setInicio(request.inicio());
+            aula.setFim(request.fim());
+            if (request.valorPorAluno() != null) {
+                aula.setValorPorAluno(request.valorPorAluno());
+            }
+            recalcular(aula);
+            return aulaRepository.save(aula);
+        }
         if (aula.isPago() && (totalDaAula(request) == null || totalDaAula(request).compareTo(aula.getValor()) != 0)) {
             throw new IllegalArgumentException("Aula ja paga: o valor nao pode ser alterado.");
         }
@@ -164,8 +298,14 @@ public class AulaService {
 
     @Transactional
     public void remover(Long id) {
-        if (aulaRepository.findById(id).map(Aula::isPago).orElse(false)) {
-            throw new IllegalArgumentException("Aula ja paga: nao pode ser removida (o valor ja entrou no caixa).");
+        Aula existente = aulaRepository.findById(id).orElse(null);
+        if (existente != null && (existente.isPago()
+                || existente.getParticipantes().stream().anyMatch(com.aracabeach.domain.aula.AulaParticipante::isPago))) {
+            throw new IllegalArgumentException("Aula com pagamento recebido: nao pode ser removida (o valor ja entrou no caixa).");
+        }
+        if (existente != null) {
+            existente.getParticipantes().forEach(x ->
+                    comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, -x.getId()));
         }
         comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, id);
         aulaRepository.deleteById(id);

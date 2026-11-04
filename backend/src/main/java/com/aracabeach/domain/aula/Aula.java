@@ -64,6 +64,16 @@ public class Aula {
 
     private java.time.LocalDate dataPagamento;
 
+    /** Aula com alunos individuais (participantes), cada um com seu pagamento. */
+    @Builder.Default
+    @Column(columnDefinition = "boolean default false")
+    private boolean porAluno = false;
+
+    @OneToMany(mappedBy = "aula", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("id")
+    @Builder.Default
+    private List<AulaParticipante> participantes = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.VARCHAR)
     @Column(length = 20)

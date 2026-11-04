@@ -37,7 +37,8 @@ public class ComissaoBackfill implements ApplicationRunner {
             LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
 
             aulaRepository.findByInicioBetween(
-                    LocalDateTime.of(inicioMes, LocalTime.MIN), LocalDateTime.now().plusYears(1)).forEach(a ->
+                    LocalDateTime.of(inicioMes, LocalTime.MIN), LocalDateTime.now().plusYears(1)).stream()
+                    .filter(a -> !a.isPorAluno()).forEach(a ->
                     comissaoService.lancar(a.getProfessor(), OrigemComissao.AULA_AVULSA, a.getId(),
                             "Aula " + a.getTipo() + " - " + a.getInicio().toLocalDate(),
                             a.getInicio().toLocalDate(), a.getValor(),

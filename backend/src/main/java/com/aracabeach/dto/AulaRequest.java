@@ -17,6 +17,8 @@ public record AulaRequest(
         BigDecimal valor,
         /** Se informado, o valor total passa a ser valorPorAluno x numero de alunos (minimo 1). */
         BigDecimal valorPorAluno,
+        /** Se informado (mesmo vazio), a aula passa a controlar alunos e pagamentos individualmente. */
+        List<AulaParticipanteRequest> participantes,
         /** Opcional: ja registra o recebimento ao agendar. */
         Boolean pago,
         com.aracabeach.domain.financeiro.FormaPagamento formaPagamento
