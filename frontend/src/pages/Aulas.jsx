@@ -345,7 +345,7 @@ export default function Aulas() {
         inicio: format(inicio, "yyyy-MM-dd'T'HH:mm:ss"),
         fim: format(fim, "yyyy-MM-dd'T'HH:mm:ss"),
         alunos: formAula.alunos ? formAula.alunos.split(',').map((s) => s.trim()).filter(Boolean) : [],
-        valor: formAula.valor ? Number(formAula.valor) : null,
+        valorPorAluno: formAula.valor ? Number(formAula.valor) : null,
         pago: !editAulaId && !!formAula.pago && !!formAula.valor,
         formaPagamento: formAula.formaPagamento,
       }
@@ -383,7 +383,8 @@ export default function Aulas() {
     setFormAula({
       professorId: String(a.professor?.id ?? ''), quadraId: String(a.quadra?.id ?? ''), tipo: a.tipo,
       horaInicio: format(ini, 'HH:mm'), duracao: Math.round((fim - ini) / 60000),
-      alunos: (a.alunos || []).join(', '), valor: a.valor ?? '',
+      alunos: (a.alunos || []).join(', '),
+      valor: a.valorPorAluno ?? (a.valor ? Number(a.valor) / Math.max(1, (a.alunos || []).length) : ''),
     })
   }
 
@@ -568,10 +569,18 @@ export default function Aulas() {
             step="0.01"
             min="0"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-            placeholder="Valor da aula (R$) — entra no caixa quando for pago e base da comissão"
+            placeholder="Valor por aluno (R$) — total = valor × nº de alunos"
             value={formAula.valor}
             onChange={(e) => setFormAula({ ...formAula, valor: e.target.value })}
           />
+          {formAula.valor !== '' && Number(formAula.valor) > 0 && (() => {
+            const n = Math.max(1, formAula.alunos.split(',').map((x) => x.trim()).filter(Boolean).length)
+            return (
+              <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                {n} aluno{n > 1 ? 's' : ''} × R$ {Number(formAula.valor).toFixed(2)} = <strong className="text-araca-azul">R$ {(n * Number(formAula.valor)).toFixed(2)}</strong>
+              </p>
+            )
+          })()}
           {!editAulaId && (
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -621,7 +630,7 @@ export default function Aulas() {
                 </p>
                 <p className="text-sm text-gray-500">
                   {a.quadra?.nome} · {TIPOS_AULA.find(t => t.value === a.tipo)?.label}
-                  {a.valor ? ` · R$ ${Number(a.valor).toFixed(2)}` : ''}
+                  {a.valor ? ` · R$ ${Number(a.valor).toFixed(2)}${a.valorPorAluno && a.alunos?.length > 1 ? ` (${a.alunos.length} × ${Number(a.valorPorAluno).toFixed(2)})` : ''}` : ''}
                   {a.alunos?.length > 0 ? ` · ${a.alunos.join(', ')}` : ''}
                 </p>
               </div>

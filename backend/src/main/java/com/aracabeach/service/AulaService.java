@@ -54,7 +54,8 @@ public class AulaService {
                 .inicio(request.inicio())
                 .fim(request.fim())
                 .alunos(request.alunos() != null ? request.alunos() : List.of())
-                .valor(request.valor())
+                .valor(totalDaAula(request))
+                .valorPorAluno(request.valorPorAluno())
                 .build();
 
         Aula salva = aulaRepository.save(aula);
@@ -65,6 +66,18 @@ public class AulaService {
             salva = registrarPagamento(salva.getId(), request.formaPagamento());
         }
         return salva;
+    }
+
+    private static java.math.BigDecimal totalDaAula(AulaRequest r) {
+        if (r.valorPorAluno() == null) {
+            return r.valor();
+        }
+        if (r.valorPorAluno().signum() < 0) {
+            throw new IllegalArgumentException("O valor por aluno nao pode ser negativo.");
+        }
+        int alunos = r.alunos() == null ? 0 : (int) r.alunos().stream().filter(a -> a != null && !a.isBlank()).count();
+        return r.valorPorAluno().multiply(java.math.BigDecimal.valueOf(Math.max(1, alunos)))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
     /** Recebe a aula avulsa: marca como paga e lanca o valor no caixa. */
@@ -118,7 +131,7 @@ public class AulaService {
             throw new ConflitoHorarioException("O professor ja tem uma aula nesse horario.");
         }
 
-        if (aula.isPago() && (request.valor() == null || request.valor().compareTo(aula.getValor()) != 0)) {
+        if (aula.isPago() && (totalDaAula(request) == null || totalDaAula(request).compareTo(aula.getValor()) != 0)) {
             throw new IllegalArgumentException("Aula ja paga: o valor nao pode ser alterado.");
         }
         aula.setProfessor(professor);
@@ -127,7 +140,8 @@ public class AulaService {
         aula.setInicio(request.inicio());
         aula.setFim(request.fim());
         aula.setAlunos(new java.util.ArrayList<>(request.alunos() != null ? request.alunos() : List.of()));
-        aula.setValor(request.valor());
+        aula.setValor(totalDaAula(request));
+        aula.setValorPorAluno(request.valorPorAluno());
         Aula salva = aulaRepository.save(aula);
 
         // Recalcula a comissao (so troca se ainda nao foi paga).

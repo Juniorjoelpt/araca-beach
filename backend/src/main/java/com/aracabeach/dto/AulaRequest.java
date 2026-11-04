@@ -15,6 +15,8 @@ public record AulaRequest(
         @NotNull LocalDateTime fim,
         List<String> alunos,
         BigDecimal valor,
+        /** Se informado, o valor total passa a ser valorPorAluno x numero de alunos (minimo 1). */
+        BigDecimal valorPorAluno,
         /** Opcional: ja registra o recebimento ao agendar. */
         Boolean pago,
         com.aracabeach.domain.financeiro.FormaPagamento formaPagamento

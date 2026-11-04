@@ -51,7 +51,11 @@ public class Aula {
     private List<String> alunos = new ArrayList<>();
 
     @Column(precision = 10, scale = 2)
+    /** Valor total da aula (= valorPorAluno x alunos, minimo 1 aluno). */
     private java.math.BigDecimal valor;
+
+    @Column(precision = 10, scale = 2)
+    private java.math.BigDecimal valorPorAluno;
 
     /** Recebimento da aula avulsa (entra no caixa quando marcado como pago). */
     @Builder.Default
