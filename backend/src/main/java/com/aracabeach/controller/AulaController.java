@@ -54,6 +54,12 @@ public class AulaController {
         return aulaService.pagarAluno(id, alunoId, corpo.get("formaPagamento"));
     }
 
+    /** Somente ADMIN (ver SecurityConfig): estorna o pagamento no caixa e apaga a aula. */
+    @DeleteMapping("/{id}/estornar")
+    public java.util.Map<String, String> estornar(@PathVariable Long id) {
+        return java.util.Map.of("mensagem", aulaService.estornarERemover(id));
+    }
+
     @DeleteMapping("/{id}/alunos/{alunoId}")
     public Aula removerAluno(@PathVariable Long id, @PathVariable Long alunoId) {
         return aulaService.removerAluno(id, alunoId);

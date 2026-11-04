@@ -9,4 +9,7 @@ import java.util.List;
 public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     List<Pagamento> findByReservaId(Long reservaId);
     List<Pagamento> findByCriadoEmBetween(LocalDateTime inicio, LocalDateTime fim);
+
+    java.util.Optional<Pagamento> findFirstByOrigemAndDescricaoAndValorOrderByIdDesc(
+            String origem, String descricao, java.math.BigDecimal valor);
 }

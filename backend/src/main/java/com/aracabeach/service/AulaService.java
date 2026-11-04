@@ -109,6 +109,44 @@ public class AulaService {
         return aulaRepository.save(aula);
     }
 
+    /**
+     * ADMIN: desfaz o pagamento de uma aula avulsa ja paga (remove o lancamento do caixa) e
+     * apaga a aula, para ser refeita. Comissao pendente e estornada; comissao ja paga ao
+     * professor nao e mexida (avisar o usuario).
+     */
+    @Transactional
+    public String estornarERemover(Long id) {
+        Aula aula = buscar(id);
+        String prof = aula.getProfessor().getNome();
+        String base = "Aula avulsa " + aula.getTipo() + " " + aula.getInicio().toLocalDate();
+        int removidos = 0;
+        java.math.BigDecimal totalEstornado = java.math.BigDecimal.ZERO;
+        if (aula.isPago() && aula.getValor() != null) {
+            var pg = pagamentoRepository.findFirstByOrigemAndDescricaoAndValorOrderByIdDesc(
+                    "MATRICULA", base + " - " + prof, aula.getValor());
+            if (pg.isPresent()) {
+                pagamentoRepository.delete(pg.get());
+                removidos++;
+                totalEstornado = totalEstornado.add(aula.getValor());
+            }
+        }
+        for (var p : aula.getParticipantes()) {
+            if (p.isPago()) {
+                var pg = pagamentoRepository.findFirstByOrigemAndDescricaoAndValorOrderByIdDesc(
+                        "MATRICULA", base + " - " + p.getNome() + " (prof. " + prof + ")", p.getValor());
+                if (pg.isPresent()) {
+                    pagamentoRepository.delete(pg.get());
+                    removidos++;
+                    totalEstornado = totalEstornado.add(p.getValor());
+                }
+            }
+            comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, -p.getId());
+        }
+        comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, aula.getId());
+        aulaRepository.delete(aula);
+        return removidos + " pagamento(s) retirado(s) do caixa (R$ " + totalEstornado + ") e aula removida.";
+    }
+
     private Aula buscar(Long id) {
         return aulaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));

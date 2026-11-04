@@ -444,8 +444,20 @@ export default function Aulas() {
     try {
       await aulaService.remover(id)
       carregarAulas()
-    } catch {
-      setErro('Não foi possível remover a aula.')
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível remover a aula.')
+    }
+  }
+
+  async function handleEstornar(a) {
+    if (!confirm('ESTORNAR e remover esta aula?\n\nO(s) pagamento(s) serão retirados do caixa e a aula será apagada para ser refeita. Só o administrador pode fazer isso.')) return
+    setErro('')
+    try {
+      const r = await aulaService.estornar(a.id)
+      alert(r.mensagem)
+      carregarAulas()
+    } catch (err) {
+      setErro(err.response?.status === 403 ? 'Somente o administrador pode estornar uma aula paga.' : (err.response?.data?.mensagem || 'Não foi possível estornar a aula.'))
     }
   }
 
@@ -784,7 +796,9 @@ export default function Aulas() {
                   ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago</span>
                   : <button onClick={() => handlePagarAula(a)} className="text-green-700 text-sm font-semibold hover:underline">Receber</button>)}
                 <button onClick={() => handleEditarAula(a)} className="text-araca-azul text-sm hover:underline">Editar</button>
-                <button onClick={() => handleRemover(a.id)} className="text-red-600 text-sm hover:underline">Remover</button>
+                {(a.pago || (a.participantes || []).some((p) => p.pago))
+                  ? <button onClick={() => handleEstornar(a)} className="text-red-600 text-sm hover:underline">Estornar e remover</button>
+                  : <button onClick={() => handleRemover(a.id)} className="text-red-600 text-sm hover:underline">Remover</button>}
               </div>
             </li>
           ))}

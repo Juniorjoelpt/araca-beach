@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/portal/auth/**", "/api/portal/quadras", "/api/portal/disponibilidade").permitAll()
                         .requestMatchers("/api/portal/**").hasRole("CLIENTE")
                         .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+                        // Estorno de aula avulsa paga (retira o valor do caixa): so ADMIN.
+                        .requestMatchers(HttpMethod.DELETE, "/api/aulas/*/estornar").hasRole("ADMIN")
                         // Pagamentos fica aberto para ADMIN e RECEPCAO (Operador): e a tela
                         // onde a recepcao confirma o pagamento de uma reserva/cobranca no
                         // balcao, entao bloquear para RECEPCAO inviabilizaria o uso diario.
