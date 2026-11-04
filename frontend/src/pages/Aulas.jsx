@@ -446,7 +446,7 @@ export default function Aulas() {
         </button>
       </div>
 
-      {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}
+      {erro && aba !== 'avulsas' && <p className="text-red-600 text-sm mb-4">{erro}</p>}
 
       {aba === 'avulsas' && (
       <>
@@ -590,6 +590,7 @@ export default function Aulas() {
               )}
             </div>
           )}
+          {erro && <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
           <button type="submit" className="w-full bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">
             {editAulaId ? 'Salvar alterações' : 'Agendar aula'}
           </button>
