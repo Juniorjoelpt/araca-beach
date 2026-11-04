@@ -35,11 +35,14 @@ public class ProfessorController {
     @PostMapping
     public Professor criar(@Valid @RequestBody ProfessorRequest request) {
         modalidadeService.exigir(request.especialidade());
+        validarRemuneracao(request);
         Professor professor = Professor.builder()
                 .nome(request.nome())
                 .telefone(request.telefone())
                 .especialidade(request.especialidade())
                 .percentualComissao(request.percentualComissao())
+                .tipoRemuneracao(normalizarTipo(request))
+                .valorHora(request.valorHora())
                 .ativo(true)
                 .build();
         return professorRepository.save(professor);
@@ -53,8 +56,21 @@ public class ProfessorController {
         professor.setNome(request.nome());
         professor.setTelefone(request.telefone());
         professor.setEspecialidade(request.especialidade());
+        validarRemuneracao(request);
         professor.setPercentualComissao(request.percentualComissao());
+        professor.setTipoRemuneracao(normalizarTipo(request));
+        professor.setValorHora(request.valorHora());
         return professorRepository.save(professor);
+    }
+
+    private static String normalizarTipo(ProfessorRequest r) {
+        return "POR_HORA".equals(r.tipoRemuneracao()) ? "POR_HORA" : "PERCENTUAL";
+    }
+
+    private static void validarRemuneracao(ProfessorRequest r) {
+        if ("POR_HORA".equals(r.tipoRemuneracao()) && (r.valorHora() == null || r.valorHora().signum() <= 0)) {
+            throw new IllegalArgumentException("Informe o valor por hora do professor.");
+        }
     }
 
     /** So exclui professor sem nenhum vinculo (cadastro feito por engano). */

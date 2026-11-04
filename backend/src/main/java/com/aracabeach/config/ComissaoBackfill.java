@@ -40,7 +40,9 @@ public class ComissaoBackfill implements ApplicationRunner {
                     LocalDateTime.of(inicioMes, LocalTime.MIN), LocalDateTime.now().plusYears(1)).forEach(a ->
                     comissaoService.lancar(a.getProfessor(), OrigemComissao.AULA_AVULSA, a.getId(),
                             "Aula " + a.getTipo() + " - " + a.getInicio().toLocalDate(),
-                            a.getInicio().toLocalDate(), a.getValor()));
+                            a.getInicio().toLocalDate(), a.getValor(),
+                            java.math.BigDecimal.valueOf(java.time.Duration.between(a.getInicio(), a.getFim()).toMinutes())
+                                    .divide(java.math.BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP)));
 
             for (PagamentoMatricula p : pagamentoMatriculaRepository
                     .findByPagoTrueAndDataPagamentoGreaterThanEqual(inicioMes)) {

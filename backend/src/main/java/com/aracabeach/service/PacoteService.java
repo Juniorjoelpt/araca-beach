@@ -315,7 +315,9 @@ public class PacoteService {
                     .divide(BigDecimal.valueOf(Math.max(1, pacote.getAulasTotal())), 2, RoundingMode.HALF_UP);
             comissaoService.lancar(aula.getProfessor(), OrigemComissao.AULA_PACOTE, aula.getId(),
                     "Aula de pacote - " + pacote.getCliente().getNome() + " - " + aula.getInicio().toLocalDate(),
-                    aula.getInicio().toLocalDate(), valorPorAula);
+                    aula.getInicio().toLocalDate(), valorPorAula,
+                    BigDecimal.valueOf(java.time.Duration.between(aula.getInicio(), aula.getFim()).toMinutes())
+                            .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP));
         }
         return paraResponse(aula);
     }

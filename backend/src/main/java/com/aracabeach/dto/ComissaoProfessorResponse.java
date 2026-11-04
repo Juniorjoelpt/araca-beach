@@ -11,6 +11,9 @@ public record ComissaoProfessorResponse(
         int quantidadeAulas,
         BigDecimal valorTotalAulas,
         BigDecimal percentualComissao,
-        BigDecimal valorComissao
+        BigDecimal valorComissao,
+        String tipoRemuneracao,
+        BigDecimal valorHora,
+        BigDecimal horas
 ) {
 }

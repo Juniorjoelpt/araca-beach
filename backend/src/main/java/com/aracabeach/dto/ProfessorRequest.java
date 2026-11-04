@@ -9,6 +9,9 @@ public record ProfessorRequest(
         @NotBlank String nome,
         String telefone,
         @NotBlank String especialidade,
-        BigDecimal percentualComissao
+        BigDecimal percentualComissao,
+        /** PERCENTUAL ou POR_HORA (nulo = PERCENTUAL). */
+        String tipoRemuneracao,
+        BigDecimal valorHora
 ) {
 }

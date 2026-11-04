@@ -38,6 +38,18 @@ public class Professor {
     @Column(name = "percentual_comissao", precision = 5, scale = 2)
     private BigDecimal percentualComissao;
 
+    /** PERCENTUAL (padrao) ou POR_HORA. Nulo = PERCENTUAL (cadastros antigos). */
+    @Column(name = "tipo_remuneracao", length = 12)
+    private String tipoRemuneracao;
+
+    /** Valor pago por hora/aula quando tipoRemuneracao = POR_HORA. */
+    @Column(name = "valor_hora", precision = 10, scale = 2)
+    private BigDecimal valorHora;
+
+    public boolean isPorHora() {
+        return "POR_HORA".equals(tipoRemuneracao);
+    }
+
     @Column(nullable = false)
     @Builder.Default
     private boolean ativo = true;

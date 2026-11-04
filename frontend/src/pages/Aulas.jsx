@@ -42,7 +42,7 @@ export default function Aulas() {
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(true)
 
-  const [formProfessor, setFormProfessor] = useState({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
+  const [formProfessor, setFormProfessor] = useState({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '', tipoRemuneracao: 'PERCENTUAL', valorHora: '' })
   const [formAula, setFormAula] = useState({ professorId: '', quadraId: '', tipo: 'PARTICULAR', horaInicio: '08:00', duracao: 60, alunos: '', valor: '', pago: false, formaPagamento: 'PIX' })
 
   const [editProfessorId, setEditProfessorId] = useState(null)
@@ -298,12 +298,14 @@ export default function Aulas() {
     try {
       const dados = {
         ...formProfessor,
-        percentualComissao: formProfessor.percentualComissao ? Number(formProfessor.percentualComissao) : null,
+        percentualComissao: formProfessor.tipoRemuneracao === 'POR_HORA' ? null : (formProfessor.percentualComissao ? Number(formProfessor.percentualComissao) : null),
+        tipoRemuneracao: formProfessor.tipoRemuneracao,
+        valorHora: formProfessor.tipoRemuneracao === 'POR_HORA' && formProfessor.valorHora ? Number(formProfessor.valorHora) : null,
       }
       if (editProfessorId) await professorService.atualizar(editProfessorId, dados)
       else await professorService.criar(dados)
       setEditProfessorId(null)
-      setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
+      setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '', tipoRemuneracao: 'PERCENTUAL', valorHora: '' })
       carregarBase()
     } catch {
       setErro('Não foi possível salvar o professor.')
@@ -312,12 +314,12 @@ export default function Aulas() {
 
   function handleEditarProfessor(p) {
     setEditProfessorId(p.id)
-    setFormProfessor({ nome: p.nome, telefone: p.telefone || '', especialidade: p.especialidade, percentualComissao: p.percentualComissao ?? '' })
+    setFormProfessor({ nome: p.nome, telefone: p.telefone || '', especialidade: p.especialidade, percentualComissao: p.percentualComissao ?? '', tipoRemuneracao: p.tipoRemuneracao || 'PERCENTUAL', valorHora: p.valorHora ?? '' })
   }
 
   function cancelarEdicaoProfessor() {
     setEditProfessorId(null)
-    setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '' })
+    setFormProfessor({ nome: '', telefone: '', especialidade: 'BEACH_TENNIS', percentualComissao: '', tipoRemuneracao: 'PERCENTUAL', valorHora: '' })
   }
 
   async function handleExcluirProfessor(p) {
@@ -475,14 +477,33 @@ export default function Aulas() {
             >
               {ESPECIALIDADES.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
             </select>
-            <input
-              type="number"
-              step="0.01"
-              className="w-32 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
-              placeholder="% comissão"
-              value={formProfessor.percentualComissao}
-              onChange={(e) => setFormProfessor({ ...formProfessor, percentualComissao: e.target.value })}
-            />
+          </div>
+          <div className="flex gap-3">
+            <select
+              className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+              value={formProfessor.tipoRemuneracao}
+              onChange={(e) => setFormProfessor({ ...formProfessor, tipoRemuneracao: e.target.value })}
+            >
+              <option value="PERCENTUAL">Recebe % do valor da aula</option>
+              <option value="POR_HORA">Recebe por hora/aula</option>
+            </select>
+            {formProfessor.tipoRemuneracao === 'POR_HORA' ? (
+              <input
+                type="number" step="0.01" min="0" required
+                className="w-36 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                placeholder="R$ por hora"
+                value={formProfessor.valorHora}
+                onChange={(e) => setFormProfessor({ ...formProfessor, valorHora: e.target.value })}
+              />
+            ) : (
+              <input
+                type="number" step="0.01"
+                className="w-32 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                placeholder="% comissão"
+                value={formProfessor.percentualComissao}
+                onChange={(e) => setFormProfessor({ ...formProfessor, percentualComissao: e.target.value })}
+              />
+            )}
           </div>
           <div className="flex gap-2">
             <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
@@ -495,7 +516,7 @@ export default function Aulas() {
           <ul className="text-sm text-gray-600 pt-2 space-y-1">
             {professores.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-2">
-                <span>{p.nome} · {ESPECIALIDADES.find(e => e.value === p.especialidade)?.label}{p.percentualComissao ? ` · ${p.percentualComissao}%` : ''}</span>
+                <span>{p.nome} · {ESPECIALIDADES.find(e => e.value === p.especialidade)?.label}{p.tipoRemuneracao === 'POR_HORA' ? ` · R$ ${Number(p.valorHora || 0).toFixed(2)}/h` : (p.percentualComissao ? ` · ${p.percentualComissao}%` : '')}</span>
                 <span className="flex gap-3 shrink-0">
                   <button type="button" onClick={() => handleEditarProfessor(p)} className="text-araca-azul hover:underline">Editar</button>
                   <button type="button" onClick={() => handleExcluirProfessor(p)} className="text-red-600 hover:underline">Excluir</button>
@@ -697,8 +718,8 @@ export default function Aulas() {
               <p className="text-xl font-bold text-araca-azul">R$ {Number(comissao.valorTotalAulas).toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">% comissão</p>
-              <p className="text-xl font-bold text-araca-azul">{Number(comissao.percentualComissao).toFixed(1)}%</p>
+              <p className="text-xs text-gray-500">{comissao.tipoRemuneracao === 'POR_HORA' ? `Horas (R$ ${Number(comissao.valorHora || 0).toFixed(2)}/h)` : '% comissão'}</p>
+              <p className="text-xl font-bold text-araca-azul">{comissao.tipoRemuneracao === 'POR_HORA' ? `${Number(comissao.horas || 0).toFixed(2)} h` : `${Number(comissao.percentualComissao).toFixed(1)}%`}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500">Comissão devida</p>

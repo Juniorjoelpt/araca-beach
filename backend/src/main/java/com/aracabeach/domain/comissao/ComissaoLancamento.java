@@ -58,4 +58,11 @@ public class ComissaoLancamento {
     private StatusComissao status = StatusComissao.PENDENTE;
 
     private LocalDate dataPagamento;
+
+    /** Preenchidos quando o professor recebe por hora (valor = horas x valorHora). */
+    @Column(precision = 6, scale = 2)
+    private BigDecimal horas;
+
+    @Column(name = "valor_hora", precision = 10, scale = 2)
+    private BigDecimal valorHora;
 }

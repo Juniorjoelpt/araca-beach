@@ -112,7 +112,7 @@ export default function Comissoes() {
             {resumo.map((r) => (
               <tr key={r.professorId} className={`border-t ${professorId === r.professorId ? 'bg-araca-areia/50' : ''}`}>
                 <td className="px-4 py-3 font-medium text-araca-azul">{r.professorNome}</td>
-                <td className="px-4 py-3">{Number(r.percentual)}%</td>
+                <td className="px-4 py-3">{r.tipoRemuneracao === 'POR_HORA' ? `R$ ${Number(r.valorHora || 0).toFixed(2)}/h` : `${Number(r.percentual)}%`}</td>
                 <td className="px-4 py-3">{r.quantidadePendentes}</td>
                 <td className="px-4 py-3 font-semibold">{brl(r.valorPendente)}</td>
                 <td className="px-4 py-3">{brl(r.valorPago)}</td>
@@ -138,8 +138,8 @@ export default function Comissoes() {
                   <td className="px-4 py-3">{format(new Date(l.competencia + 'T00:00:00'), 'dd/MM/yyyy')}</td>
                   <td className="px-4 py-3">{ORIGEM[l.origem] || l.origem}</td>
                   <td className="px-4 py-3">{l.descricao}</td>
-                  <td className="px-4 py-3">{brl(l.base)}</td>
-                  <td className="px-4 py-3">{Number(l.percentual)}%</td>
+                  <td className="px-4 py-3">{l.horas != null ? `${Number(l.horas).toFixed(2)} h` : brl(l.base)}</td>
+                  <td className="px-4 py-3">{l.horas != null ? `R$ ${Number(l.valorHora).toFixed(2)}/h` : `${Number(l.percentual)}%`}</td>
                   <td className="px-4 py-3 font-medium">{brl(l.valor)}</td>
                   <td className="px-4 py-3">{l.status === 'PAGA' ? `Paga em ${format(new Date(l.dataPagamento + 'T00:00:00'), 'dd/MM')}` : 'Pendente'}</td>
                 </tr>

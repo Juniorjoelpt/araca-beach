@@ -61,11 +61,16 @@ public class AulaService {
         Aula salva = aulaRepository.save(aula);
         comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
                 "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
-                salva.getInicio().toLocalDate(), salva.getValor());
+                salva.getInicio().toLocalDate(), salva.getValor(), horasDa(salva));
         if (Boolean.TRUE.equals(request.pago())) {
             salva = registrarPagamento(salva.getId(), request.formaPagamento());
         }
         return salva;
+    }
+
+    static java.math.BigDecimal horasDa(Aula a) {
+        return java.math.BigDecimal.valueOf(java.time.Duration.between(a.getInicio(), a.getFim()).toMinutes())
+                .divide(java.math.BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
     }
 
     private static java.math.BigDecimal totalDaAula(AulaRequest r) {
@@ -148,7 +153,7 @@ public class AulaService {
         comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, id);
         comissaoService.lancar(professor, com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, salva.getId(),
                 "Aula " + salva.getTipo() + " - " + salva.getInicio().toLocalDate(),
-                salva.getInicio().toLocalDate(), salva.getValor());
+                salva.getInicio().toLocalDate(), salva.getValor(), horasDa(salva));
         return salva;
     }
 
@@ -186,16 +191,25 @@ public class AulaService {
                 .filter(java.util.Objects::nonNull)
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
 
+        java.math.BigDecimal horas = aulas.stream().map(AulaService::horasDa)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
         java.math.BigDecimal percentual = professor.getPercentualComissao() != null
                 ? professor.getPercentualComissao()
                 : java.math.BigDecimal.ZERO;
 
-        java.math.BigDecimal valorComissao = valorTotal
-                .multiply(percentual)
-                .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        java.math.BigDecimal valorComissao;
+        if (professor.isPorHora()) {
+            java.math.BigDecimal vh = professor.getValorHora() != null ? professor.getValorHora() : java.math.BigDecimal.ZERO;
+            valorComissao = horas.multiply(vh).setScale(2, java.math.RoundingMode.HALF_UP);
+        } else {
+            valorComissao = valorTotal
+                    .multiply(percentual)
+                    .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        }
 
         return new com.aracabeach.dto.ComissaoProfessorResponse(
-                professor.getId(), professor.getNome(), inicio, fim, aulas.size(), valorTotal, percentual, valorComissao
+                professor.getId(), professor.getNome(), inicio, fim, aulas.size(), valorTotal, percentual, valorComissao,
+                professor.isPorHora() ? "POR_HORA" : "PERCENTUAL", professor.getValorHora(), horas
         );
     }
 }

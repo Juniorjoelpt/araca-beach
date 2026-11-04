@@ -14,6 +14,8 @@ public record ComissaoLancamentoResponse(
         BigDecimal percentual,
         BigDecimal valor,
         String status,
-        LocalDate dataPagamento
+        LocalDate dataPagamento,
+        BigDecimal horas,
+        BigDecimal valorHora
 ) {
 }

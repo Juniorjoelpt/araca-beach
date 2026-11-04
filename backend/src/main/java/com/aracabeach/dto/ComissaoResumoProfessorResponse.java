@@ -8,6 +8,8 @@ public record ComissaoResumoProfessorResponse(
         BigDecimal percentual,
         int quantidadePendentes,
         BigDecimal valorPendente,
-        BigDecimal valorPago
+        BigDecimal valorPago,
+        String tipoRemuneracao,
+        BigDecimal valorHora
 ) {
 }

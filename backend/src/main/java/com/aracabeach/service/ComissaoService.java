@@ -42,6 +42,33 @@ public class ComissaoService {
     @Transactional
     public void lancar(Professor professor, OrigemComissao origem, Long referenciaId,
                        String descricao, LocalDate competencia, BigDecimal base) {
+        lancar(professor, origem, referenciaId, descricao, competencia, base, null);
+    }
+
+    /**
+     * Professor POR_HORA: valor = horas x valorHora (so para fatos com duracao,
+     * como aula avulsa e aula de pacote; mensalidade de turma nao gera comissao).
+     * Professor PERCENTUAL: valor = base x percentual.
+     */
+    @Transactional
+    public void lancar(Professor professor, OrigemComissao origem, Long referenciaId,
+                       String descricao, LocalDate competencia, BigDecimal base, BigDecimal horas) {
+        if (professor != null && professor.isPorHora()) {
+            if (horas == null || horas.signum() <= 0 || professor.getValorHora() == null
+                    || professor.getValorHora().signum() <= 0
+                    || repository.findByOrigemAndReferenciaId(origem, referenciaId).isPresent()) {
+                return;
+            }
+            repository.save(ComissaoLancamento.builder()
+                    .professor(professor).origem(origem).referenciaId(referenciaId)
+                    .descricao(descricao).competencia(competencia)
+                    .base(base != null ? base : BigDecimal.ZERO)
+                    .percentual(BigDecimal.ZERO)
+                    .horas(horas).valorHora(professor.getValorHora())
+                    .valor(horas.multiply(professor.getValorHora()).setScale(2, RoundingMode.HALF_UP))
+                    .build());
+            return;
+        }
         if (professor == null || base == null || base.signum() <= 0) {
             return;
         }
@@ -92,7 +119,8 @@ public class ComissaoService {
             BigDecimal valorPago = soma(doProf.stream().filter(c -> c.getStatus() == StatusComissao.PAGA).toList());
             return new ComissaoResumoProfessorResponse(p.getId(), p.getNome(),
                     p.getPercentualComissao() != null ? p.getPercentualComissao() : BigDecimal.ZERO,
-                    pend.size(), valorPend, valorPago);
+                    pend.size(), valorPend, valorPago,
+                    p.isPorHora() ? "POR_HORA" : "PERCENTUAL", p.getValorHora());
         }).filter(r -> r.quantidadePendentes() > 0 || r.valorPago().signum() > 0).toList();
     }
 
@@ -141,6 +169,6 @@ public class ComissaoService {
     private ComissaoLancamentoResponse paraResponse(ComissaoLancamento c) {
         return new ComissaoLancamentoResponse(c.getId(), c.getProfessor().getId(), c.getProfessor().getNome(),
                 c.getOrigem().name(), c.getDescricao(), c.getCompetencia(), c.getBase(), c.getPercentual(),
-                c.getValor(), c.getStatus().name(), c.getDataPagamento());
+                c.getValor(), c.getStatus().name(), c.getDataPagamento(), c.getHoras(), c.getValorHora());
     }
 }
