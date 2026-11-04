@@ -524,7 +524,7 @@ export default function Aulas() {
             <option value="">Selecione a quadra...</option>
             {quadras.map((q) => <option key={q.id} value={q.id}>{q.nome}</option>)}
           </select>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <select
               className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
               value={formAula.tipo}
@@ -532,6 +532,14 @@ export default function Aulas() {
             >
               {TIPOS_AULA.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
+            <input
+              type="date"
+              required
+              title="Data da aula (pode ser retroativa)"
+              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+            />
             <input
               type="time"
               className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
