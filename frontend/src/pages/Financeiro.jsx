@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { financeiroService } from '../services/financeiroService.js'
+import { caixaService } from '../services/caixaService.js'
 import { mensalidadeService, matriculaClienteService } from '../services/mensalidadeService.js'
 import { matriculaService } from '../services/turmaService.js'
 import { pacoteService } from '../services/pacoteService.js'
@@ -31,6 +32,7 @@ export default function Financeiro() {
   const [data, setData] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [reservas, setReservas] = useState([])
   const [resumo, setResumo] = useState(null)
+  const [outros, setOutros] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [reservaSelecionada, setReservaSelecionada] = useState(null)
@@ -53,6 +55,10 @@ export default function Financeiro() {
       listaReservas.sort((a, b) => new Date(a.inicio) - new Date(b.inicio))
       setReservas(listaReservas)
       setResumo(resumoDia)
+      // recebimentos que nao sao de reserva (aulas avulsas, mensalidades, pacotes, day use)
+      caixaService.historico({ inicio: data, fim: data })
+        .then((h) => setOutros((h.lancamentos || []).filter((l) => ['MATRICULA', 'MENSALIDADE', 'PACOTE', 'DAYUSE'].includes(l.origem))))
+        .catch(() => setOutros([]))
     } catch {
       setErro('Não foi possível carregar os dados financeiros do dia.')
     } finally {
@@ -278,6 +284,36 @@ export default function Financeiro() {
                       </button>
                     )}
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+        </div>
+      )}
+
+      {outros.length > 0 && (
+        <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
+          <div className="px-4 py-3 bg-gray-50 border-b">
+            <h3 className="font-semibold text-araca-azul text-sm">Aulas e outros recebimentos do dia</h3>
+          </div>
+          <div className="overflow-x-auto"><table className="w-full text-sm tabela-compacta">
+            <thead className="bg-gray-50 text-gray-600 text-left">
+              <tr>
+                <th className="px-4 py-2">Hora</th>
+                <th className="px-4 py-2">Tipo</th>
+                <th className="px-4 py-2">Descrição</th>
+                <th className="px-4 py-2">Forma</th>
+                <th className="px-4 py-2 text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outros.map((l) => (
+                <tr key={l.id} className="border-t">
+                  <td className="px-4 py-2 whitespace-nowrap">{format(new Date(l.dataHora), 'HH:mm')}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{({ MATRICULA: 'Aulas', MENSALIDADE: 'Mensalidade', PACOTE: 'Pacote de aulas', DAYUSE: 'Day Use' })[l.origem] || l.origem}</td>
+                  <td className="px-4 py-2 quebra">{l.descricao}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{formaLabel(l.forma)}</td>
+                  <td className="px-4 py-2 text-right whitespace-nowrap">R$ {Number(l.valor).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
