@@ -265,7 +265,7 @@ export default function Despesas() {
 
       {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>

@@ -134,7 +134,7 @@ export default function Clientes() {
 
       {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>
@@ -214,7 +214,7 @@ export default function Clientes() {
 
             {clienteHistorico && !carregandoHistorico && (
               <>
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <div className="bg-araca-areia rounded-lg p-4">
                     <p className="text-xs text-gray-500">Total gasto em reservas</p>
                     <p className="text-xl font-bold text-araca-azul">R$ {Number(clienteHistorico.totalGastoReservas).toFixed(2)}</p>

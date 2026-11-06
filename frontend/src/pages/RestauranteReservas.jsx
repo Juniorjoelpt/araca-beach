@@ -151,7 +151,7 @@ function NovaReservaModal({ dataPadrao, onFechar, onCriada }) {
         <select value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })} size={4} className="border rounded-lg w-full text-sm">
           {filtrados.map((c) => <option key={c.id} value={c.id}>{c.nome}{c.telefone ? ` · ${c.telefone}` : ''}</option>)}
         </select>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div><label className="text-xs text-gray-600">Data e hora</label><input type="datetime-local" value={form.dataHora} onChange={(e) => setForm({ ...form, dataHora: e.target.value })} className="border rounded-lg px-2 py-2 w-full text-sm" /></div>
           <div><label className="text-xs text-gray-600">Pessoas</label><input type="number" min="1" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} className="border rounded-lg px-2 py-2 w-full text-sm" /></div>
         </div>

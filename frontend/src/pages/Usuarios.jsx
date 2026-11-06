@@ -124,7 +124,7 @@ export default function Usuarios() {
       {erro && <p className="text-red-600 text-sm mb-4">{erro}</p>}
       {sucesso && <p className="text-green-700 text-sm mb-4">{sucesso}</p>}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>
@@ -171,7 +171,7 @@ export default function Usuarios() {
       </div>
 
       {senhaParaTrocar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <form onSubmit={handleTrocarSenha} className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm space-y-4">
             <h3 className="font-semibold text-araca-azul">Trocar senha — {senhaParaTrocar.nome}</h3>
             <input

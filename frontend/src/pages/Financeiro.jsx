@@ -201,7 +201,7 @@ export default function Financeiro() {
               Cobranças pendentes (mensalidades e matrículas)
             </h3>
           </div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-600 text-left">
               <tr>
                 <th className="px-4 py-2">Tipo</th>
@@ -235,7 +235,7 @@ export default function Financeiro() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
@@ -246,7 +246,7 @@ export default function Financeiro() {
               Matrículas de turmas — {matriculas[0].referenciaMes}
             </h3>
           </div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-600 text-left">
               <tr>
                 <th className="px-4 py-2">Aluno</th>
@@ -281,11 +281,11 @@ export default function Financeiro() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>
@@ -351,7 +351,7 @@ export default function Financeiro() {
       </div>
 
       {reservaSelecionada && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handleRegistrarPagamento}
             className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm space-y-4"
@@ -411,7 +411,7 @@ export default function Financeiro() {
       )}
 
       {cobrancaSelecionada && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handlePagarCobranca}
             className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm space-y-4"

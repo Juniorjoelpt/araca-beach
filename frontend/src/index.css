@@ -89,3 +89,22 @@ td {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* ===== Celular / tablet =====
+   - Tabelas largas rolam dentro do proprio cartao (o cartao tem overflow-x-auto),
+     em vez de espremer as colunas ou estourar a pagina.
+   - Campos com 16px evitam o zoom automatico do iPhone ao tocar num input.
+   - Janelas (modais) nunca passam da altura da tela: o conteudo rola dentro delas. */
+@media (max-width: 1023px) {
+  main table { min-width: 640px; }
+  main th, main td { white-space: nowrap; }
+  main td.quebra, main th.quebra { white-space: normal; }
+}
+@media (max-width: 767px) {
+  input, select, textarea { font-size: 16px; }
+  button, [role="button"], a { touch-action: manipulation; }
+  .fixed.inset-0.flex > * { max-height: 92dvh; overflow-y: auto; }
+  .shadow:hover, .shadow-md:hover { transform: none; }
+}
+body { overflow-x: clip; }

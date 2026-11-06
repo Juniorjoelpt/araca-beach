@@ -406,7 +406,7 @@ export default function Pacotes() {
                       </form>
                     )}
 
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto"><table className="w-full text-sm">
                       <thead className="text-left text-gray-500"><tr><th className="py-2">Aula</th><th>Professor</th><th>Quadra</th><th>Situação</th><th /></tr></thead>
                       <tbody>
                         {aulasDoPacote.length === 0 && <tr><td colSpan="5" className="py-3 text-gray-400">Nenhuma aula agendada.</td></tr>}
@@ -420,7 +420,7 @@ export default function Pacotes() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 )}
               </div>

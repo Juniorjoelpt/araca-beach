@@ -127,7 +127,7 @@ function AbaCardapio() {
               try { await restauranteService.atualizarCategoria(c.id, { nome: c.nome, ordem: c.ordem, ativa: !c.ativa }); carregar() } catch (err) { setErro(msg(err, 'Falha ao alterar a categoria.')) }
             }}>{c.ativa ? 'ocultar' : 'mostrar'}</button>
           </div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm">
             <tbody>
               {c.itens.map((i) => (
                 <tr key={i.id} className={`border-t ${!i.ativo ? 'opacity-50' : ''}`}>
@@ -150,7 +150,7 @@ function AbaCardapio() {
               ))}
               {c.itens.length === 0 && <tr><td className="px-4 py-3 text-gray-400">Sem itens.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         </div>
       ))}
 
@@ -207,7 +207,7 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
           placeholder="Código de barras (clique aqui e leia com o leitor)" inputMode="numeric" className="border rounded-lg px-3 py-2 w-full" />
         <textarea value={f.descricao} onChange={(e) => set('descricao', e.target.value)} placeholder="Descrição / ingredientes" rows={2} className="border rounded-lg px-3 py-2 w-full" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <input value={f.preco} onChange={(e) => set('preco', e.target.value)} placeholder="Preço (R$)" inputMode="decimal" className="border rounded-lg px-3 py-2" />
           <input value={f.porcao} onChange={(e) => set('porcao', e.target.value)} placeholder="Porção (ex.: Serve 2)" className="border rounded-lg px-3 py-2" />
           <select value={f.praca} onChange={(e) => set('praca', e.target.value)} className="border rounded-lg px-3 py-2"><option value="COZINHA">Cozinha</option><option value="BAR">Bar</option></select>
@@ -354,7 +354,7 @@ function InsumoModal({ insumo, onFechar, onSalvo }) {
         <select value={f.unidade} onChange={(e) => set('unidade', e.target.value)} className="border rounded-lg px-3 py-2 w-full">
           <option value="KG">Quilo (kg)</option><option value="L">Litro (L)</option><option value="UN">Unidade</option><option value="FARDO">Fardo</option><option value="PACOTE">Pacote</option>
         </select>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div><label className="text-xs text-gray-600">Estoque mínimo ({BASE[f.unidade]})</label><input value={f.estoqueMinimo} onChange={(e) => set('estoqueMinimo', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
           <div><label className="text-xs text-gray-600">Custo (R$ por {BASE[f.unidade]})</label><input value={f.custoUnitario} onChange={(e) => set('custoUnitario', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
         </div>
@@ -466,7 +466,7 @@ function AbaRelatorio() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
               <h3 className="font-semibold text-araca-azul mb-2">Mais vendidos</h3>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm">
                 <thead className="text-left text-gray-500 text-xs"><tr><th>Item</th><th className="text-right">Qtd</th><th className="text-right">Receita</th><th className="text-right">Margem</th></tr></thead>
                 <tbody>
                   {r.maisVendidos.map((i) => (
@@ -474,7 +474,7 @@ function AbaRelatorio() {
                   ))}
                   {r.maisVendidos.length === 0 && <tr><td colSpan={4} className="py-3 text-gray-400">Sem vendas no período.</td></tr>}
                 </tbody>
-              </table>
+              </table></div>
             </div>
             <div className="space-y-4">
               <div className="bg-white rounded-xl shadow p-4">
