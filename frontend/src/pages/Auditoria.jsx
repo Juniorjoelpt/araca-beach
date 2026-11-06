@@ -120,7 +120,7 @@ export default function Auditoria() {
 
       <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
         <span>{resultado.total} registro(s)</span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button disabled={pagina === 0 || carregando} onClick={() => buscar(pagina - 1)} className="px-3 py-1 border rounded-lg disabled:opacity-40">Anterior</button>
           <span>Página {resultado.totalPaginas === 0 ? 0 : pagina + 1} de {resultado.totalPaginas}</span>
           <button disabled={pagina + 1 >= resultado.totalPaginas || carregando} onClick={() => buscar(pagina + 1)} className="px-3 py-1 border rounded-lg disabled:opacity-40">Próxima</button>

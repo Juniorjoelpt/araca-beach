@@ -339,7 +339,7 @@ export default function Pacotes() {
                     <p className="font-semibold text-araca-azul">{v.clienteNome}</p>
                     <p className="text-sm text-gray-500">{v.planoNome} · {brl(v.valor)} · vence {format(new Date(v.validade + 'T00:00:00'), 'dd/MM/yyyy')}</p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-wrap">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-araca-verde-escuro leading-none">{v.saldo}</p>
                       <p className="text-[11px] text-gray-400">de {v.aulasTotal} aulas</p>

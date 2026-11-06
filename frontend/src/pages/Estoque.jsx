@@ -131,7 +131,7 @@ export default function Estoque() {
       <div className="bg-white rounded-xl shadow p-6">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h3 className="font-semibold text-araca-azul">Histórico de movimentações</h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <input
               type="date"
               className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-araca-verde"

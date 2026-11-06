@@ -345,7 +345,7 @@ export default function Restaurante() {
       <div className="grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_320px] gap-4 items-start">
         {/* comandas abertas */}
         <div className="bg-white rounded-xl shadow p-3">
-          <div className="flex gap-1 mb-2 text-xs">
+          <div className="flex gap-1 mb-2 text-xs flex-wrap">
             <button onClick={() => setAbaComandas('abertas')} className={`flex-1 rounded-lg px-2 py-1.5 font-semibold ${abaComandas === 'abertas' ? 'bg-araca-azul text-white' : 'bg-gray-100 text-gray-600'}`}>Abertas ({comandasRecentes.length})</button>
             <button onClick={() => setAbaComandas('pendentes')} className={`flex-1 rounded-lg px-2 py-1.5 font-semibold ${abaComandas === 'pendentes' ? 'bg-amber-500 text-white' : comandasPendentes.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'}`}>Pendentes ({comandasPendentes.length})</button>
           </div>
@@ -454,7 +454,7 @@ export default function Restaurante() {
                   <div key={l.chave} className="border rounded-lg p-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium flex-1">{l.nome}</span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-wrap">
                         <button onClick={() => alterarQtd(l.chave, -1)} className="p-1 rounded border"><Minus size={14} /></button>
                         <span className="w-6 text-center text-sm">{l.quantidade}</span>
                         <button onClick={() => alterarQtd(l.chave, 1)} className="p-1 rounded border"><Plus size={14} /></button>
@@ -549,13 +549,13 @@ export default function Restaurante() {
 
                 {Number(selecionada.restante) > 0 && (
                   <div className="mt-2 space-y-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <input value={valorPag} onChange={(e) => setValorPag(e.target.value)} inputMode="decimal" className="border rounded px-2 py-1 w-24 text-sm" />
                       <select value={formaPag} onChange={(e) => setFormaPag(e.target.value)} className="border rounded px-2 py-1 text-sm flex-1">
                         {FORMAS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                       </select>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                       Dividir por
                       <input type="number" min="1" max="30" value={partes} onChange={(e) => setPartes(e.target.value)} className="border rounded px-1 py-0.5 w-12" />
                       <button onClick={dividir} className="underline">calcular</button>

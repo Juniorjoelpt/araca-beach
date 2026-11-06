@@ -391,7 +391,7 @@ export default function Financeiro() {
               />
               Este pagamento é um sinal/caução
             </label>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setReservaSelecionada(null)}
@@ -435,7 +435,7 @@ export default function Financeiro() {
                 ))}
               </select>
             </div>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setCobrancaSelecionada(null)}

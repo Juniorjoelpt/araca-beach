@@ -186,7 +186,7 @@ export default function Despesas() {
               required
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Dia (1-28)</label>
               <input

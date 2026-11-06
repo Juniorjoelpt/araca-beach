@@ -201,7 +201,7 @@ export default function Loja() {
           <h3 className="font-semibold text-araca-azul">Produtos</h3>
           <button
             onClick={abrirNovoProduto}
-            className="flex items-center gap-2 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-xl hover:opacity-90 hover:shadow-glow transition"
+            className="flex items-center gap-2 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-xl hover:opacity-90 hover:shadow-glow transition flex-wrap"
           >
             <Plus size={16} />
             Novo Produto
@@ -232,16 +232,16 @@ export default function Loja() {
                   }`}>
                     {semEstoque ? 'Sem estoque' : `Estoque: ${p.estoque}`}
                   </p>
-                  <div className="flex items-center gap-3 mt-3 pt-3 border-t">
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t flex-wrap">
                     <button
                       onClick={() => abrirEdicaoProduto(p)}
-                      className="flex items-center gap-1 text-xs text-araca-verde-escuro hover:underline"
+                      className="flex items-center gap-1 text-xs text-araca-verde-escuro hover:underline flex-wrap"
                     >
                       <Pencil size={13} /> Editar
                     </button>
                     <button
                       onClick={() => handleRemoverProduto(p)}
-                      className="flex items-center gap-1 text-xs text-red-600 hover:underline"
+                      className="flex items-center gap-1 text-xs text-red-600 hover:underline flex-wrap"
                     >
                       <Trash2 size={13} /> Excluir
                     </button>
@@ -258,7 +258,7 @@ export default function Loja() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-araca-azul">Comandas abertas</h3>
         </div>
-        <form onSubmit={handleAbrirComanda} className="flex gap-2 mb-4">
+        <form onSubmit={handleAbrirComanda} className="flex gap-2 mb-4 flex-wrap">
           <select
             className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             value={novoClienteId}
@@ -312,7 +312,7 @@ export default function Loja() {
             </div>
 
             {!comandaAtiva.fechada && (
-              <form onSubmit={handleAdicionarItem} className="flex gap-2 mb-4">
+              <form onSubmit={handleAdicionarItem} className="flex gap-2 mb-4 flex-wrap">
                 <select
                   className="flex-1 min-w-0 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-araca-verde"
                   value={itemSelecionado.produtoId}
@@ -382,12 +382,12 @@ export default function Loja() {
               <button
                 onClick={() => imprimirComprovanteLoja(comandaAtiva)}
                 disabled={(comandaAtiva.itens || []).length === 0}
-                className="flex items-center gap-1 text-sm text-araca-azul border rounded-lg px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+                className="flex items-center gap-1 text-sm text-araca-azul border rounded-lg px-3 py-1 hover:bg-gray-50 disabled:opacity-40 flex-wrap"
               >
                 <Printer size={14} /> Imprimir comprovante
               </button>
               {!comandaAtiva.fechada && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <select value={formaLoja} onChange={(e) => setFormaLoja(e.target.value)} className="border rounded-lg px-2 py-1 text-sm">
                     <option value="PIX">Pix</option>
                     <option value="DINHEIRO">Dinheiro</option>
@@ -437,7 +437,7 @@ export default function Loja() {
                   {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label>
                   <input
@@ -478,7 +478,7 @@ export default function Loja() {
               </label>
             </div>
 
-            <div className="flex gap-2 pt-5">
+            <div className="flex gap-2 pt-5 flex-wrap">
               <button
                 type="button"
                 onClick={() => setModalProdutoAberto(false)}

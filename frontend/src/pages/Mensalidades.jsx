@@ -233,7 +233,7 @@ export default function Mensalidades() {
         Mensalidades
       </h2>
 
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
         <button
           onClick={() => setAba('recorrencia')}
           className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
@@ -322,7 +322,7 @@ export default function Mensalidades() {
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => toggleExpandir(m.id)}
-                    className="flex items-center gap-2 text-left flex-1"
+                    className="flex items-center gap-2 text-left flex-1 flex-wrap"
                   >
                     {abertaEsta ? <ChevronUp size={16} className="text-araca-verde-escuro" /> : <ChevronDown size={16} className="text-gray-400" />}
                     <div>
@@ -332,7 +332,7 @@ export default function Mensalidades() {
                       </p>
                     </div>
                   </button>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-wrap">
                     <span className="font-bold text-araca-azul">R$ {Number(m.valorMensal).toFixed(2)}/mês</span>
                     <button onClick={() => handleDesativar(m.id)} className="text-red-600 hover:underline text-sm">
                       Desativar
@@ -358,7 +358,7 @@ export default function Mensalidades() {
                               Pago em {format(new Date(`${p.dataPagamento}T00:00:00`), 'dd/MM/yyyy')} ({FORMAS.find((f) => f.value === p.formaPagamento)?.label})
                             </span>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <select
                                 className="border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-araca-verde"
                                 value={formaSelecionada[p.id] || 'PIX'}
@@ -451,7 +451,7 @@ export default function Mensalidades() {
                   <button
                     type="button"
                     onClick={adicionarHorario}
-                    className="flex items-center gap-1 text-araca-verde-escuro text-sm hover:underline"
+                    className="flex items-center gap-1 text-araca-verde-escuro text-sm hover:underline flex-wrap"
                   >
                     <Plus size={14} /> Adicionar dia
                   </button>
@@ -539,7 +539,7 @@ export default function Mensalidades() {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => toggleExpandirMatricula(m.id)}
-                        className="flex items-center gap-2 text-left flex-1"
+                        className="flex items-center gap-2 text-left flex-1 flex-wrap"
                       >
                         {abertaEsta ? <ChevronUp size={16} className="text-araca-verde-escuro" /> : <ChevronDown size={16} className="text-gray-400" />}
                         <div>
@@ -550,7 +550,7 @@ export default function Mensalidades() {
                           </p>
                         </div>
                       </button>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <span className="font-bold text-araca-azul">R$ {Number(m.valorMensal).toFixed(2)}/mês</span>
                         <button onClick={() => handleDesativarMatricula(m.id)} className="text-red-600 hover:underline text-sm">
                           Desativar
@@ -595,7 +595,7 @@ export default function Mensalidades() {
                                     Pago em {format(new Date(`${p.dataPagamento}T00:00:00`), 'dd/MM/yyyy')} ({FORMAS.find((f) => f.value === p.formaPagamento)?.label})
                                   </span>
                                 ) : (
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <select
                                       className="border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-araca-verde"
                                       value={formaSelecionadaMatricula[p.id] || 'PIX'}

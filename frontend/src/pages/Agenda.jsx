@@ -305,7 +305,7 @@ export default function Agenda() {
         <h2 className="font-title text-2xl text-araca-verde">Agenda / Reservas</h2>
         <button
           onClick={() => abrirModalNovaReserva()}
-          className="flex items-center gap-2 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-xl hover:opacity-90 hover:shadow-glow transition"
+          className="flex items-center gap-2 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-xl hover:opacity-90 hover:shadow-glow transition flex-wrap"
         >
           <Plus size={18} />
           Novo Agendamento
@@ -324,7 +324,7 @@ export default function Agenda() {
           ))}
         </select>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <button
             onClick={() => setSemanaBase(startOfWeek(new Date(), { locale: ptBR }))}
             className="px-3 py-1.5 text-sm border rounded-lg text-araca-azul hover:bg-araca-areia-escura transition"
@@ -565,7 +565,7 @@ export default function Agenda() {
                     {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
                     <input
@@ -591,7 +591,7 @@ export default function Agenda() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Horários consecutivos (duração total)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button type="button" aria-label="Menos 30 minutos"
                       onClick={() => setForm({ ...form, duracao: Math.max(30, form.duracao - 30) })}
                       className="px-3 border rounded-lg text-lg hover:bg-gray-50">−</button>
@@ -663,7 +663,7 @@ export default function Agenda() {
                     {DIAS_SEMANA.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
                   </select>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Horário</label>
                     <input

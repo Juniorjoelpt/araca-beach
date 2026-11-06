@@ -64,7 +64,7 @@ export default function RestauranteReservas() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="font-title text-2xl text-araca-verde flex items-center gap-2"><CalendarClock size={24} /> Reservas de mesa</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="border rounded-lg px-3 py-2" />
           <button onClick={() => setModal(true)} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2"><Plus size={18} /> Nova reserva</button>
         </div>

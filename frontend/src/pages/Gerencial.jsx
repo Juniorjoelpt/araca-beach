@@ -138,7 +138,7 @@ export default function Gerencial() {
           <input type="date" className="border rounded-lg px-3 py-2" value={fim} onChange={(e) => setFim(e.target.value)} />
         </div>
         <button onClick={() => carregar()} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg">Aplicar</button>
-        <div className="flex gap-2 text-sm ml-auto">
+        <div className="flex gap-2 text-sm ml-auto flex-wrap">
           <button className="underline text-gray-600" onClick={() => atalho(subDays(hoje, 6), hoje)}>7 dias</button>
           <button className="underline text-gray-600" onClick={() => atalho(subDays(hoje, 29), hoje)}>30 dias</button>
           <button className="underline text-gray-600" onClick={() => atalho(startOfMonth(hoje), endOfMonth(hoje))}>Este mês</button>

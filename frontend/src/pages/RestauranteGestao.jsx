@@ -40,7 +40,7 @@ export default function RestauranteGestao() {
   return (
     <div>
       <h2 className="font-title text-2xl text-araca-verde mb-4 flex items-center gap-2"><ChefHat size={24} /> Gestão do restaurante</h2>
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 mb-5 flex-wrap">
         {[['cardapio', 'Cardápio e fichas'], ['insumos', 'Insumos (estoque)'], ['pedidos', 'Histórico de pedidos'], ['relatorio', 'Relatório']].map(([k, l]) => (
           <button key={k} onClick={() => setAba(k)} className={`px-4 py-2 rounded-lg text-sm border ${aba === k ? 'bg-araca-azul text-white border-araca-azul' : 'bg-white text-gray-600'}`}>{l}</button>
         ))}
@@ -111,7 +111,7 @@ function AbaCardapio() {
   return (
     <div>
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 flex-wrap">
         <button onClick={() => setEditando({})} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2"><Plus size={16} /> Novo item</button>
         <button onClick={novaCategoria} className="bg-white text-araca-azul border px-4 py-2 rounded-lg text-sm font-medium hover:bg-araca-areia">Nova categoria</button>
       </div>
@@ -127,18 +127,21 @@ function AbaCardapio() {
               try { await restauranteService.atualizarCategoria(c.id, { nome: c.nome, ordem: c.ordem, ativa: !c.ativa }); carregar() } catch (err) { setErro(msg(err, 'Falha ao alterar a categoria.')) }
             }}>{c.ativa ? 'ocultar' : 'mostrar'}</button>
           </div>
-          <div className="overflow-x-auto"><table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm tabela-compacta">
             <tbody>
               {c.itens.map((i) => (
                 <tr key={i.id} className={`border-t ${!i.ativo ? 'opacity-50' : ''}`}>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 quebra">
                     <div className="font-medium">{i.nome}{i.pausado && <span className="ml-2 text-xs text-red-600">pausado</span>}{!i.ativo && <span className="ml-2 text-xs text-gray-500">inativo</span>}</div>
                     {i.porcao && <div className="text-xs text-araca-verde-escuro">{i.porcao}</div>}
                     {i.codigoBarras && <div className="text-xs text-gray-400">cód. {i.codigoBarras}</div>}
+                    <div className="sm:hidden text-xs text-gray-500 mt-0.5">
+                      {i.praca === 'BAR' ? 'Bar' : 'Cozinha'} · {i.temFicha ? <span>custo {brl(i.custo)} · <strong className={Number(i.margemPercentual) < 40 ? 'text-red-600' : 'text-green-700'}>{num(i.margemPercentual, 1)}%</strong></span> : 'sem ficha'}
+                    </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-gray-500">{i.praca === 'BAR' ? 'Bar' : 'Cozinha'}</td>
+                  <td className="px-2 py-2 text-xs text-gray-500 hidden sm:table-cell">{i.praca === 'BAR' ? 'Bar' : 'Cozinha'}</td>
                   <td className="px-2 py-2 text-right whitespace-nowrap">{brl(i.preco)}</td>
-                  <td className="px-2 py-2 text-right text-xs whitespace-nowrap">
+                  <td className="px-2 py-2 text-right text-xs whitespace-nowrap hidden sm:table-cell">
                     {i.temFicha ? <span title={`Custo ${brl(i.custo)}`}>custo {brl(i.custo)} · <strong className={Number(i.margemPercentual) < 40 ? 'text-red-600' : 'text-green-700'}>{num(i.margemPercentual, 1)}%</strong></span> : <span className="text-gray-400">sem ficha</span>}
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap space-x-2">
@@ -258,7 +261,7 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
         {linhas.map((l, idx) => {
           const ins = porId[l.insumoId]
           return (
-            <div key={idx} className="flex gap-2 items-center">
+            <div key={idx} className="flex gap-2 items-center flex-wrap">
               <select value={l.insumoId} onChange={(e) => setLinhas((x) => x.map((y, i) => (i === idx ? { ...y, insumoId: e.target.value } : y)))} className="border rounded-lg px-2 py-1.5 flex-1 text-sm">
                 <option value="">Escolha o insumo</option>
                 {insumos.filter((i) => i.ativo).map((i) => <option key={i.id} value={i.id}>{i.nome} ({porEmb(i) > 1 ? `un de ${BASE[i.unidade]} c/ ${porEmb(i)}` : BASE[i.unidade]})</option>)}
@@ -480,7 +483,7 @@ function AbaRelatorio() {
               <div className="bg-white rounded-xl shadow p-4">
                 <h3 className="font-semibold text-araca-azul mb-2">Receita por horário do pedido</h3>
                 {r.porHora.map((h) => (
-                  <div key={h.chave} className="flex items-center gap-2 text-xs mb-1">
+                  <div key={h.chave} className="flex items-center gap-2 text-xs mb-1 flex-wrap">
                     <span className="w-8">{String(h.chave).padStart(2, '0')}h</span>
                     <div className="flex-1 bg-gray-100 h-3 rounded"><div className="bg-araca-verde h-3 rounded" style={{ width: `${(Number(h.receita) / maxHora) * 100}%` }} /></div>
                     <span className="w-20 text-right">{brl(h.receita)}</span>

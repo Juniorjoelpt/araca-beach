@@ -486,7 +486,7 @@ export default function Aulas() {
         Aulas
       </h2>
 
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
         <button
           onClick={() => setAba('avulsas')}
           className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
@@ -525,7 +525,7 @@ export default function Aulas() {
             value={formProfessor.telefone}
             onChange={(e) => setFormProfessor({ ...formProfessor, telefone: e.target.value })}
           />
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <select
               className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
               value={formProfessor.especialidade}
@@ -534,7 +534,7 @@ export default function Aulas() {
               {ESPECIALIDADES.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
             </select>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <select
               className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
               value={formProfessor.tipoRemuneracao}
@@ -561,7 +561,7 @@ export default function Aulas() {
               />
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
               {editProfessorId ? 'Salvar alterações' : 'Adicionar professor'}
             </button>
@@ -747,7 +747,7 @@ export default function Aulas() {
                 </p>
                 {a.porAluno && (
                   <div className="mt-2 text-sm">
-                    <div className="flex items-center gap-2 mb-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 mb-1 text-xs text-gray-500 flex-wrap">
                       Forma ao receber:
                       <select className="border rounded px-1 py-0.5" value={formaAluno} onChange={(e) => setFormaAluno(e.target.value)}>
                         <option value="PIX">Pix</option>
@@ -758,7 +758,7 @@ export default function Aulas() {
                     </div>
                     <ul className="space-y-1">
                       {(a.participantes || []).map((p) => (
-                        <li key={p.id} className="flex items-center gap-3">
+                        <li key={p.id} className="flex items-center gap-3 flex-wrap">
                           <span className="flex-1">{p.nome} · R$ {Number(p.valor).toFixed(2)}</span>
                           {p.pago
                             ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago ({p.formaPagamento})</span>
@@ -791,7 +791,7 @@ export default function Aulas() {
                   </div>
                 )}
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex gap-3 items-center flex-wrap">
                 {!a.porAluno && a.valor > 0 && (a.pago
                   ? <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Pago</span>
                   : <button onClick={() => handlePagarAula(a)} className="text-green-700 text-sm font-semibold hover:underline">Receber</button>)}
@@ -931,7 +931,7 @@ export default function Aulas() {
                       </button>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <input
                       type="time"
                       className="border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-araca-verde"
@@ -971,7 +971,7 @@ export default function Aulas() {
               </button>
               <p className="text-xs text-gray-500">Marque os dias e informe início e fim. Use "Adicionar outro horário" para horários separados (ex.: 17h, 18h e 20h nos mesmos dias).</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button type="submit" className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition">
                 {editTurmaId ? 'Salvar alterações' : 'Criar turma'}
               </button>
@@ -999,7 +999,7 @@ export default function Aulas() {
                         {t.capacidadeMaxima ? `/${t.capacidadeMaxima}` : ''} aluno(s)
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <button
                         onClick={() => handleExpandirTurma(t)}
                         className="text-araca-verde-escuro text-sm hover:underline"

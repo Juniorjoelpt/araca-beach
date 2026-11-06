@@ -67,7 +67,7 @@ export default function DayUse() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="font-title text-2xl text-araca-verde flex items-center gap-2"><Ticket size={24} /> Day Use</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {admin && (
             <button onClick={() => setConfig(true)} className="bg-white text-araca-azul border px-3 py-2 rounded-lg text-sm flex items-center gap-1.5"><Settings size={16} /> Ingressos e capacidade</button>
           )}
@@ -119,7 +119,7 @@ export default function DayUse() {
                 {pendente && <p className="text-xs text-gray-500">{v.pessoas} pessoa(s)</p>}
               </div>
               {!cancelada && (
-                <div className="flex gap-2 text-sm">
+                <div className="flex gap-2 text-sm flex-wrap">
                   {pendente && (
                     <button onClick={() => setConfirmando(v)} className="bg-araca-verde text-araca-azul font-semibold px-3 py-1.5 rounded-lg">Confirmar pagamento</button>
                   )}
@@ -248,7 +248,7 @@ function NovaVenda({ dataInicial, onFechar, onVendida }) {
           {tipos.map((t) => (
             <div key={t.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
               <div><p className="font-medium">{t.nome}</p><p className="text-xs text-gray-500">{brl(t.preco)} {t.pessoasPorUnidade > 1 ? `· pacote para ${t.pessoasPorUnidade} pessoas` : 'cada'}</p></div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button onClick={() => mudar(t.id, -1)} className="w-8 h-8 rounded-full border flex items-center justify-center" aria-label="Menos"><Minus size={14} /></button>
                 <span className="w-6 text-center font-semibold">{qtd[t.id] || 0}</span>
                 <button onClick={() => mudar(t.id, 1)} className="w-8 h-8 rounded-full bg-araca-azul text-white flex items-center justify-center" aria-label="Mais"><Plus size={14} /></button>
@@ -332,7 +332,7 @@ function Configurar({ onFechar }) {
       <div className="space-y-4 text-sm">
         <div>
           <label className="text-xs text-gray-600">Capacidade por dia (pessoas). Vazio ou 0 = sem limite</label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <input value={capacidade} onChange={(e) => setCapacidade(e.target.value)} inputMode="numeric" className="border rounded-lg px-3 py-2 w-32" />
           </div>
           <label className="text-xs text-gray-600 mt-2 block">Mensagem para o cliente no portal (ex.: como pagar a reserva)</label>

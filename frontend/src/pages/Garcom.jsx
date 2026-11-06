@@ -64,7 +64,7 @@ export default function Garcom() {
   return (
     <div className="min-h-screen bg-araca-areia pb-28">
       <header className="bg-araca-azul text-white px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
           {selecionada && (
             <button onClick={() => setSelecionadaId(null)} aria-label="Voltar" className="p-1 -ml-1"><ArrowLeft size={22} /></button>
           )}
@@ -73,7 +73,7 @@ export default function Garcom() {
             <div className="text-xs text-white/70 truncate">{usuario?.nome}</div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <button onClick={carregar} aria-label="Atualizar" className="p-2"><RefreshCw size={20} /></button>
           <button onClick={sair} aria-label="Sair" className="p-2"><LogOut size={20} /></button>
         </div>
@@ -84,7 +84,7 @@ export default function Garcom() {
 
       {!selecionada && (
         <main className="p-3 space-y-3">
-          <div className="flex gap-2 text-sm">
+          <div className="flex gap-2 text-sm flex-wrap">
             <button onClick={() => setSoMinhas(false)} className={`flex-1 py-2 rounded-lg border ${!soMinhas ? 'bg-araca-azul text-white' : 'bg-white'}`}>Todas ({comandas.length})</button>
             <button onClick={() => setSoMinhas(true)} className={`flex-1 py-2 rounded-lg border ${soMinhas ? 'bg-araca-azul text-white' : 'bg-white'}`}>Minhas</button>
           </div>
@@ -296,7 +296,7 @@ function ComandaGarcom({ comanda, cardapio, onAtualizada, onEnviado, onErro }) {
                   {i.pausado && <div className="text-xs text-red-600">Indisponível (acabou)</div>}
                 </div>
                 {!i.pausado && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {linha && (
                       <>
                         <button onClick={() => mudar(i, -1)} className="w-9 h-9 rounded-full border flex items-center justify-center" aria-label="Menos"><Minus size={16} /></button>

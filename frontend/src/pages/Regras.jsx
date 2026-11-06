@@ -154,7 +154,7 @@ export default function Regras() {
     return (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{rotulo}</label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input type="number" min="0" step="any" className={input} value={config[chave]}
             onChange={(e) => setConfig({ ...config, [chave]: e.target.value })} required />
           <span className="text-sm text-gray-500 whitespace-nowrap">{sufixo}</span>

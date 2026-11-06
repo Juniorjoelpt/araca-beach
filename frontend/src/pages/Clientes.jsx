@@ -113,7 +113,7 @@ export default function Clientes() {
             placeholder="(00) 00000-0000"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
             <input
@@ -180,13 +180,13 @@ export default function Clientes() {
                     )}
                     <button
                       onClick={() => handleVerHistorico(c)}
-                      className="flex items-center gap-1 text-araca-verde-escuro hover:underline"
+                      className="flex items-center gap-1 text-araca-verde-escuro hover:underline flex-wrap"
                     >
                       <History size={14} /> Histórico
                     </button>
                     <button
                       onClick={() => handleExcluir(c)}
-                      className="flex items-center gap-1 text-red-600 hover:underline"
+                      className="flex items-center gap-1 text-red-600 hover:underline flex-wrap"
                     >
                       <Trash2 size={14} /> Excluir
                     </button>

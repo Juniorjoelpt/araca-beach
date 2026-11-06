@@ -8,7 +8,7 @@ import { caixaService } from '../services/caixaService.js'
 function CardRelatorio({ icon: Icon, titulo, descricao, formato, children, onExportar, carregando }) {
   return (
     <div className="bg-white rounded-xl shadow p-6">
-      <div className="flex items-start gap-3 mb-4">
+      <div className="flex items-start gap-3 mb-4 flex-wrap">
         <div className="bg-araca-areia-escura/60 rounded-lg p-2.5">
           <Icon size={20} className="text-araca-verde-escuro" />
         </div>
@@ -117,7 +117,7 @@ export default function Relatorios() {
           carregando={carregando === 'historico'}
           onExportar={() => executar('historico', () => caixaService.baixarPdf(periodoHistorico))}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">De</label>
               <input
@@ -148,7 +148,7 @@ export default function Relatorios() {
           carregando={carregando === 'comissoes'}
           onExportar={() => executar('comissoes', () => relatorioService.baixarComissoes(periodoComissoes.inicio, periodoComissoes.fim))}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">De</label>
               <input
@@ -178,7 +178,7 @@ export default function Relatorios() {
           carregando={carregando === 'reservas'}
           onExportar={() => executar('reservas', () => relatorioService.baixarReservas(periodoReservas.inicio, periodoReservas.fim))}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">De</label>
               <input

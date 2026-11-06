@@ -38,7 +38,7 @@ function CardIndicador({ icon: Icon, label, valor, sublinha, destaque, delay }) 
       transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
       className={`rounded-xl shadow p-6 ${destaque ? 'bg-araca-verde' : 'bg-white'}`}
     >
-      <div className="flex items-center gap-2 mb-1">
+      <div className="flex items-center gap-2 mb-1 flex-wrap">
         <Icon size={16} className={destaque ? 'text-araca-azul/70' : 'text-gray-400'} />
         <p className={`text-sm ${destaque ? 'text-araca-azul/70' : 'text-gray-500'}`}>{label}</p>
       </div>

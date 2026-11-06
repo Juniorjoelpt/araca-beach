@@ -183,7 +183,7 @@ export default function Usuarios() {
               minLength={6}
               required
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setSenhaParaTrocar(null)}
