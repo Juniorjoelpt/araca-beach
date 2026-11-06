@@ -28,6 +28,11 @@ export default function Restaurante() {
   const [comandas, setComandas] = useState([])
   const [cardapio, setCardapio] = useState([])
   const [selecionadaId, setSelecionadaId] = useState(null)
+  useEffect(() => {
+    if (selecionadaId && window.innerWidth < 1280) {
+      setTimeout(() => document.getElementById('painel-comanda')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+    }
+  }, [selecionadaId])
   const [erro, setErro] = useState('')
   const [aviso, setAviso] = useState('')
   const [carrinho, setCarrinho] = useState([]) // { itemId, nome, preco, quantidade, observacao }
@@ -323,15 +328,15 @@ export default function Restaurante() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-title text-2xl text-araca-verde flex items-center gap-2"><UtensilsCrossed size={24} /> Restaurante</h2>
-        <label className="text-xs text-gray-600 flex items-center gap-1.5 ml-auto mr-4 cursor-pointer" title="Imprime na impressora térmica deste computador cada pedido feito pelos garçons no celular">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+        <h2 className="font-title text-2xl text-araca-verde flex items-center gap-2 mr-auto"><UtensilsCrossed size={24} /> Restaurante</h2>
+        <button onClick={() => setModalNova(true)} className="order-2 sm:order-3 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap shrink-0">
+          <Plus size={18} /> Nova comanda
+        </button>
+        <label className="order-3 sm:order-2 basis-full sm:basis-auto text-xs text-white/70 flex items-center gap-1.5 cursor-pointer" title="Imprime na impressora térmica deste computador cada pedido feito pelos garçons no celular">
           <input type="checkbox" checked={autoImprimir} onChange={(e) => mudarAutoImprimir(e.target.checked)} />
           Imprimir pedidos dos garçons automaticamente
         </label>
-        <button onClick={() => setModalNova(true)} className="bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
-          <Plus size={18} /> Nova comanda
-        </button>
       </div>
 
       {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
@@ -369,7 +374,7 @@ export default function Restaurante() {
         </div>
 
         {/* cardápio */}
-        <div className="bg-white rounded-xl shadow p-4 min-w-0">
+        <div id="painel-comanda" className="bg-white rounded-xl shadow p-4 min-w-0 scroll-mt-20">
           {!selecionada ? (
             <p className="text-gray-400 text-sm py-10 text-center">Selecione ou abra uma comanda para lançar pedidos.</p>
           ) : (
@@ -647,7 +652,7 @@ function NovaComandaModal({ onFechar, onCriada }) {
   const clienteSel = clientes.find((c) => String(c.id) === String(clienteId))
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-start sm:items-center justify-center z-50 p-4 pt-8 sm:pt-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-araca-azul">Nova comanda</h3>
