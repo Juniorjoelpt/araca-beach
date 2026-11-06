@@ -353,7 +353,15 @@ export default function Aulas() {
         valorPorAluno: formAula.valor ? Number(formAula.valor) : null,
       }
       if (!editAulaId) {
-        dadosAula.participantes = formAula.lista.map((x) => ({
+        // inclui o aluno digitado que ainda nao foi adicionado com o botao
+        let lista = formAula.lista
+        const pendente = novoAluno.nome.trim()
+        if (pendente) {
+          const v = novoAluno.valor !== '' ? Number(novoAluno.valor) : (formAula.valor !== '' ? Number(formAula.valor) : null)
+          if (v == null || Number.isNaN(v) || v < 0) { setErro(`Informe o valor de ${pendente} (ou o valor padrão por aluno).`); return }
+          lista = [...lista, { nome: pendente, valor: v, pago: novoAluno.pago, forma: novoAluno.forma }]
+        }
+        dadosAula.participantes = lista.map((x) => ({
           nome: x.nome, valor: x.valor, pago: x.pago, formaPagamento: x.pago ? x.forma : null,
         }))
       } else if (!editPorAluno) {
@@ -364,6 +372,7 @@ export default function Aulas() {
       setEditAulaId(null)
       setEditPorAluno(false)
       setFormAula({ ...formAula, alunos: '', valor: '', pago: false, lista: [] })
+      setNovoAluno({ nome: '', valor: '', pago: false, forma: 'PIX' })
       carregarAulas()
     } catch (err) {
       if (err.response?.status === 409) {
