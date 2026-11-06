@@ -92,7 +92,12 @@ export default function Restaurante() {
   // Impressao automatica dos pedidos feitos pelos garcons (neste computador). Fica ligada por padrao;
   // desligue nos outros computadores para nao imprimir em dois lugares.
   const [autoImprimir, setAutoImprimir] = useState(() => {
-    try { return localStorage.getItem('araca_auto_imprimir_garcom') !== '0' } catch { return true }
+    try {
+      const v = localStorage.getItem('araca_auto_imprimir_garcom')
+      if (v !== null) return v !== '0'
+      // celular/tablet: nao imprime aqui, o computador do restaurante imprime
+      return !window.matchMedia('(max-width: 1023px)').matches
+    } catch { return true }
   })
   const imprimindoRef = useRef(false)
   const mudarAutoImprimir = (v) => {
@@ -217,8 +222,16 @@ export default function Restaurante() {
     atualizarComanda(nova)
     const pedido = nova.pedidos[nova.pedidos.length - 1]
     setCarrinho([])
-    setAviso(`Pedido ${pedido.numero} enviado.`)
-    imprimirPedido(nova, pedido)
+    if (autoImprimir) {
+      // imprime aqui e avisa o servidor, para o computador do restaurante nao imprimir de novo
+      try {
+        const { imprimir } = await restauranteService.reivindicarImpressao(pedido.id)
+        if (imprimir) imprimirPedido(nova, pedido)
+      } catch { imprimirPedido(nova, pedido) }
+      setAviso(`Pedido ${pedido.numero} enviado.`)
+    } else {
+      setAviso(`Pedido ${pedido.numero} enviado. Vai imprimir no computador do restaurante.`)
+    }
   }
 
   // ----- comanda -----
@@ -333,9 +346,9 @@ export default function Restaurante() {
         <button onClick={() => setModalNova(true)} className="order-2 sm:order-3 bg-araca-verde text-araca-azul font-semibold px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap shrink-0">
           <Plus size={18} /> Nova comanda
         </button>
-        <label className="order-3 sm:order-2 basis-full sm:basis-auto text-xs text-white/70 flex items-center gap-1.5 cursor-pointer" title="Imprime na impressora térmica deste computador cada pedido feito pelos garçons no celular">
+        <label className="order-3 sm:order-2 basis-full sm:basis-auto text-xs text-white/70 flex items-center gap-1.5 cursor-pointer" title="Deixe ligado só no computador da impressora térmica: ele imprime os pedidos feitos no celular">
           <input type="checkbox" checked={autoImprimir} onChange={(e) => mudarAutoImprimir(e.target.checked)} />
-          Imprimir pedidos dos garçons automaticamente
+          Imprimir pedidos (de celulares e garçons) neste computador
         </label>
       </div>
 

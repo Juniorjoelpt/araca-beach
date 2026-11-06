@@ -134,7 +134,7 @@ public class ComandaRestauranteService {
         ComandaRestaurante c = abertaOuErro(id);
         int numero = c.getPedidos().stream().mapToInt(PedidoRestaurante::getNumero).max().orElse(0) + 1;
         PedidoRestaurante pedido = PedidoRestaurante.builder().comanda(c).numero(numero).lancadoPor(OperadorAtual.nome())
-                .impressaoPendente(OperadorAtual.garcom() ? Boolean.TRUE : null).build();
+                .impressaoPendente(Boolean.TRUE).build();
 
         for (PedidoItemRequest linha : request.itens()) {
             ItemCardapio item = itemRepository.findById(linha.itemId())
