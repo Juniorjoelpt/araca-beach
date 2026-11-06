@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { professorService } from '../services/professorService.js'
 import { quadraService } from '../services/quadraService.js'
@@ -340,6 +340,16 @@ export default function Aulas() {
 
   async function handleCriarAula(e) {
     e.preventDefault()
+    if (ocupadoRef.current) return // evita enviar o formulario duas vezes
+    ocupadoRef.current = true
+    try {
+      await salvarAula()
+    } finally {
+      ocupadoRef.current = false
+    }
+  }
+
+  async function salvarAula() {
     setErro('')
     const inicio = new Date(`${data}T${formAula.horaInicio}:00`)
     const fim = new Date(inicio.getTime() + formAula.duracao * 60000)
@@ -393,13 +403,18 @@ export default function Aulas() {
     setNovoAluno({ ...novoAluno, nome: '', valor: '', pago: false })
   }
 
+  const ocupadoRef = useRef(false)
   async function executarAluno(fn) {
+    if (ocupadoRef.current) return // evita clique duplo (pagamento duplicado)
+    ocupadoRef.current = true
     setErro('')
     try {
       await fn()
       carregarAulas()
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível concluir a operação.')
+    } finally {
+      ocupadoRef.current = false
     }
   }
 
@@ -418,13 +433,16 @@ export default function Aulas() {
 
   async function handlePagarAula(a) {
     const forma = (window.prompt(`Receber R$ ${Number(a.valor).toFixed(2)} — forma de pagamento (PIX, DINHEIRO, CARTAO_DEBITO, CARTAO_CREDITO):`, 'PIX') || '').trim().toUpperCase()
-    if (!forma) return
+    if (!forma || ocupadoRef.current) return
+    ocupadoRef.current = true
     setErro('')
     try {
       await aulaService.pagar(a.id, forma)
       carregarAulas()
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível registrar o pagamento.')
+    } finally {
+      ocupadoRef.current = false
     }
   }
 

@@ -7,6 +7,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface AulaRepository extends JpaRepository<Aula, Long> {
 
@@ -26,4 +29,9 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
             @Param("professorId") Long professorId,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
+
+    /** Trava a linha da aula: dois cliques simultaneos em Receber nao lancam o pagamento duas vezes. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Aula a WHERE a.id = :id")
+    Optional<Aula> buscarParaEscrita(@Param("id") Long id);
 }

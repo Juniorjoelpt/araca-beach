@@ -81,7 +81,7 @@ public class AulaService {
 
     @Transactional
     public Aula adicionarAluno(Long aulaId, com.aracabeach.dto.AulaParticipanteRequest request) {
-        Aula aula = buscar(aulaId);
+        Aula aula = buscarParaEscrita(aulaId);
         exigirPorAluno(aula);
         incluirAluno(aula, request);
         recalcular(aula);
@@ -90,7 +90,7 @@ public class AulaService {
 
     @Transactional
     public Aula pagarAluno(Long aulaId, Long alunoId, com.aracabeach.domain.financeiro.FormaPagamento forma) {
-        Aula aula = buscar(aulaId);
+        Aula aula = buscarParaEscrita(aulaId);
         com.aracabeach.domain.aula.AulaParticipante p = participante(aula, alunoId);
         receber(aula, p, forma);
         return aulaRepository.save(aula);
@@ -98,7 +98,7 @@ public class AulaService {
 
     @Transactional
     public Aula removerAluno(Long aulaId, Long alunoId) {
-        Aula aula = buscar(aulaId);
+        Aula aula = buscarParaEscrita(aulaId);
         com.aracabeach.domain.aula.AulaParticipante p = participante(aula, alunoId);
         if (p.isPago()) {
             throw new IllegalArgumentException("Aluno ja pagou: nao pode ser removido (o valor ja entrou no caixa).");
@@ -145,6 +145,11 @@ public class AulaService {
         comissaoService.estornar(com.aracabeach.domain.comissao.OrigemComissao.AULA_AVULSA, aula.getId());
         aulaRepository.delete(aula);
         return removidos + " pagamento(s) retirado(s) do caixa (R$ " + totalEstornado + ") e aula removida.";
+    }
+
+    private Aula buscarParaEscrita(Long id) {
+        return aulaRepository.buscarParaEscrita(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));
     }
 
     private Aula buscar(Long id) {
@@ -248,8 +253,7 @@ public class AulaService {
     /** Recebe a aula avulsa: marca como paga e lanca o valor no caixa. */
     @Transactional
     public Aula registrarPagamento(Long id, com.aracabeach.domain.financeiro.FormaPagamento forma) {
-        Aula aula = aulaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada: " + id));
+        Aula aula = buscarParaEscrita(id);
         if (aula.isPago()) {
             throw new IllegalArgumentException("Essa aula ja foi paga.");
         }
