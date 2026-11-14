@@ -176,9 +176,16 @@ public class AulaService {
         com.aracabeach.domain.aula.AulaParticipante p = com.aracabeach.domain.aula.AulaParticipante.builder()
                 .aula(aula).nome(pr.nome().trim()).valor(valor.setScale(2, java.math.RoundingMode.HALF_UP)).build();
         aula.getParticipantes().add(p);
-        aulaRepository.saveAndFlush(aula);
+        Aula atual = aulaRepository.saveAndFlush(aula);
         if (Boolean.TRUE.equals(pr.pago())) {
-            receber(aula, p, pr.formaPagamento());
+            // o merge devolve uma copia gerenciada do aluno: a marca de pago precisa ir nela,
+            // senao o caixa recebe o valor mas o aluno continua "a receber" (e vira pagamento duplicado)
+            com.aracabeach.domain.aula.AulaParticipante gravado = atual.getParticipantes().stream()
+                    .filter(x -> x.getId() != null)
+                    .max(java.util.Comparator.comparing(com.aracabeach.domain.aula.AulaParticipante::getId))
+                    .orElse(p);
+            receber(atual, gravado, pr.formaPagamento());
+            aulaRepository.saveAndFlush(atual);
         }
     }
 
