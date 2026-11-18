@@ -43,6 +43,7 @@ export default function Financeiro() {
   const [carregandoCobrancas, setCarregandoCobrancas] = useState(true)
   const [cobrancaSelecionada, setCobrancaSelecionada] = useState(null)
   const [formaCobranca, setFormaCobranca] = useState('PIX')
+  const [valorCobranca, setValorCobranca] = useState('')
 
   async function carregar() {
     setCarregando(true)
@@ -128,11 +129,13 @@ export default function Financeiro() {
       descricao: `${m.turmaNome} - ${m.referenciaMes}`, valor: m.valor,
     })
     setFormaCobranca(m.formaPagamento || 'PIX')
+    setValorCobranca(String(m.valor ?? ''))
   }
 
   function abrirPagamentoCobranca(cobranca) {
     setCobrancaSelecionada(cobranca)
     setFormaCobranca('PIX')
+    setValorCobranca(String(cobranca.valor ?? ''))
   }
 
   async function handlePagarCobranca(e) {
@@ -140,6 +143,11 @@ export default function Financeiro() {
     const cobranca = cobrancaSelecionada
     try {
       const dados = { formaPagamento: formaCobranca }
+      const novoValor = Number(String(valorCobranca).replace(',', '.'))
+      if (cobranca.tipo !== 'PACOTE' && valorCobranca !== '' && novoValor !== Number(cobranca.valor)) {
+        if (!(novoValor > 0)) { setErro('Informe um valor maior que zero.'); return }
+        dados.valor = novoValor // promocao / desconto
+      }
       if (cobranca.tipo === 'MENSALIDADE') {
         await mensalidadeService.registrarPagamento(cobranca.pagamentoId, dados)
       } else if (cobranca.tipo === 'MATRICULA_CLIENTE') {
@@ -459,6 +467,22 @@ export default function Financeiro() {
               {TIPO_LABEL[cobrancaSelecionada.tipo] || cobrancaSelecionada.tipo} · {cobrancaSelecionada.descricao} ·
               {' '}R$ {Number(cobrancaSelecionada.valor).toFixed(2)}
             </p>
+            {cobrancaSelecionada.tipo !== 'PACOTE' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Valor cobrado (R$)</label>
+                <input
+                  type="number" step="0.01" min="0.01" inputMode="decimal"
+                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
+                  value={valorCobranca}
+                  onChange={(e) => setValorCobranca(e.target.value)}
+                />
+                {valorCobranca !== '' && Number(valorCobranca) !== Number(cobrancaSelecionada.valor) && (
+                  <p className="text-xs text-amber-700 mt-1">
+                    Valor diferente do combinado (R$ {Number(cobrancaSelecionada.valor).toFixed(2)}): será registrado como promoção.
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Forma de pagamento</label>
               <select

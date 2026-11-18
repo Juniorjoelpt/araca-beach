@@ -168,6 +168,10 @@ public class MatriculaService {
             throw new IllegalArgumentException("Essa cobranca ja foi paga.");
         }
 
+        java.math.BigDecimal valorOriginal = aplicarValorInformado(pagamento.getValor(), request.valor());
+        if (valorOriginal != null) {
+            pagamento.setValor(request.valor());
+        }
         pagamento.setPago(true);
         pagamento.setDataPagamento(LocalDate.now());
         pagamento.setFormaPagamento(request.formaPagamento());
@@ -183,7 +187,8 @@ public class MatriculaService {
                 .ehSinal(false)
                 .origem("MATRICULA")
                 .descricao("Aula em turma " + pagamento.getMatricula().getTurma().getNome() + " " + pagamento.getReferenciaMes()
-                        + " - " + pagamento.getMatricula().getCliente().getNome())
+                        + " - " + pagamento.getMatricula().getCliente().getNome()
+                        + (valorOriginal != null ? " (promocao: de R$ " + valorOriginal.setScale(2, java.math.RoundingMode.HALF_UP) + ")" : ""))
                 .operador(com.aracabeach.config.OperadorAtual.login())
                 .build();
         pagamentoRepository.save(pagamentoCaixa);
@@ -285,5 +290,14 @@ public class MatriculaService {
                 p.getDataPagamento(),
                 p.getFormaPagamento()
         );
+    }
+
+    /** Aplica o valor promocional informado no recebimento (se houver) e devolve o valor original. */
+    private static java.math.BigDecimal aplicarValorInformado(java.math.BigDecimal atual, java.math.BigDecimal informado) {
+        if (informado == null || informado.compareTo(atual) == 0) return null;
+        if (informado.signum() <= 0) {
+            throw new IllegalArgumentException("O valor cobrado deve ser maior que zero.");
+        }
+        return atual;
     }
 }
