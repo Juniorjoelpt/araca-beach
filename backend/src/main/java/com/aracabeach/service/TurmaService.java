@@ -26,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TurmaService {
 
+    private final com.aracabeach.repository.DiaLiberadoRepository diaLiberadoRepository;
     private final TurmaRepository turmaRepository;
     private final ProfessorRepository professorRepository;
     private final QuadraRepository quadraRepository;
@@ -113,6 +114,7 @@ public class TurmaService {
                 java.time.LocalDateTime inicio = java.time.LocalDateTime.of(data, h.getHoraInicio());
                 java.time.LocalDateTime fim = java.time.LocalDateTime.of(data, h.getHoraFim());
                 if (!fim.isAfter(agora)) continue;
+                if (diaLiberadoRepository.existsByData(data)) continue; // feriado liberado
                 bloqueioRepository.save(com.aracabeach.domain.regra.BloqueioQuadra.builder()
                         .quadra(turma.getQuadra())
                         .inicio(inicio)

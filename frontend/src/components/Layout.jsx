@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, MapPin, Users, Wallet,
-  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp, Ticket, Menu, X,
+  GraduationCap, Trophy, ShoppingBag, UserCog, LogOut, Receipt, FileText, Boxes, CalendarCheck2, Package, SlidersHorizontal, Percent, ShieldCheck, LineChart, UtensilsCrossed, CalendarClock, ChefHat, History, TrendingUp, Ticket, Menu, X, CalendarOff,
 } from 'lucide-react'
 import AvisoVencimentos from './AvisoVencimentos.jsx'
 import { authService } from '../services/authService.js'
@@ -34,6 +34,7 @@ const menuBase = [
   { to: '/estoque', label: 'Estoque', icon: Boxes, soAdmin: true },
   { to: '/comissoes', label: 'Comissões', icon: Percent, soAdmin: true },
   { to: '/regras', label: 'Regras de reserva', icon: SlidersHorizontal, soAdmin: true },
+  { to: '/feriados', label: 'Feriados / dia liberado', icon: CalendarOff, soAdmin: true },
   { to: '/gerencial', label: 'Painel gerencial', icon: LineChart, soAdmin: true },
   { to: '/auditoria', label: 'Auditoria', icon: ShieldCheck, soAdmin: true },
   { to: '/usuarios', label: 'Usuários', icon: UserCog, soAdmin: true },

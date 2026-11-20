@@ -64,6 +64,7 @@ public class MatriculaClienteService {
 
     private final MatriculaClienteRepository matriculaClienteRepository;
     private final MatriculaClienteHorarioRepository horarioRepository;
+    private final com.aracabeach.repository.DiaLiberadoRepository diaLiberadoRepository;
     private final ReservaGeradaPorMatriculaRepository reservaGeradaRepository;
     private final PagamentoMatriculaClienteRepository pagamentoRepository;
     private final ClienteRepository clienteRepository;
@@ -142,6 +143,9 @@ public class MatriculaClienteService {
             LocalDateTime inicio = LocalDateTime.of(data, horario.getHoraInicio());
             LocalDateTime fim = LocalDateTime.of(data, horario.getHoraFim());
 
+            if (diaLiberadoRepository.existsByData(data)) {
+                continue; // feriado liberado
+            }
             boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
                     || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
             if (conflito) {

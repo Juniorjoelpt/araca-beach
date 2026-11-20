@@ -29,4 +29,7 @@ public interface BloqueioQuadraRepository extends JpaRepository<BloqueioQuadra, 
     void deleteByTurmaIdAndFimAfter(Long turmaId, LocalDateTime agora);
 
     void deleteByTurmaId(Long turmaId);
+
+    /** Bloqueios de turma que comecam no periodo [inicio, fim). */
+    List<BloqueioQuadra> findByTurmaIdIsNotNullAndInicioGreaterThanEqualAndInicioLessThan(LocalDateTime inicio, LocalDateTime fim);
 }

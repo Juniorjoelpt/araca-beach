@@ -42,6 +42,7 @@ public class ReservaRecorrenteService {
     private final QuadraRepository quadraRepository;
     private final ClienteRepository clienteRepository;
     private final com.aracabeach.repository.BloqueioQuadraRepository bloqueioQuadraRepository;
+    private final com.aracabeach.repository.DiaLiberadoRepository diaLiberadoRepository;
 
     @Transactional
     public ReservaRecorrenteResponse criar(ReservaRecorrenteRequest request) {
@@ -83,6 +84,9 @@ public class ReservaRecorrenteService {
             LocalDateTime inicio = LocalDateTime.of(data, request.horaInicio());
             LocalDateTime fim = LocalDateTime.of(data, request.horaFim());
 
+            if (diaLiberadoRepository.existsByData(data)) {
+                continue; // feriado liberado: a recorrencia nao ocupa esse dia
+            }
             boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
                     || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();
             if (conflito) {
@@ -167,6 +171,9 @@ public class ReservaRecorrenteService {
             for (LocalDate data = ultimaData.plusWeeks(1); !data.isAfter(limiteDesejado); data = data.plusWeeks(1)) {
                 LocalDateTime inicio = LocalDateTime.of(data, recorrencia.getHoraInicio());
                 LocalDateTime fim = LocalDateTime.of(data, recorrencia.getHoraFim());
+                if (diaLiberadoRepository.existsByData(data)) {
+                    continue; // feriado liberado
+                }
 
                 boolean conflito = !reservaRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty()
                     || !bloqueioQuadraRepository.findConflitantes(quadra.getId(), inicio, fim).isEmpty();

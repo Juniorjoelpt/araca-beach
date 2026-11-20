@@ -32,6 +32,7 @@ import PortalDayUse from './pages/portal/PortalDayUse.jsx'
 import PortalConta from './pages/portal/PortalConta.jsx'
 import Pacotes from './pages/Pacotes.jsx'
 import Regras from './pages/Regras.jsx'
+import DiasLiberados from './pages/DiasLiberados.jsx'
 import Comissoes from './pages/Comissoes.jsx'
 import Gerencial from './pages/Gerencial.jsx'
 import DayUse from './pages/DayUse.jsx'
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/mensalidades" element={<Mensalidades />} />
         <Route path="/pacotes" element={<Pacotes />} />
         <Route path="/regras" element={<AdminRoute><Regras /></AdminRoute>} />
+        <Route path="/feriados" element={<AdminRoute><DiasLiberados /></AdminRoute>} />
         <Route path="/comissoes" element={<AdminRoute><Comissoes /></AdminRoute>} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/dayuse" element={<DayUse />} />

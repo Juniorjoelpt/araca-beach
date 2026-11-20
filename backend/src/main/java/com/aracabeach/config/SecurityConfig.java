@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                         // Estorno de aula avulsa paga (retira o valor do caixa): so ADMIN.
                         .requestMatchers(HttpMethod.DELETE, "/api/aulas/*/estornar").hasRole("ADMIN")
+                        // Liberar dia (feriado) cancela reservas fixas e turmas: so ADMIN.
+                        .requestMatchers("/api/dias-liberados/**").hasRole("ADMIN")
                         // Pagamentos fica aberto para ADMIN e RECEPCAO (Operador): e a tela
                         // onde a recepcao confirma o pagamento de uma reserva/cobranca no
                         // balcao, entao bloquear para RECEPCAO inviabilizaria o uso diario.
