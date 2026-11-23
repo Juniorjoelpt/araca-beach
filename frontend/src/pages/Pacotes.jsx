@@ -6,6 +6,7 @@ import { clienteService } from '../services/clienteService.js'
 import { professorService } from '../services/professorService.js'
 import { quadraService } from '../services/quadraService.js'
 import { useModalidades } from '../utils/useModalidades.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const FORMAS = [
   { value: 'PIX', label: 'Pix' },
@@ -271,7 +272,7 @@ export default function Pacotes() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label>
-              <input type="number" min="0.01" step="0.01" className={input} value={formPlano.valor} onChange={(e) => setFormPlano({ ...formPlano, valor: e.target.value })} required />
+              <MoneyInput min="0.01" className={input} value={formPlano.valor} onChange={(e) => setFormPlano({ ...formPlano, valor: e.target.value })} required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Validade (dias)</label>

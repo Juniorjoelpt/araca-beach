@@ -3,6 +3,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { Receipt, Repeat } from 'lucide-react'
 import { despesaService } from '../services/despesaService.js'
 import { despesaRecorrenteService } from '../services/despesaRecorrenteService.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const CATEGORIAS = [
   { value: 'AGUA', label: 'Água' },
@@ -178,8 +179,7 @@ export default function Despesas() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label>
-            <input
-              type="number" step="0.01" min="0.01"
+            <MoneyInput min="0.01"
               className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
               value={formRecorrente.valor}
               onChange={(e) => setFormRecorrente({ ...formRecorrente, valor: e.target.value })}
@@ -240,8 +240,7 @@ export default function Despesas() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label>
-          <input
-            type="number" step="0.01" min="0.01"
+          <MoneyInput min="0.01"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             value={form.valor}
             onChange={(e) => setForm({ ...form, valor: e.target.value })}

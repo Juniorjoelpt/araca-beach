@@ -5,6 +5,7 @@ import { mensalidadeService, matriculaClienteService } from '../services/mensali
 import { recorrenciaService } from '../services/recorrenciaService.js'
 import { clienteService } from '../services/clienteService.js'
 import { quadraService } from '../services/quadraService.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const FORMAS = [
   { value: 'PIX', label: 'Pix' },
@@ -284,8 +285,7 @@ export default function Mensalidades() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Valor mensal (R$)</label>
-            <input
-              type="number" step="0.01" min="0.01"
+            <MoneyInput min="0.01"
               className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
               value={form.valorMensal}
               onChange={(e) => setForm({ ...form, valorMensal: e.target.value })}
@@ -414,8 +414,7 @@ export default function Mensalidades() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Valor mensal total (R$)</label>
-                  <input
-                    type="number" step="0.01" min="0.01"
+                  <MoneyInput min="0.01"
                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
                     value={formMatricula.valorMensal}
                     onChange={(e) => setFormMatricula({ ...formMatricula, valorMensal: e.target.value })}

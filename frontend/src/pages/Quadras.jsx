@@ -3,6 +3,7 @@ import { quadraService } from '../services/quadraService.js'
 import { modalidadeService } from '../services/modalidadeService.js'
 import { useModalidades } from '../utils/useModalidades.js'
 import { MapPin, Plus, Pencil, Trash2, Check, X } from 'lucide-react'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const vazio = { nome: '', tipo: '', valorHora: '', capacidade: '' }
 const msgErro = (err, padrao) => err?.response?.data?.mensagem || padrao
@@ -187,9 +188,7 @@ export default function Quadras() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Valor/hora (R$)</label>
-          <input
-            type="number"
-            step="0.01"
+          <MoneyInput
             min="0"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             value={form.valorHora}

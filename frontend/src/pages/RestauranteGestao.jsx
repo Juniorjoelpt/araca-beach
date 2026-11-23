@@ -4,6 +4,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ChefHat, Plus, X, Pause, Play, Pencil, FlaskConical, Search } from 'lucide-react'
 import { restauranteService } from '../services/restauranteService.js'
 import HistoricoPedidos from '../components/HistoricoPedidos.jsx'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const brl = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`
 const num = (v, casas = 3) => Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: casas })
@@ -211,7 +212,7 @@ function ItemModal({ item, categorias, onFechar, onSalvo }) {
           placeholder="Código de barras (clique aqui e leia com o leitor)" inputMode="numeric" className="border rounded-lg px-3 py-2 w-full" />
         <textarea value={f.descricao} onChange={(e) => set('descricao', e.target.value)} placeholder="Descrição / ingredientes" rows={2} className="border rounded-lg px-3 py-2 w-full" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <input value={f.preco} onChange={(e) => set('preco', e.target.value)} placeholder="Preço (R$)" inputMode="decimal" className="border rounded-lg px-3 py-2" />
+          <MoneyInput value={f.preco} onChange={(e) => set('preco', e.target.value)} placeholder="Preço (R$)" className="border rounded-lg px-3 py-2" />
           <input value={f.porcao} onChange={(e) => set('porcao', e.target.value)} placeholder="Porção (ex.: Serve 2)" className="border rounded-lg px-3 py-2" />
           <select value={f.praca} onChange={(e) => set('praca', e.target.value)} className="border rounded-lg px-3 py-2"><option value="COZINHA">Cozinha</option><option value="BAR">Bar</option></select>
           <input value={f.tempoPreparoMin} onChange={(e) => set('tempoPreparoMin', e.target.value)} placeholder="Preparo (min)" inputMode="numeric" className="border rounded-lg px-3 py-2" />
@@ -266,7 +267,7 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
                 <option value="">Escolha o insumo</option>
                 {insumos.filter((i) => i.ativo).map((i) => <option key={i.id} value={i.id}>{i.nome} ({porEmb(i) > 1 ? `un de ${BASE[i.unidade]} c/ ${porEmb(i)}` : BASE[i.unidade]})</option>)}
               </select>
-              <input value={l.valor} onChange={(e) => setLinhas((x) => x.map((y, i) => (i === idx ? { ...y, valor: e.target.value } : y)))} inputMode="decimal" className="border rounded-lg px-2 py-1.5 w-24 text-sm" placeholder="qtd" />
+              <input inputMode="decimal" value={l.valor} onChange={(e) => setLinhas((x) => x.map((y, i) => (i === idx ? { ...y, valor: e.target.value } : y)))} className="border rounded-lg px-2 py-1.5 w-24 text-sm" placeholder="qtd" />
               <span className="text-xs text-gray-500 w-12">{ins ? (porEmb(ins) > 1 ? 'un' : MENOR[ins.unidade]) : ''}</span>
               <button onClick={() => setLinhas((x) => x.filter((_, i) => i !== idx))} className="text-red-500"><X size={16} /></button>
             </div>
@@ -276,7 +277,7 @@ function FichaModal({ item, insumos, onFechar, onSalvo }) {
       <button onClick={() => setLinhas((x) => [...x, { insumoId: '', valor: '' }])} className="text-sm underline text-araca-azul mt-2">+ adicionar insumo</button>
       <div className="mt-4 border-t pt-3">
         <label className="text-sm font-medium text-araca-azul">Custo de produção extra (R$ por unidade)</label>
-        <input value={extra} onChange={(e) => setExtra(e.target.value)} inputMode="decimal" placeholder="ex.: 2,50" className="border rounded-lg px-3 py-2 w-full text-sm mt-1" />
+        <MoneyInput value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="ex.: 2,50" className="border rounded-lg px-3 py-2 w-full text-sm mt-1" />
         <p className="text-[11px] text-gray-500 mt-1">Para comida feita na casa: mão de obra, gás, embalagem etc. Soma ao custo dos insumos acima. Pode usar sozinho, sem insumos, quando você só sabe o custo final do prato.</p>
       </div>
       {insumos.length === 0 && <p className="text-xs text-amber-700 mt-2">Cadastre os insumos na aba "Insumos (estoque)" primeiro.</p>}
@@ -358,13 +359,13 @@ function InsumoModal({ insumo, onFechar, onSalvo }) {
           <option value="KG">Quilo (kg)</option><option value="L">Litro (L)</option><option value="UN">Unidade</option><option value="FARDO">Fardo</option><option value="PACOTE">Pacote</option>
         </select>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div><label className="text-xs text-gray-600">Estoque mínimo ({BASE[f.unidade]})</label><input value={f.estoqueMinimo} onChange={(e) => set('estoqueMinimo', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
+          <div><label className="text-xs text-gray-600">Estoque mínimo ({BASE[f.unidade]})</label><input inputMode="decimal" value={f.estoqueMinimo} onChange={(e) => set('estoqueMinimo', e.target.value)} className="border rounded-lg px-3 py-2 w-full" /></div>
           <div><label className="text-xs text-gray-600">Custo (R$ por {BASE[f.unidade]})</label><input value={f.custoUnitario} onChange={(e) => set('custoUnitario', e.target.value)} inputMode="decimal" className="border rounded-lg px-3 py-2 w-full" /></div>
         </div>
         {(f.unidade === 'FARDO' || f.unidade === 'PACOTE') && (
           <div>
             <label className="text-xs text-gray-600">Unidades por {BASE[f.unidade]} (ex.: 12 latas)</label>
-            <input value={f.unidadesPorEmbalagem} onChange={(e) => set('unidadesPorEmbalagem', e.target.value)} inputMode="decimal" placeholder="opcional" className="border rounded-lg px-3 py-2 w-full" />
+            <input inputMode="decimal" value={f.unidadesPorEmbalagem} onChange={(e) => set('unidadesPorEmbalagem', e.target.value)} placeholder="opcional" className="border rounded-lg px-3 py-2 w-full" />
             <p className="text-[11px] text-gray-500 mt-1">Com isso, a ficha técnica usa unidades (1 lata) e a venda baixa 1/{f.unidadesPorEmbalagem || 'N'} do {BASE[f.unidade]} e custa o custo do {BASE[f.unidade]} dividido por {f.unidadesPorEmbalagem || 'N'}. Revise as fichas que já usam este insumo.</p>
           </div>
         )}
@@ -403,7 +404,7 @@ function MovimentoModal({ insumo, onFechar, onSalvo }) {
       <p className="text-xs text-gray-500 mb-2">Estoque atual: <strong>{num(insumo.estoqueAtual)} {BASE[insumo.unidade]}</strong>. Informe a quantidade em {MENOR[insumo.unidade]}.</p>
       <div className="space-y-2 text-sm">
         <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="border rounded-lg px-3 py-2 w-full">{Object.entries(rotulos).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-        <input value={qtd} onChange={(e) => setQtd(e.target.value)} inputMode="decimal" placeholder={tipo === 'AJUSTE' ? `Novo estoque total (${MENOR[insumo.unidade]})` : `Quantidade (${MENOR[insumo.unidade]})`} className="border rounded-lg px-3 py-2 w-full" />
+        <input inputMode="decimal" value={qtd} onChange={(e) => setQtd(e.target.value)} placeholder={tipo === 'AJUSTE' ? `Novo estoque total (${MENOR[insumo.unidade]})` : `Quantidade (${MENOR[insumo.unidade]})`} className="border rounded-lg px-3 py-2 w-full" />
         {tipo === 'ENTRADA' && <input value={custo} onChange={(e) => setCusto(e.target.value)} inputMode="decimal" placeholder={`Novo custo (R$ por ${BASE[insumo.unidade]}) — opcional`} className="border rounded-lg px-3 py-2 w-full" />}
         <input value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Observação (fornecedor, motivo...)" className="border rounded-lg px-3 py-2 w-full" />
         {erro && <p className="text-red-600">{erro}</p>}

@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { SlidersHorizontal, Trash2 } from 'lucide-react'
 import { regrasService } from '../services/regrasService.js'
 import { quadraService } from '../services/quadraService.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const DIAS = [
   { value: 'MONDAY', label: 'Seg' },
@@ -248,7 +249,7 @@ export default function Regras() {
             </div>
             <div className="sm:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Valor/hora (R$)</label>
-              <input type="number" min="0.01" step="0.01" className={input} value={formPreco.valorHora}
+              <MoneyInput min="0.01" className={input} value={formPreco.valorHora}
                 onChange={(e) => setFormPreco({ ...formPreco, valorHora: e.target.value })} required />
             </div>
             <button type="submit" className="bg-araca-verde text-araca-azul font-semibold py-2 rounded-lg hover:opacity-90 transition">Adicionar</button>

@@ -6,6 +6,7 @@ import { Gift, UtensilsCrossed, Plus, Minus, Printer, X, Receipt, Users, Search,
 import { restauranteService } from '../services/restauranteService.js'
 import { clienteService } from '../services/clienteService.js'
 import { imprimirPedido, imprimirConta, imprimirCancelamento, imprimirCancelamentoComanda } from '../utils/ticketTermico.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const FORMAS = [
   { value: 'PIX', label: 'Pix' },
@@ -563,7 +564,7 @@ export default function Restaurante() {
                 {Number(selecionada.restante) > 0 && (
                   <div className="mt-2 space-y-2">
                     <div className="flex gap-2 flex-wrap">
-                      <input value={valorPag} onChange={(e) => setValorPag(e.target.value)} inputMode="decimal" className="border rounded px-2 py-1 w-24 text-sm" />
+                      <MoneyInput value={valorPag} onChange={(e) => setValorPag(e.target.value)} className="border rounded px-2 py-1 w-24 text-sm" />
                       <select value={formaPag} onChange={(e) => setFormaPag(e.target.value)} className="border rounded px-2 py-1 text-sm flex-1">
                         {FORMAS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                       </select>

@@ -8,6 +8,7 @@ import { clienteService } from '../services/clienteService.js'
 import { GraduationCap, Users2 } from 'lucide-react'
 import { useModalidades } from '../utils/useModalidades.js'
 import { blocosParaHorarios, horariosParaBlocos, resumoHorarios } from '../utils/horariosTurma.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const DIAS_SEMANA = [
   { value: 'MONDAY', label: 'Segunda' },
@@ -571,8 +572,7 @@ export default function Aulas() {
               <option value="POR_HORA">Recebe por hora/aula</option>
             </select>
             {formProfessor.tipoRemuneracao === 'POR_HORA' ? (
-              <input
-                type="number" step="0.01" min="0" required
+              <MoneyInput min="0" required
                 className="w-36 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
                 placeholder="R$ por hora"
                 value={formProfessor.valorHora}
@@ -670,9 +670,7 @@ export default function Aulas() {
               onChange={(e) => setFormAula({ ...formAula, alunos: e.target.value })}
             />
           ))}
-          <input
-            type="number"
-            step="0.01"
+          <MoneyInput
             min="0"
             className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
             placeholder="Valor padrão por aluno (R$)"
@@ -690,8 +688,7 @@ export default function Aulas() {
                   onChange={(e) => setNovoAluno({ ...novoAluno, nome: e.target.value })}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); adicionarAlunoNaLista() } }}
                 />
-                <input
-                  type="number" step="0.01" min="0"
+                <MoneyInput min="0"
                   className="w-28 border rounded-lg px-3 py-2"
                   placeholder={formAula.valor ? `R$ ${Number(formAula.valor).toFixed(2)}` : 'Valor'}
                   value={novoAluno.valor}
@@ -802,7 +799,7 @@ export default function Aulas() {
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         <input className="border rounded px-2 py-1 flex-1 min-w-[7rem]" placeholder="Nome do aluno" value={addAluno.nome}
                           onChange={(e) => setAddAluno({ ...addAluno, nome: e.target.value })} />
-                        <input type="number" step="0.01" min="0" className="border rounded px-2 py-1 w-24"
+                        <MoneyInput min="0" className="border rounded px-2 py-1 w-24"
                           placeholder={a.valorPorAluno ? `R$ ${Number(a.valorPorAluno).toFixed(2)}` : 'Valor'} value={addAluno.valor}
                           onChange={(e) => setAddAluno({ ...addAluno, valor: e.target.value })} />
                         <label className="flex items-center gap-1 text-xs">
@@ -1061,9 +1058,7 @@ export default function Aulas() {
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Valor mensal (R$)</label>
-                          <input
-                            type="number"
-                            step="0.01"
+                          <MoneyInput
                             min="0.01"
                             className="w-32 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-araca-verde"
                             value={formMatricula.valorMensal}

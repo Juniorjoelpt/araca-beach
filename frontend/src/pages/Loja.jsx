@@ -4,6 +4,7 @@ import { produtoService } from '../services/produtoService.js'
 import { comandaService } from '../services/comandaService.js'
 import { imprimirComprovanteLoja } from '../utils/ticketTermico.js'
 import { Gift, ShoppingBag, Plus, Pencil, Trash2, X, Wine, UtensilsCrossed, Dumbbell, Package, Printer } from 'lucide-react'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const CATEGORIAS = [
   { value: 'BEBIDA', label: 'Bebida', icon: Wine },
@@ -440,8 +441,7 @@ export default function Loja() {
               <div className="flex gap-3 flex-wrap">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label>
-                  <input
-                    type="number" step="0.01" min="0"
+                  <MoneyInput min="0"
                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
                     value={formProduto.preco}
                     onChange={(e) => setFormProduto({ ...formProduto, preco: e.target.value })}
@@ -450,8 +450,7 @@ export default function Loja() {
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Custo (R$)</label>
-                  <input
-                    type="number" step="0.01" min="0"
+                  <MoneyInput min="0"
                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
                     value={formProduto.custo}
                     onChange={(e) => setFormProduto({ ...formProduto, custo: e.target.value })}

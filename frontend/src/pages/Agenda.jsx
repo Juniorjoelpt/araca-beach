@@ -8,6 +8,7 @@ import { reservaService } from '../services/reservaService.js'
 import { financeiroService } from '../services/financeiroService.js'
 import { recorrenciaService } from '../services/recorrenciaService.js'
 import { turmaService } from '../services/turmaService.js'
+import MoneyInput from '../components/MoneyInput.jsx'
 
 const DURACOES = [
   { minutos: 30, label: '30 min' },
@@ -625,8 +626,7 @@ export default function Agenda() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Valor personalizado (opcional)
                   </label>
-                  <input
-                    type="number" min="0" step="0.01" inputMode="decimal"
+                  <MoneyInput min="0"
                     placeholder={precoPrevisto ? `Padrão: R$ ${Number(precoPrevisto.valorTotal).toFixed(2)}` : 'Deixe vazio para usar o valor da quadra'}
                     className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-araca-verde"
                     value={form.valorPersonalizado}
