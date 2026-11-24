@@ -48,6 +48,7 @@ public class MatriculaService {
     private final ClienteRepository clienteRepository;
     private final PagamentoRepository pagamentoRepository;
     private final ComissaoService comissaoService;
+    private final AuditoriaService auditoria;
 
     @Transactional
     public MatriculaResponse criar(MatriculaRequest request) {
@@ -121,6 +122,55 @@ public class MatriculaService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada: " + id));
         matricula.setAtiva(false);
         matriculaRepository.save(matricula);
+    }
+
+    /**
+     * Troca o plano do aluno (ex.: 1x na semana para 2x na semana): move a mesma matricula para outra
+     * turma com o novo valor mensal. O historico de pagamentos fica na matricula. Se a cobranca do mes
+     * atual ainda esta pendente, ela passa para o novo valor; se ja foi paga, o novo valor vale a
+     * partir do proximo mes. Pagamentos ja feitos e suas comissoes nao mudam.
+     */
+    @Transactional
+    public MatriculaResponse trocarPlano(Long id, com.aracabeach.dto.TrocarPlanoRequest request) {
+        Matricula matricula = matriculaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada: " + id));
+        if (!matricula.isAtiva()) {
+            throw new IllegalArgumentException("Esta matricula esta cancelada.");
+        }
+        Turma nova = turmaRepository.findById(request.turmaId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Turma nao encontrada: " + request.turmaId()));
+        Turma anterior = matricula.getTurma();
+        if (nova.getId().equals(anterior.getId())) {
+            throw new IllegalArgumentException("O aluno ja esta nessa turma.");
+        }
+        if (!nova.isAtiva()) {
+            throw new IllegalArgumentException("Nao e possivel trocar para uma turma inativa.");
+        }
+        matriculaRepository.findByTurmaIdAndClienteIdAndAtivaTrue(nova.getId(), matricula.getCliente().getId())
+                .ifPresent(m -> {
+                    throw new IllegalArgumentException("Este cliente ja esta matriculado na turma escolhida.");
+                });
+        if (nova.getCapacidadeMaxima() != null
+                && matriculaRepository.findByTurmaIdAndAtivaTrue(nova.getId()).size() >= nova.getCapacidadeMaxima()) {
+            throw new IllegalArgumentException(
+                    "A turma escolhida ja atingiu a capacidade maxima de " + nova.getCapacidadeMaxima() + " aluno(s).");
+        }
+
+        java.math.BigDecimal valorAnterior = matricula.getValorMensal();
+        matricula.setTurma(nova);
+        matricula.setValorMensal(request.valorMensal());
+        matricula = matriculaRepository.save(matricula);
+
+        pagamentoMatriculaRepository.findByMatriculaIdAndReferenciaMes(matricula.getId(), YearMonth.now().toString())
+                .filter(p -> !p.isPago())
+                .ifPresent(p -> {
+                    p.setValor(request.valorMensal());
+                    pagamentoMatriculaRepository.save(p);
+                });
+
+        auditoria.detalhe("Troca de plano da matricula #" + matricula.getId() + " (" + matricula.getCliente().getNome()
+                + "): " + anterior.getNome() + " R$ " + valorAnterior + " -> " + nova.getNome() + " R$ " + request.valorMensal());
+        return paraResponse(matricula);
     }
 
     @Transactional

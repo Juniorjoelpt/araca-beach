@@ -40,6 +40,12 @@ public class MatriculaController {
         return matriculaService.financeiroDoMes();
     }
 
+    @PatchMapping("/{id}/trocar-plano")
+    public MatriculaResponse trocarPlano(@PathVariable Long id,
+                                         @Valid @RequestBody com.aracabeach.dto.TrocarPlanoRequest request) {
+        return matriculaService.trocarPlano(id, request);
+    }
+
     @PatchMapping("/{id}/forma-pagamento")
     public MatriculaResponse atualizarFormaPagamento(@PathVariable Long id,
             @RequestBody java.util.Map<String, com.aracabeach.domain.financeiro.FormaPagamento> corpo) {

@@ -17,6 +17,7 @@ export const matriculaService = {
   atualizarFormaPagamento: (id, formaPagamento) =>
     api.patch(`/matriculas/${id}/forma-pagamento`, { formaPagamento }).then((r) => r.data),
   cancelar: (id) => api.patch(`/matriculas/${id}/cancelar`).then((r) => r.data),
+  trocarPlano: (id, dados) => api.patch(`/matriculas/${id}/trocar-plano`, dados).then((r) => r.data),
   listarPorCliente: (clienteId) => api.get(`/matriculas/cliente/${clienteId}`).then((r) => r.data),
   listarPagamentos: (id) => api.get(`/matriculas/${id}/pagamentos`).then((r) => r.data),
   registrarPagamento: (pagamentoId, dados) =>

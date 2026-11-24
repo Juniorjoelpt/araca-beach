@@ -96,6 +96,7 @@ export default function Aulas() {
   }, [ESPECIALIDADES]) // eslint-disable-line react-hooks/exhaustive-deps
   const [matriculasPorTurma, setMatriculasPorTurma] = useState({})
   const [pagamentosPorMatricula, setPagamentosPorMatricula] = useState({})
+  const [trocaPlano, setTrocaPlano] = useState(null) // { matricula, turmaId, valor }
   const [formMatricula, setFormMatricula] = useState({ clienteId: '', valorMensal: '', diaVencimento: 10, formaPagamento: 'PIX' })
 
   async function carregarTurmas() {
@@ -230,6 +231,27 @@ export default function Aulas() {
       }))
     } catch (err) {
       setErro(err.response?.data?.mensagem || 'Não foi possível cancelar a matrícula.')
+    }
+  }
+
+  async function handleTrocarPlano(e) {
+    e.preventDefault()
+    if (!trocaPlano || ocupadoRef.current) return
+    const { matricula, turmaId, valor } = trocaPlano
+    if (!turmaId) { setErro('Escolha o novo plano (turma).'); return }
+    if (!(Number(valor) > 0)) { setErro('Informe o novo valor mensal.'); return }
+    ocupadoRef.current = true
+    setErro('')
+    try {
+      await matriculaService.trocarPlano(matricula.id, { turmaId: Number(turmaId), valorMensal: Number(valor) })
+      setTrocaPlano(null)
+      carregarTurmas()
+      await carregarMatriculasDaTurma(matricula.turmaId)
+      if (matriculasPorTurma[Number(turmaId)]) await carregarMatriculasDaTurma(Number(turmaId))
+    } catch (err) {
+      setErro(err.response?.data?.mensagem || 'Não foi possível trocar o plano.')
+    } finally {
+      ocupadoRef.current = false
     }
   }
 
@@ -1117,13 +1139,63 @@ export default function Aulas() {
                                   </select>
                                 </label>
                               </div>
-                              <button
-                                onClick={() => handleCancelarMatricula(m)}
-                                className="text-red-600 text-xs hover:underline"
-                              >
-                                Cancelar matrícula
-                              </button>
+                              <div className="flex flex-col items-end gap-1">
+                                <button
+                                  onClick={() => setTrocaPlano({ matricula: m, turmaId: '', valor: String(m.valorMensal) })}
+                                  className="text-araca-azul text-xs font-medium hover:underline"
+                                >
+                                  Trocar plano
+                                </button>
+                                <button
+                                  onClick={() => handleCancelarMatricula(m)}
+                                  className="text-red-600 text-xs hover:underline"
+                                >
+                                  Cancelar matrícula
+                                </button>
+                              </div>
                             </div>
+                            {trocaPlano?.matricula.id === m.id && (() => {
+                              const mesAtual = format(new Date(), 'yyyy-MM')
+                              const mesPago = (pagamentosPorMatricula[m.id] || []).some((p) => p.referenciaMes === mesAtual && p.pago)
+                              return (
+                                <form onSubmit={handleTrocarPlano} className="mt-3 pt-3 border-t space-y-2">
+                                  <p className="text-xs font-semibold text-araca-azul">Trocar o plano de {m.clienteNome}</p>
+                                  <select
+                                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                                    value={trocaPlano.turmaId}
+                                    onChange={(e) => setTrocaPlano({ ...trocaPlano, turmaId: e.target.value })}
+                                    required
+                                  >
+                                    <option value="">Novo plano (turma)...</option>
+                                    {turmas.filter((x) => x.id !== m.turmaId && x.ativa !== false).map((x) => (
+                                      <option key={x.id} value={x.id}>
+                                        {x.nome} · {resumoHorarios(x.horarios?.length ? x.horarios : [{ diaSemana: x.diaSemana, horaInicio: x.horaInicio, horaFim: x.horaFim }])}
+                                        {x.capacidadeMaxima ? ` · ${x.matriculasAtivas}/${x.capacidadeMaxima} vagas` : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="flex items-end gap-2 flex-wrap">
+                                    <div>
+                                      <label className="block text-xs text-gray-500 mb-1">Novo valor mensal (R$)</label>
+                                      <MoneyInput
+                                        min="0.01" required
+                                        className="w-36 border rounded-lg px-3 py-2 text-sm"
+                                        value={trocaPlano.valor}
+                                        onChange={(e) => setTrocaPlano({ ...trocaPlano, valor: e.target.value })}
+                                      />
+                                    </div>
+                                    <button type="submit" className="bg-araca-verde text-araca-azul font-semibold text-sm px-3 py-2 rounded-lg hover:opacity-90">Confirmar troca</button>
+                                    <button type="button" onClick={() => setTrocaPlano(null)} className="text-sm text-gray-500 hover:underline px-2 py-2">Cancelar</button>
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    {mesPago
+                                      ? 'A mensalidade deste mês já está paga: o novo valor vale a partir do próximo mês.'
+                                      : 'A mensalidade deste mês ainda não foi paga: ela passa para o novo valor.'}
+                                    {' '}Os pagamentos já feitos e o histórico não mudam.
+                                  </p>
+                                </form>
+                              )
+                            })()}
                             {(pagamentosPorMatricula[m.id] || []).length > 0 && (
                               <ul className="mt-2 pt-2 border-t space-y-1">
                                 {(pagamentosPorMatricula[m.id] || []).map((p) => (
